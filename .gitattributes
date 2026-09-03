@@ -1,2 +1,7 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Este repositório guarda dados que precisam voltar byte a byte de um clone.
+# Os CSVs são UTF-8 com BOM e quebra de linha CRLF, convenção fixada no
+# CLAUDE.md, e o mural.html é saída determinística de mural/_gerar_mural.py:
+# regenerar tem que dar o mesmo arquivo. A regra padrão do GitHub
+# (* text=auto) normalizaria as quebras de linha e quebraria isso, então
+# aqui nada é normalizado.
+* -text
