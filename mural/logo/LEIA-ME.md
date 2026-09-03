@@ -23,3 +23,19 @@ PNG prontos: mural-marca-2400.png e mural-assinatura-2400.png (fundo transparent
 Não redesenhar a curva nem trocar sua proporção: é a mesma em toda aplicação. Não separar a curva da palavra (a exceção é o monograma, que a leva junto com o M). Largura mínima da marca sem subtítulo: 72 px; abaixo disso, monograma. Abaixo de 32 px, ícone ou favicon. Não aplicar sombra, contorno ou gradiente. Não usar o vermelho da marca como cor de candidato nos gráficos.
 
 Os arquivos foram gerados pelos scripts em _scripts/ (marca.py, marca_final.py e gerar_assets.py; precisam de Python com fonttools, uharfbuzz e playwright) a partir da fonte Archivo do Google Fonts, licença OFL, baixada automaticamente na primeira execução. Para regenerar tudo: python3 _scripts/gerar_assets.py.
+
+## Marca da INDICA (não é a marca do mural)
+
+indica-marca.svg é a marca da agência, usada nas duas assinaturas de autoria
+do mural ("Desenvolvido pela INDICA", no rodapé e no fim da editoria de
+método). Não confundir com a marca "Apuração" acima, que é do produto.
+
+Procedência: vetorizada do canal alpha de assets/img/logo-master-dark.png do
+repositório indica-site (3228x968, fundo transparente), com o potrace. O PDF
+INDICA_Strategic_Analysis.pdf não serve como fonte: a única imagem embutida
+nele tem 375x112 e 450 bytes, e é o retângulo de fundo, não a marca.
+
+O caminho é um só, sem cor fixa: no mural o SVG entra como <symbol> e as duas
+assinaturas o referenciam com <use>, herdando `currentColor`. Por isso a marca
+troca de tinta junto com o tema claro e escuro sem precisar de segunda versão,
+e o arquivo pesa uma vez só na página.
