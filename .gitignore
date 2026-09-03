@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# lixo já separado numa limpeza anterior (marcas antigas do logo); pode
+# apagar essa pasta quando quiser, ela só não foi removida à mão ainda
+_to_delete/

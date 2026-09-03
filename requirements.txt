@@ -1,0 +1,23 @@
+# O pipeline principal de regeneração do mural usa só a biblioteca padrão do
+# Python 3 (3.9+, por causa de zoneinfo). Nada abaixo é necessário para rodar:
+#   python3 dados/estados/_consolidar_pesquisas.py
+#   python3 mural/_gerar_mural.py
+#
+# Os pacotes abaixo servem só a ferramentas auxiliares, cada uma isolada.
+# Instale só o que for usar: pip install -r requirements.txt --break-system-packages
+
+# testes/*.py (verificação do mural com Chromium headless).
+# Depois de instalar, rode uma vez: playwright install chromium
+playwright>=1.40
+
+# coleta/wikipedia_pageviews.py (chamadas HTTP à API da Wikimedia)
+requests>=2.31
+
+# dados/geo/_mapa_br.py -- só ao reprocessar o GeoJSON do mapa do zero
+# (o resultado já está pronto em dados/geo/br-uf-paths.json; raramente precisa rodar de novo)
+shapely>=2.0
+
+# mural/logo/_scripts/ -- só ao regenerar os SVGs/PNGs da marca a partir da fonte
+# (os arquivos finais já estão prontos em mural/logo/; ver mural/logo/LEIA-ME.md)
+fonttools>=4.50
+uharfbuzz>=0.39
