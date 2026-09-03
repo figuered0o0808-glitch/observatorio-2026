@@ -33,7 +33,9 @@ python3 mural/_gerar_mural.py
 
 `mural/mural.html` é **gerado**; nunca edite esse arquivo à mão. Toda mudança
 visual ou de comportamento vai em `mural/_template.html`, e o mural final sai
-de rodar `_gerar_mural.py` de novo. O mesmo vale para
+de rodar `_gerar_mural.py` de novo. `index.html`, na raiz, é uma cópia
+idêntica que o mesmo script grava para o GitHub Pages servir o site na raiz
+do endereço; também é gerado e também não se edita à mão. O mesmo vale para
 `dados/estados/pesquisas-estados-consolidado.csv`: é saída de
 `_consolidar_pesquisas.py`, não edite direto.
 
@@ -70,6 +72,8 @@ testes antes de publicar qualquer edição nova.
 - `mural/_gerar_mural.py` - lê `dados/` e `dados/estados/`, escreve
   `mural/mural.html` a partir de `_template.html`.
 - `mural/mural.html` - o mural gerado, o que é publicado.
+- `index.html` - cópia idêntica do mural na raiz, gerada junto, é o que o
+  GitHub Pages serve em https://figuered0o0808-glitch.github.io/observatorio-2026/.
 - `mural/logo/` - marca "Apuração" (SVG/PNG prontos) e `_scripts/` que os
   geraram (precisa de `fonttools`, `uharfbuzz`, `playwright`; ver
   `mural/logo/LEIA-ME.md`).

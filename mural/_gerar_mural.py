@@ -440,6 +440,11 @@ data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": 
 tpl = io.open(os.path.join(AQUI, "_template.html"), encoding="utf-8").read()
 html = tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";")
 io.open(os.path.join(AQUI, "mural.html"), "w", encoding="utf-8").write(html)
+# O GitHub Pages serve a raiz do repositório, então a mesma página também é
+# gravada em index.html lá em cima: assim o endereço publicado é a raiz do
+# site, e não /mural/mural.html. Os dois arquivos são idênticos e ambos são
+# gerados; mural.html continua sendo o canônico.
+io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
 print("mural.html", len(html), "bytes |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
       len(rej), "pontos rejeição |", len(polls_2t), "pontos 2T |", sum(len(v) for v in ig_serie.values()), "pontos IG |",
       len(timeline), "eventos |", meta)

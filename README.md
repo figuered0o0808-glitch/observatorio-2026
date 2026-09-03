@@ -39,7 +39,8 @@ dados/estados/                CSVs estaduais (27 estados, 510 candidaturas)
 dados/geo/                   mapa do Brasil simplificado (GeoJSON)
 mural/_template.html         fonte do mural
 mural/_gerar_mural.py        gera mural/mural.html a partir dos CSVs
-mural/mural.html              o mural gerado, publicado como página no Claude
+mural/mural.html              o mural gerado
+index.html                   cópia do mural na raiz, é o que o GitHub Pages serve
 mural/logo/                  marca "Apuração"
 testes/                      verificação automatizada do mural
 evidencias/                  capturas de tela e vídeo por data/evento
