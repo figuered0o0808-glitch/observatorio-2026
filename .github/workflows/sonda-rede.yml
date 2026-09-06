@@ -76,6 +76,34 @@ jobs:
               "https://cdn.tse.jus.br/estatistica/sead/odsele/${f%%_2026*}/$f.zip" || true
           done
 
+      - name: Wikipédia, página nacional de pesquisas (o que saiu depois de 01/09)
+        run: |
+          UA="observatorio-2026/0.2 (sonda; contato: figuered0o0808@gmail.com)"
+          curl -sS -A "$UA" -o /tmp/ps.json "https://pt.wikipedia.org/w/api.php?action=query&list=prefixsearch&pssearch=Pesquisas%20de%20opini%C3%A3o%20para%20a%20elei%C3%A7%C3%A3o%20presidencial&pslimit=10&format=json"
+          python3 - <<'EOF'
+          import json, urllib.parse, urllib.request, re
+          UA = "observatorio-2026/0.2 (sonda; contato: figuered0o0808@gmail.com)"
+          d = json.load(open('/tmp/ps.json'))
+          tits = [x['title'] for x in d['query']['prefixsearch']]
+          print("títulos:", tits)
+          alvo = next((t for t in tits if '2026' in t), None)
+          print("alvo:", alvo)
+          if alvo:
+              u = "https://pt.wikipedia.org/w/api.php?action=parse&prop=wikitext|revid&format=json&page=" + urllib.parse.quote(alvo)
+              r = urllib.request.Request(u, headers={"User-Agent": UA})
+              j = json.load(urllib.request.urlopen(r, timeout=60))
+              wt = j['parse']['wikitext']['*']; print("revid:", j['parse']['revid'], "| wikitext:", len(wt), "chars")
+              linhas = wt.splitlines()
+              # cabeçalho da primeira tabela do 1º turno e as linhas com datas de setembro
+              i0 = next((i for i,l in enumerate(linhas) if 'wikitable' in l), 0)
+              print("--- primeiras 40 linhas da primeira tabela ---")
+              for l in linhas[i0:i0+40]: print(l[:200])
+              print("--- linhas que citam setembro (set) ---")
+              for i,l in enumerate(linhas):
+                  if re.search(r'\bset\b|setembro|2026-09|/09/', l, re.I):
+                      print(i, l[:220])
+          EOF
+
       - name: Google Trends (API interna, sem garantia)
         continue-on-error: true
         run: |
