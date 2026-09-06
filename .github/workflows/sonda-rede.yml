@@ -1,0 +1,70 @@
+# Sonda temporária: confirma o que um runner do GitHub Actions alcança de
+# verdade (Wikimedia, TSE, Google Trends, Instagram) antes de desenharmos a
+# coleta automática. Só roda à mão. Será removida quando a coleta real entrar.
+name: Sonda de rede
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sondar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Versões disponíveis no runner
+        run: |
+          python3 --version
+          echo "playwright cache: ${PLAYWRIGHT_BROWSERS_PATH:-<padrão>}"
+
+      - name: Wikimedia (REST pageviews e API MediaWiki)
+        run: |
+          UA="observatorio-2026/0.2 (sonda; contato: figuered0o0808@gmail.com)"
+          echo "--- pageviews per-article ---"
+          curl -sS -A "$UA" -o /tmp/pv.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
+            "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/pt.wikipedia/all-access/user/Luiz_In%C3%A1cio_Lula_da_Silva/daily/20260901/20260902"
+          head -c 300 /tmp/pv.json; echo
+          echo "--- action=parse de uma página de pesquisas estaduais ---"
+          curl -sS -A "$UA" -o /tmp/parse.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
+            "https://pt.wikipedia.org/w/api.php?action=parse&page=Pesquisas_eleitorais_para_a_elei%C3%A7%C3%A3o_estadual_em_S%C3%A3o_Paulo_em_2026&prop=revid&format=json"
+          head -c 300 /tmp/parse.json; echo
+          echo "--- prefixsearch ---"
+          curl -sS -A "$UA" -o /tmp/ps.json -w 'HTTP %{http_code}  %{size_download} bytes\n' \
+            "https://pt.wikipedia.org/w/api.php?action=query&list=prefixsearch&pssearch=Pesquisas%20eleitorais%20para%20a%20elei%C3%A7%C3%A3o%20estadual&pslimit=5&format=json"
+          head -c 400 /tmp/ps.json; echo
+
+      - name: TSE DivulgaCandContas (REST público)
+        run: |
+          echo "--- candidatura/buscar (um candidato do AC) ---"
+          curl -sS -o /tmp/tse.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
+            -H 'Accept: application/json' \
+            "https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/buscar/2026/AC/20322002026/candidato/10002532492"
+          # só as chaves, nunca os valores: a resposta traz CPF e título
+          python3 -c "import json;d=json.load(open('/tmp/tse.json'));print(sorted(d.keys())[:60]) if isinstance(d,dict) else print(type(d))" || head -c 300 /tmp/tse.json
+          echo "--- candidatura/listar (governador do AC) ---"
+          curl -sS -o /tmp/tsel.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
+            -H 'Accept: application/json' \
+            "https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/listar/2026/AC/20322002026/3/candidatos"
+          python3 -c "import json;d=json.load(open('/tmp/tsel.json'));print('chaves:',sorted(d.keys()) if isinstance(d,dict) else type(d));c=d.get('candidatos',[]) if isinstance(d,dict) else [];print('candidatos:',len(c));print('chaves de um candidato:',sorted(c[0].keys()) if c else '-')" || head -c 300 /tmp/tsel.json
+          echo "--- foto ---"
+          curl -sS -o /tmp/foto -w 'HTTP %{http_code}  %{size_download} bytes  tipo=%{content_type}\n' \
+            "https://divulgacandcontas.tse.jus.br/divulga/rest/arquivo/img/20322002026/10002532492/AC"
+
+      - name: Google Trends (API interna, sem garantia)
+        continue-on-error: true
+        run: |
+          echo "--- explore ---"
+          curl -sS -o /tmp/tr.txt -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
+            -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36' \
+            "https://trends.google.com/trends/api/explore?hl=pt-BR&tz=180&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22Lula%22%2C%22geo%22%3A%22BR%22%2C%22time%22%3A%222026-08-01%202026-09-01%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D"
+          head -c 300 /tmp/tr.txt; echo
+
+      - name: Instagram (esperado falhar sem sessão)
+        continue-on-error: true
+        run: |
+          curl -sS -o /tmp/ig.txt -w 'HTTP %{http_code}  %{size_download} bytes\n' \
+            -H 'x-ig-app-id: 936619743392459' -A 'Mozilla/5.0' \
+            "https://www.instagram.com/api/v1/users/web_profile_info/?username=instagram"
+          head -c 200 /tmp/ig.txt; echo
