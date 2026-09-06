@@ -1,0 +1,51 @@
+# Publica o Mural dos Candidatos no GitHub Pages a cada push na main.
+#
+# O Pages deste repositório está no modo "GitHub Actions" (não "deploy from a
+# branch"), então é este workflow que publica; um push sozinho não publica
+# nada. O artefato leva só o que o site serve: o index.html (autocontido) e o
+# cartão de prévia de link. Os CSVs e o restante do projeto continuam
+# versionados aqui, mas fora do site.
+#
+# O workflow de atualização automática (atualizar.yml) reaproveita este mesmo
+# passo de publicação no fim da própria execução.
+name: Publicar o mural
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - mural/logo/mural-og-1200x630.png
+      - .github/workflows/publicar.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Separar o que o site serve
+        run: |
+          mkdir -p site/mural/logo
+          cp index.html site/index.html
+          cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          touch site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: publicacao
+        uses: actions/deploy-pages@v4
