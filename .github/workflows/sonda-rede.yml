@@ -94,14 +94,13 @@ jobs:
               j = json.load(urllib.request.urlopen(r, timeout=60))
               wt = j['parse']['wikitext']['*']; print("revid:", j['parse']['revid'], "| wikitext:", len(wt), "chars")
               linhas = wt.splitlines()
-              # cabeçalho da primeira tabela do 1º turno e as linhas com datas de setembro
-              i0 = next((i for i,l in enumerate(linhas) if 'wikitable' in l), 0)
-              print("--- primeiras 40 linhas da primeira tabela ---")
-              for l in linhas[i0:i0+40]: print(l[:200])
-              print("--- linhas que citam setembro (set) ---")
-              for i,l in enumerate(linhas):
-                  if re.search(r'\bset\b|setembro|2026-09|/09/', l, re.I):
-                      print(i, l[:220])
+              # a seção "Setembro" do 1º turno, inteira (cabeçalho da tabela + todas as linhas)
+              i0 = next((i for i,l in enumerate(linhas) if l.strip().startswith('====') and 'Setembro' in l), None)
+              print("--- seção Setembro começa na linha", i0, "---")
+              if i0 is not None:
+                  j = i0 + 1
+                  while j < len(linhas) and not linhas[j].strip().startswith('===='): j += 1
+                  for k in range(i0, min(j, i0 + 260)): print(k, linhas[k][:300])
           EOF
 
       - name: Google Trends (API interna, sem garantia)
