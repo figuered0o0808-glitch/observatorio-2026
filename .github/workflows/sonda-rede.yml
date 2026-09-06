@@ -35,22 +35,46 @@ jobs:
             "https://pt.wikipedia.org/w/api.php?action=query&list=prefixsearch&pssearch=Pesquisas%20eleitorais%20para%20a%20elei%C3%A7%C3%A3o%20estadual&pslimit=5&format=json"
           head -c 400 /tmp/ps.json; echo
 
-      - name: TSE DivulgaCandContas (REST público)
+      - name: TSE DivulgaCandContas com cabeçalhos de navegador
+        continue-on-error: true
         run: |
-          echo "--- candidatura/buscar (um candidato do AC) ---"
-          curl -sS -o /tmp/tse.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
-            -H 'Accept: application/json' \
+          UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'
+          H1='Referer: https://divulgacandcontas.tse.jus.br/divulga/'
+          H2='Origin: https://divulgacandcontas.tse.jus.br'
+          H3='Accept: application/json, text/plain, */*'
+          H4='Accept-Language: pt-BR,pt;q=0.9'
+          echo "--- candidatura/buscar (AC) ---"
+          curl -sS -o /tmp/tse.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' -A "$UA" -H "$H1" -H "$H2" -H "$H3" -H "$H4" \
             "https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/buscar/2026/AC/20322002026/candidato/10002532492"
-          # só as chaves, nunca os valores: a resposta traz CPF e título
-          python3 -c "import json;d=json.load(open('/tmp/tse.json'));print(sorted(d.keys())[:60]) if isinstance(d,dict) else print(type(d))" || head -c 300 /tmp/tse.json
-          echo "--- candidatura/listar (governador do AC) ---"
-          curl -sS -o /tmp/tsel.json -w 'HTTP %{http_code}  %{size_download} bytes  %{time_total}s\n' \
-            -H 'Accept: application/json' \
+          python3 -c "import json;d=json.load(open('/tmp/tse.json'));print('chaves:',sorted(d.keys())[:70])" 2>/dev/null || head -c 200 /tmp/tse.json; echo
+          echo "--- candidatura/listar (AC, governador) ---"
+          curl -sS -o /tmp/tsel.json -w 'HTTP %{http_code}  %{size_download} bytes\n' -A "$UA" -H "$H1" -H "$H2" -H "$H3" -H "$H4" \
             "https://divulgacandcontas.tse.jus.br/divulga/rest/v1/candidatura/listar/2026/AC/20322002026/3/candidatos"
-          python3 -c "import json;d=json.load(open('/tmp/tsel.json'));print('chaves:',sorted(d.keys()) if isinstance(d,dict) else type(d));c=d.get('candidatos',[]) if isinstance(d,dict) else [];print('candidatos:',len(c));print('chaves de um candidato:',sorted(c[0].keys()) if c else '-')" || head -c 300 /tmp/tsel.json
+          python3 -c "import json;d=json.load(open('/tmp/tsel.json'));c=d.get('candidatos',[]);print('candidatos:',len(c));print('chaves:',sorted(c[0].keys()) if c else '-')" 2>/dev/null || head -c 200 /tmp/tsel.json; echo
           echo "--- foto ---"
-          curl -sS -o /tmp/foto -w 'HTTP %{http_code}  %{size_download} bytes  tipo=%{content_type}\n' \
+          curl -sS -o /tmp/foto -w 'HTTP %{http_code}  %{size_download} bytes  tipo=%{content_type}\n' -A "$UA" -H "$H1" \
             "https://divulgacandcontas.tse.jus.br/divulga/rest/arquivo/img/20322002026/10002532492/AC"
+
+      - name: TSE dados abertos (CDN, arquivos diários)
+        continue-on-error: true
+        run: |
+          UA='observatorio-2026/0.2 (sonda; contato: figuered0o0808@gmail.com)'
+          echo "--- catálogo CKAN ---"
+          curl -sS -A "$UA" -o /tmp/ckan.json -w 'HTTP %{http_code}  %{size_download} bytes\n' \
+            "https://dadosabertos.tse.jus.br/api/3/action/package_show?id=candidatos-2026"
+          python3 - <<'EOF' || head -c 300 /tmp/ckan.json
+          import json
+          d=json.load(open('/tmp/ckan.json'))
+          rs=d.get('result',{}).get('resources',[])
+          print('recursos:',len(rs))
+          for r in rs[:40]: print('  ',r.get('name'),'|',r.get('format'),'|',r.get('last_modified'),'|',r.get('url'))
+          EOF
+          echo "--- HEAD dos zips na CDN ---"
+          for f in consulta_cand_2026 bem_candidato_2026 rede_social_candidato_2026 consulta_coligacao_2026; do
+            printf '%-32s ' "$f"
+            curl -sS -I -A "$UA" -o /dev/null -w 'HTTP %{http_code}  %{size_download}  last-modified=%header{last-modified}  len=%header{content-length}\n' \
+              "https://cdn.tse.jus.br/estatistica/sead/odsele/${f%%_2026*}/$f.zip" || true
+          done
 
       - name: Google Trends (API interna, sem garantia)
         continue-on-error: true
