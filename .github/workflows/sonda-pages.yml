@@ -1,0 +1,44 @@
+# Sonda temporária: com o Pages já ligado (modo "deploy from a branch"),
+# o configure-pages consegue mudar o site para o modo Actions e publicar
+# daqui de dentro? Se sim, o workflow de atualização pode coletar, gerar,
+# commitar e publicar numa execução só, sem depender de push disparar nada.
+name: Sonda de publicação
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Separar o site (só o que o Pages serve)
+        run: |
+          mkdir -p site/mural/logo
+          cp index.html site/index.html
+          cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          touch site/.nojekyll
+          du -sh site
+      - id: cfg
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - run: 'echo "base_url=${{ steps.cfg.outputs.base_url }} origin=${{ steps.cfg.outputs.origin }} host=${{ steps.cfg.outputs.host }}"'
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: publicacao
+        uses: actions/deploy-pages@v4
