@@ -1,0 +1,86 @@
+# Traz para o repositório o HTML real das páginas da Wikipédia que os coletores
+# vão ler, porque o ambiente onde o código é escrito não alcança a Wikipédia.
+#
+# Para as 27 páginas estaduais + DF baixa a MESMA revisão (oldid) que gerou o
+# dump dados/estados/_wiki-pesquisas-estados.json de 02/09: assim o extrator
+# novo pode ser conferido byte a byte contra o dump. Para a página nacional
+# baixa a revisão atual. Grava tudo em testes/fixtures/wikipedia/ (gzip) e
+# commita. Roda só à mão.
+name: Fixtures da Wikipédia
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar páginas
+        run: |
+          python3 - <<'EOF'
+          import json, gzip, os, re, time, urllib.parse, urllib.request
+          UA = "observatorio-2026/0.3 (fixtures; contato: figuered0o0808@gmail.com)"
+          API = "https://pt.wikipedia.org/w/api.php"
+          def get(params):
+              params = dict(params, format="json", formatversion="2", maxlag="5")
+              u = API + "?" + urllib.parse.urlencode(params)
+              for tent in range(4):
+                  try:
+                      r = urllib.request.Request(u, headers={"User-Agent": UA})
+                      with urllib.request.urlopen(r, timeout=90) as h:
+                          j = json.load(h)
+                      if "error" in j and j["error"].get("code") == "maxlag":
+                          time.sleep(5 * (tent + 1)); continue
+                      return j
+                  except Exception as e:
+                      if tent == 3: raise
+                      time.sleep(3 * (tent + 1))
+          out = "testes/fixtures/wikipedia"; os.makedirs(out, exist_ok=True)
+          indice = {"coletado": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "estaduais": {}, "nacional": {}}
+          def salvar(nome, texto):
+              with gzip.open(os.path.join(out, nome), "wt", encoding="utf-8") as f: f.write(texto)
+          # estaduais: mesma revisão do dump
+          dump = json.load(open("dados/estados/_wiki-pesquisas-estados.json", encoding="utf-8"))
+          for titulo, texto in dump["paginas"].items():
+              m = re.match(r"@@PAGE (.+?) revid=(\d+)", texto.splitlines()[0])
+              revid = int(m.group(2))
+              j = get({"action": "parse", "oldid": revid, "prop": "text|revid|title"})
+              p = j["parse"]; html = p["text"]
+              chave = re.sub(r"[^a-z0-9]+", "-", titulo.lower().encode("ascii", "ignore").decode()).strip("-")
+              nome = f"estadual-{chave}-oldid{revid}.html.gz"; salvar(nome, html)
+              # também a revisão atual, para o coletor de hoje
+              ja = get({"action": "parse", "page": titulo, "prop": "text|revid"})
+              nome_atual = f"estadual-{chave}-atual.html.gz"; salvar(nome_atual, ja["parse"]["text"])
+              indice["estaduais"][titulo] = {"revid_dump": revid, "arquivo_dump": nome, "revid_atual": ja["parse"]["revid"], "arquivo_atual": nome_atual, "bytes": len(html)}
+              print(f"{titulo[-25:]:>25}  dump revid {revid} ({len(html)//1024} KB)  atual revid {ja['parse']['revid']}")
+              time.sleep(0.5)
+          # nacional: revisão atual, HTML + wikitext
+          t = "Pesquisas de opinião para a eleição presidencial no Brasil em 2026"
+          j = get({"action": "parse", "page": t, "prop": "text|revid|wikitext"}); p = j["parse"]
+          salvar("nacional-atual.html.gz", p["text"]); salvar("nacional-atual.wikitext.gz", p["wikitext"])
+          indice["nacional"] = {"titulo": t, "revid": p["revid"], "arquivo_html": "nacional-atual.html.gz", "arquivo_wikitext": "nacional-atual.wikitext.gz", "bytes_html": len(p["text"])}
+          print("nacional revid", p["revid"], len(p["text"])//1024, "KB html")
+          # pageviews: duas respostas reais da REST para servir de exemplo ao coletor
+          import datetime as dt
+          fim = (dt.date.today() - dt.timedelta(days=1)).strftime("%Y%m%d"); ini = (dt.date.today() - dt.timedelta(days=5)).strftime("%Y%m%d")
+          for art in ("Augusto_Cury", "Alan_Rick"):
+              u = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/pt.wikipedia/all-access/user/{urllib.parse.quote(art)}/daily/{ini}/{fim}"
+              r = urllib.request.Request(u, headers={"User-Agent": UA, "Accept": "application/json"})
+              with urllib.request.urlopen(r, timeout=60) as h: body = h.read().decode()
+              open(os.path.join(out, f"pageviews-{art}.json"), "w", encoding="utf-8").write(body); print("pageviews", art, len(body), "bytes")
+          json.dump(indice, open(os.path.join(out, "indice.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+          EOF
+          du -sh testes/fixtures/wikipedia
+      - name: Commitar fixtures
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add testes/fixtures/wikipedia
+          git commit -m "Fixtures: HTML real das páginas de pesquisas da Wikipédia, nas revisões do dump de 02/09 e atuais" || echo "nada a commitar"
+          git pull --rebase origin main
+          git push origin HEAD:main
