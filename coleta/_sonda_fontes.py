@@ -39,11 +39,45 @@ TESTES = [
     ("poder360 pesquisas", "https://www.poder360.com.br/pesquisas-de-opiniao/", None),
 ]
 
+def instagram_publico(handle):
+    """Tenta ler os seguidores da página pública, sem login: o número aparece na meta description
+    ("338 mil seguidores...") e, às vezes, no JSON embutido."""
+    import re
+    r = pega("https://www.instagram.com/%s/" % handle, {"Accept": "text/html"})
+    if r.get("status") != 200:
+        return {"status": r.get("status"), "erro": r.get("erro")}
+    req = urllib.request.Request("https://www.instagram.com/%s/" % handle,
+                                 headers={"User-Agent": UA, "Accept": "text/html",
+                                          "Accept-Language": "pt-BR,pt;q=0.9"})
+    with OP.open(req, timeout=25) as resp:
+        html = resp.read(400000).decode("utf-8", "replace")
+    saida = {"status": 200, "bytes": len(html)}
+    m = re.search(r'<meta property="og:description" content="([^"]{0,300})"', html)
+    if m:
+        saida["og"] = m.group(1)[:160]
+    m2 = re.search(r'"edge_followed_by":\s*\{"count":\s*(\d+)\}', html)
+    if m2:
+        saida["edge_followed_by"] = int(m2.group(1))
+    m3 = re.search(r'(\d[\d.,]*\s*(?:mil|mi|M|K)?)\s+seguidores', html)
+    if m3:
+        saida["texto_seguidores"] = m3.group(1)
+    saida["tem_login_wall"] = "loginForm" in html or "accounts/login" in html
+    return saida
+
+
 out = {}
 for nome, url, cab in TESTES:
     out[nome] = pega(url, cab)
     print(nome, "->", json.dumps(out[nome], ensure_ascii=False)[:300], flush=True)
     time.sleep(1)
+print("\nINSTAGRAM PÁGINA PÚBLICA")
+for h in ("augustocury", "lulaoficial", "flaviobolsonaro"):
+    try:
+        print(" ", h, "->", json.dumps(instagram_publico(h), ensure_ascii=False)[:400], flush=True)
+    except Exception as e:
+        print(" ", h, "-> erro", type(e).__name__, str(e)[:120], flush=True)
+    time.sleep(3)
+
 print("\nRESUMO")
 for k, v in out.items():
     print(f"  {v.get('status')}\t{k}")

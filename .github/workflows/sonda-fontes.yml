@@ -17,3 +17,6 @@ jobs:
           python-version: "3.12"
       - name: Sonda
         run: python3 coleta/_sonda_fontes.py
+
+      - name: Coletor do Google Trends em ensaio
+        run: python3 coleta/google_trends.py --dry-run
