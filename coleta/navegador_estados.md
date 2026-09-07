@@ -1,6 +1,6 @@
 # Coletores de navegador para as disputas estaduais
 
-Roteiro usado em 2 de setembro de 2026 para montar a edição 11 do Mural dos Candidatos e que a rotina das 8h e das 20h passa a repetir. Tudo roda no navegador do Mac (o embutido do app do Claude para o que baixa arquivo, o Chrome para o que precisa de login), porque o sandbox não alcança TSE, Wikipédia, Google Trends nem Instagram.
+Roteiro usado em 2 de setembro de 2026 para montar a edição 11 do Mural dos Candidatos. Desde 6/9 as duas seções de Wikipédia (1 e 4) rodam sozinhas às 8h e às 20h de Brasília no GitHub Actions (`.github/workflows/atualizar.yml`, scripts `wikipedia_pesquisas_estados.py` e `wikipedia_pageviews.py`, que produzem os mesmos arquivos que o navegador produzia); o roteiro delas fica aqui como referência do formato. As seções 2, 3 e 5 (TSE, Google Trends e Instagram) continuam manuais e rodam no navegador do Mac (o embutido do app do Claude para o que baixa arquivo, o Chrome para o que precisa de login), porque nem o sandbox nem o runner do GitHub alcançam essas fontes (TSE 403 para IP de fora do Brasil, Trends 429, Instagram exige login).
 
 ## Regras que aprendemos no caminho
 

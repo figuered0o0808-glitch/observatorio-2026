@@ -3,6 +3,10 @@
 Data do teste: 1 de setembro de 2026.
 Pasta: /home/claude/api-tests/
 
+## Atualização de 6 de setembro de 2026
+
+A Wikipédia passou a ser coletada duas vezes por dia num runner do GitHub Actions (`.github/workflows/atualizar.yml`), que alcança `pt.wikipedia.org` e `wikimedia.org` sem proxy: pesquisas presidenciais compiladas (`wikipedia_pesquisas_nacional.py`), páginas estaduais de pesquisas (`wikipedia_pesquisas_estados.py`) e acessos aos verbetes (`wikipedia_pageviews.py`). Testado no mesmo runner em 6/9: TSE responde 403 (Akamai, IP de fora do Brasil), Google Trends devolve 429 e Instagram exige login. Essas três continuam pelo roteiro de navegador em `navegador_estados.md`. O restante deste arquivo é o registro do teste de 1/9 e vale como histórico.
+
 ## Aviso importante sobre o ambiente
 
 Nesta sessão todo o tráfego HTTPS passa por um proxy de saída com lista de permissão da organização. O proxy recusou o CONNECT (HTTP 403, antes de qualquer pacote chegar ao destino) para os seguintes hosts: pt.wikipedia.org, en.wikipedia.org, wikimedia.org, api.wikimedia.org, divulgacandcontas.tse.jus.br, www.instagram.com, socialblade.com, www.youtube.com e trends.google.com. Só o PyPI passou. O computador conectado (Mac) usa a mesma lista e também recebeu 403. Isso significa que, para essas fontes, a falha registrada abaixo com "requests" é do ambiente, não da fonte. A ferramenta WebFetch tem outro caminho de rede e por isso conseguiu alcançar o TSE e o YouTube, mas trata a Wikimedia como "domínio somente cache" e não busca.

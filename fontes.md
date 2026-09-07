@@ -109,7 +109,7 @@ Coisas que esta rodada não alcançou: nenhuma. As três coletas próprias depen
 
 - Codificação UTF-8 com BOM, separador vírgula, decimal com ponto. Abre direto no Google Sheets e no Numbers. No Excel em português, importar em vez de abrir com duplo clique.
 - Datas sempre em `AAAA-MM-DD`.
-- Célula vazia significa dado não disponível, nunca zero.
+- Célula vazia significa dado não disponível, nunca zero. Exceção que confirma a regra: quando a API da Wikimedia devolve 0 acessos para um dia, esse 0 é valor observado e fica gravado; dia que a API omite não vira linha.
 - `candidatos.csv` é o perfil dos 13 registrados (ficha TSE, vice, bens, handles por rede, verbete da Wikipédia); `redes-fontes.csv` guarda a origem e a confiança de cada handle e cada número de seguidores. `tse-presidenciaveis.csv` é a ficha bruta da API do TSE.
 - `eventos.csv` ganhou a coluna `candidato` em 1/9 (segunda posição); eventos que afetam a disputa inteira levam "todos"; mais de um candidato, separados por "; ". Categoria nova: `justiça eleitoral`.
 - `mural/mural.html` é gerado por `mural/_gerar_mural.py` a partir dos CSVs; nunca editar o HTML à mão. Publicado como página no Claude (artifact "Mural dos Presidenciáveis"); republicar após cada snapshot.

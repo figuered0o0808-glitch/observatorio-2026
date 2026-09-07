@@ -10,8 +10,9 @@
 # Depois de instalar, rode uma vez: playwright install chromium
 playwright>=1.40
 
-# coleta/wikipedia_pageviews.py (chamadas HTTP à API da Wikimedia)
-requests>=2.31
+# Os coletores da Wikipédia (coleta/wikipedia_*.py) e a guarda de dados
+# (testes/guarda_dados.py) usam só urllib e a biblioteca padrão; nada a instalar.
+# Os testes unitários deles (testes/test_*.py) também: python3 -m unittest discover -s testes -p 'test_*.py'
 
 # dados/geo/_mapa_br.py -- só ao reprocessar o GeoJSON do mapa do zero
 # (o resultado já está pronto em dados/geo/br-uf-paths.json; raramente precisa rodar de novo)

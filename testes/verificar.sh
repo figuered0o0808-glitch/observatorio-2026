@@ -9,6 +9,10 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+echo "== testes unitários dos coletores e da guarda de dados =="
+python3 -m unittest discover -s testes -p "test_*.py"
+echo
+
 if [[ "${1:-}" != "--pular-geracao" ]]; then
   echo "== regenerando pesquisas-estados-consolidado.csv =="
   python3 dados/estados/_consolidar_pesquisas.py
