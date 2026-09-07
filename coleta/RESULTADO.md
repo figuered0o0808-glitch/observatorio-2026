@@ -3,6 +3,22 @@
 Data do teste: 1 de setembro de 2026.
 Pasta: /home/claude/api-tests/
 
+## Atualização de 7 de setembro de 2026: o que o runner alcança
+
+Sonda rodada de dentro do runner do GitHub, com sessão que guarda cookies e cabeçalhos de
+navegador. Resultado por fonte:
+
+| Fonte | Resposta | Decisão |
+|---|---|---|
+| Wikimedia pageviews | 200 | automatizada desde 6/9 |
+| Google Trends (`/trends/api/explore` e `widgetdata/multiline`) | 200 | **automatizada em 7/9**; o 429 medido em 6/9 era chamada sem cookie, e basta visitar `trends.google.com` antes para a sessão passar |
+| TSE (divulgacandcontas, dados abertos e o próprio portal) | 403 Akamai, com e sem Referer | bloqueio por IP de fora do Brasil; continua manual |
+| Instagram `web_profile_info` | 429 | continua manual |
+| Instagram página pública | 200, mas sem o número de seguidores no HTML (nem em `og:description`, nem em `edge_followed_by`) | não serve; continua manual |
+| YouTube Data API | 403 sem chave | precisaria de chave no Google Cloud |
+| Gazeta do Povo (agregador) | 403 | sem uso |
+| Poder360 | 200 | alternativa possível de pesquisas, hoje coberta pela Wikipédia |
+
 ## Atualização de 6 de setembro de 2026
 
 A Wikipédia passou a ser coletada duas vezes por dia num runner do GitHub Actions (`.github/workflows/atualizar.yml`), que alcança `pt.wikipedia.org` e `wikimedia.org` sem proxy: pesquisas presidenciais compiladas (`wikipedia_pesquisas_nacional.py`), páginas estaduais de pesquisas (`wikipedia_pesquisas_estados.py`) e acessos aos verbetes (`wikipedia_pageviews.py`). Testado no mesmo runner em 6/9: TSE responde 403 (Akamai, IP de fora do Brasil), Google Trends devolve 429 e Instagram exige login. Essas três continuam pelo roteiro de navegador em `navegador_estados.md`. O restante deste arquivo é o registro do teste de 1/9 e vale como histórico.

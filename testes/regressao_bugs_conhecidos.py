@@ -753,6 +753,27 @@ with sync_playwright() as p:
     check("agregação sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- editoria de método abre dividida por metodologia, e a marca é a nova (7/9/2026)
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(700)
+    meta = page.evaluate("""() => {
+        const segs = [...document.querySelectorAll('#meta-seg button')].map(b => ({t: b.textContent.trim(), on: b.getAttribute('aria-pressed'), mv: b.dataset.mv}));
+        const chips = [...document.querySelectorAll('#f-modo-cand button')].map(b => b.textContent.trim());
+        return {segs, chips, cap: document.querySelector('#meta-cap').textContent,
+                slogan: (document.querySelector('.slogan') || {}).textContent,
+                velha: document.body.textContent.includes('capital político digital')}; }""")
+    check("a editoria de método abre por metodologia, com esse botão primeiro e marcado",
+          meta["segs"] and meta["segs"][0]["mv"] == "modo" and meta["segs"][0]["on"] == "true"
+          and meta["segs"][1]["mv"] == "cand" and meta["segs"][1]["on"] == "false", meta["segs"])
+    check("os chips da primeira fileira são os modos de coleta, não os candidatos",
+          meta["chips"][:2] == ["presencial", "telefônica"], meta["chips"][:4])
+    check("a marca é 'Observatório do desempenho dos candidatos' e a antiga não aparece",
+          meta["slogan"] == "Observatório do desempenho dos candidatos" and not meta["velha"],
+          {"slogan": meta["slogan"], "tem_a_velha": meta["velha"]})
+    check("editoria de método sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

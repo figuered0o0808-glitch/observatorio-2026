@@ -256,11 +256,24 @@ publica:
   vira zero, data inválida ou futura, arquivo manual alterado).
 - Os dois testes Playwright rodam; só com tudo verde o workflow commita
   dados e mural (como `github-actions[bot]`) e publica.
+- Testes de coletor nunca usam o dado de produção como oráculo: a coleta roda
+  duas vezes por dia e o que hoje é "linha nova" amanhã já está no arquivo. Os
+  oráculos ficam congelados em `testes/fixtures/wikipedia/` (dump do navegador de
+  2/9, CSV de pesquisas de 6/9, as duas séries de acessos de 6/9).
 
-TSE, Google Trends e Instagram não entram nessa rotina: o TSE bloqueia IPs de
-fora do Brasil, o Trends devolve 429 de servidor e o Instagram exige sessão
-logada (testado no runner em 6/9/2026). Continuam pelo roteiro de navegador
-em `coleta/navegador_estados.md`, com a data de cada número visível no mural.
+- `coleta/google_trends.py` refaz a série de busca nacional (`dados/trends-2026.csv`)
+  nos três lotes da coleta de navegador. O índice do Trends é relativo à janela
+  pedida, então a série inteira é regravada a cada coleta, não acrescentada; é o
+  único CSV nessa condição fora dos estaduais de pesquisa. Se o Google bloquear
+  num dia, o coletor não grava nada e a rodada segue com o resto.
+
+TSE e Instagram não entram nessa rotina: o TSE responde 403 (Akamai) a qualquer
+IP de fora do Brasil, inclusive no portal, e o Instagram devolve 429 na API e não
+traz o número de seguidores no HTML público. Medido no runner em 6 e 7/9/2026, com
+o resultado por fonte em `coleta/RESULTADO.md`. Os dois continuam pelo roteiro de
+navegador em `coleta/navegador_estados.md`, com a data de cada número no mural.
+O Google Trends estava nessa lista até 7/9: ele responde ao runner desde que a
+sessão visite `trends.google.com` antes de chamar a API, para receber os cookies.
 
 O HTML real das páginas da Wikipédia usado nos testes está em
 `testes/fixtures/wikipedia/` (workflow `fixtures-wikipedia.yml`, à mão).

@@ -75,6 +75,11 @@ def git(pasta, *args):
     return p.stdout
 
 
+def hoje_do_teste():
+    """A mesma data que o guarda usa, para o recorte de HEAD casar com os cenários."""
+    return carregar_guarda().hoje_brasilia()
+
+
 class Repositorio:
     """Repositório temporário com os arquivos do recorte commitados em HEAD."""
 
@@ -92,7 +97,18 @@ class Repositorio:
         self._recorte_csv("dados/estados/wikipedia-estados.csv", lambda l, h: l[h.index("uf")] == "AC")
         # o Pará tem em HEAD seis linhas de segundo turno com campo_fim em novembro e dezembro de 2026
         # (erro de ano da própria página); elas não podem virar 'linha nova' quando a tabela se desloca
+        # do CSV congelado de 02/09, não do de produção: a coleta automática regrava esse arquivo e
+        # as seis linhas com erro de ano do Pará podem sumir quando a Wikipédia as corrigir
+        self._copiar_congelado("dados/estados/pesquisas-estados-wiki.csv",
+                               os.path.join(RAIZ, "testes", "fixtures", "wikipedia",
+                                            "pesquisas-estados-wiki-2026-09-02.csv.gz"))
         self._recorte_csv("dados/estados/pesquisas-estados-wiki.csv", lambda l, h: l[h.index("uf")] == "PA")
+        # HEAD do teste não pode conter os dias que os cenários vão acrescentar: a coleta automática
+        # já traz ontem e anteontem, e a linha "nova" do teste viraria chave duplicada (7/9/2026)
+        limite = (hoje_do_teste() - dt.timedelta(days=3)).isoformat()
+        for rel in ("dados/wikipedia-pageviews.csv", "dados/estados/wikipedia-estados.csv",
+                    "dados/estados/instagram-estados.csv", "dados/serie-diaria.csv"):
+            self._recorte_csv(rel, lambda l, h: l[h.index("data")] <= limite, minimo=10)
         with open(os.path.join(DADOS, "estados", "_wiki-pesquisas-estados.json"), encoding="utf-8") as f:
             dump = json.load(f)
         paginas = {t: x for t, x in dump["paginas"].items() if t.endswith(("no Acre", "em Alagoas", "no Amapá"))}
@@ -105,11 +121,18 @@ class Repositorio:
         git(self.pasta, "add", "-A")
         git(self.pasta, "commit", "-q", "-m", "recorte para o teste do guarda")
 
-    def _recorte_csv(self, rel, filtro):
-        with open(os.path.join(RAIZ, rel), "rb") as f:
+    def _copiar_congelado(self, rel, origem_gz):
+        import gzip
+        with gzip.open(origem_gz, "rb") as e, open(os.path.join(self.pasta, rel), "wb") as s:
+            shutil.copyfileobj(e, s)
+
+    def _recorte_csv(self, rel, filtro, minimo=100):
+        caminho = os.path.join(self.pasta, rel)
+        origem = caminho if os.path.exists(caminho) else os.path.join(RAIZ, rel)
+        with open(origem, "rb") as f:
             cab, linhas = ler_csv_bytes(f.read())
         recorte = [l for l in linhas if filtro(l, cab)]
-        assert len(recorte) > 100, rel
+        assert len(recorte) > minimo, rel
         self.escrever(rel, csv_bytes(cab, recorte))
 
     def caminho(self, rel):

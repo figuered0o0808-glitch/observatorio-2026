@@ -26,7 +26,19 @@ sys.path.insert(0, str(RAIZ / "coleta"))
 import wikipedia_pesquisas_nacional as wpn  # noqa: E402
 
 FIXTURE = RAIZ / "testes" / "fixtures" / "wikipedia" / "nacional-atual.html.gz"
-CSV_REAL = RAIZ / "dados" / "pesquisas-registradas.csv"
+# CSV congelado no estado de 6/9/2026, antes da primeira coleta automática. O de produção não
+# serve de referência: assim que o robô grava as rodadas de setembro elas deixam de ser novas e
+# os testes das rodadas novas passariam a falhar sozinhos (aconteceu em 7/9/2026).
+CSV_CONGELADO = RAIZ / "testes" / "fixtures" / "wikipedia" / "pesquisas-registradas-2026-09-06.csv.gz"
+
+
+def csv_de_referencia(tmp):
+    """Descomprime o CSV congelado num diretório temporário e devolve o caminho."""
+    import gzip, shutil
+    destino = Path(tmp) / "pesquisas-registradas.csv"
+    with gzip.open(CSV_CONGELADO, "rb") as e, open(destino, "wb") as s:
+        shutil.copyfileobj(e, s)
+    return destino
 REVID = 72935890
 
 # Rodadas novas da tabela de setembro do 1º turno, lidas no wikitext da revisão 72935890.
@@ -87,13 +99,22 @@ AGREGADORES = {"UOL", "PollingData", "Poll+Trend", "Plano Político", "ABC Dados
 HTML = None
 LINHAS_CSV = None
 NOVAS = PRESENTES = RES = None
+TMP_REF = None
+CSV_REF = None
 
 
 def setUpModule():
-    global HTML, LINHAS_CSV, NOVAS, PRESENTES, RES
+    global HTML, LINHAS_CSV, NOVAS, PRESENTES, RES, TMP_REF, CSV_REF
+    TMP_REF = tempfile.TemporaryDirectory()
+    CSV_REF = csv_de_referencia(TMP_REF.name)
     HTML, _ = wpn.carregar_html(FIXTURE, REVID)
-    LINHAS_CSV = wpn.ler_csv(CSV_REAL)
+    LINHAS_CSV = wpn.ler_csv(CSV_REF)
     NOVAS, PRESENTES, RES = wpn.processar(HTML, REVID, LINHAS_CSV, hoje=date(2026, 9, 6))
+
+
+def tearDownModule():
+    if TMP_REF is not None:
+        TMP_REF.cleanup()
 
 
 def por_cenario(linhas):
@@ -369,10 +390,10 @@ class Funcoes(unittest.TestCase):
 
 class Gravacao(unittest.TestCase):
     def test_acrescenta_no_fim_preservando_bom_e_crlf(self):
-        original = CSV_REAL.read_bytes()
+        original = CSV_REF.read_bytes()
         with tempfile.TemporaryDirectory() as tmp:
             destino = Path(tmp) / "pesquisas-registradas.csv"
-            argv = ["--html", str(FIXTURE), "--revid", str(REVID), "--csv", str(CSV_REAL), "--saida", str(destino)]
+            argv = ["--html", str(FIXTURE), "--revid", str(REVID), "--csv", str(CSV_REF), "--saida", str(destino)]
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(wpn.main(argv + ["--dry-run"]), 0)
                 self.assertFalse(destino.exists())  # dry-run não cria nem toca a saída
@@ -398,7 +419,7 @@ class Gravacao(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(wpn.main(argv), 0)
             self.assertEqual(destino.read_bytes(), gravado)
-        self.assertEqual(CSV_REAL.read_bytes(), original)
+        self.assertEqual(CSV_REF.read_bytes(), original)
 
 
 if __name__ == "__main__":

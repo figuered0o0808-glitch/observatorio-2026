@@ -33,13 +33,28 @@ from unittest import mock
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIXTURES = os.path.join(RAIZ, "testes", "fixtures", "wikipedia")
-DUMP = os.path.join(RAIZ, "dados", "estados", "_wiki-pesquisas-estados.json")
-CSV_WIKI = os.path.join(RAIZ, "dados", "estados", "pesquisas-estados-wiki.csv")
+# O oráculo é o dump que o navegador gerou em 02/09/2026, congelado aqui junto das fixtures do
+# HTML das mesmas revisões. Não pode ser o arquivo de produção: a coleta automática regrava o dump
+# a cada rodada, e o teste passaria a comparar revisões diferentes (falhava assim em 7/9/2026).
+DUMP = os.path.join(RAIZ, "testes", "fixtures", "wikipedia", "dump-navegador-2026-09-02.json.gz")
+# Também congelado: o CSV que _parse_wiki.py produzia do dump de 02/09. O de produção é
+# reescrito a cada coleta e não serve de oráculo.
+CSV_WIKI = os.path.join(RAIZ, "testes", "fixtures", "wikipedia", "pesquisas-estados-wiki-2026-09-02.csv.gz")
 PARSE_WIKI = os.path.join(RAIZ, "dados", "estados", "_parse_wiki.py")
 COLETOR = os.path.join(RAIZ, "coleta", "wikipedia_pesquisas_estados.py")
 
 # o CSS de tooltip que o navegador deixava dentro das células e o extrator novo descarta
 CSS_VAZADO = re.compile(r"\.mw-parser-output[^{]*\{[^}]*\}")
+
+
+def abrir_dump(caminho):
+    """Lê o dump congelado (.json.gz) ou um .json solto."""
+    if caminho.endswith(".gz"):
+        import gzip
+        with gzip.open(caminho, "rb") as f:
+            return json.loads(f.read().decode("utf-8"))
+    with open(caminho, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def carregar_coletor():
@@ -77,8 +92,7 @@ class Base(unittest.TestCase):
         cls.mod = carregar_coletor()
         with open(os.path.join(FIXTURES, "indice.json"), encoding="utf-8") as f:
             cls.indice = json.load(f)["estaduais"]
-        with open(DUMP, encoding="utf-8") as f:
-            cls.dump = json.load(f)
+        cls.dump = abrir_dump(DUMP)
         cls.paginas = cls.dump["paginas"]
 
     def dump_do_script(self):
@@ -159,13 +173,17 @@ class OraculoTextoCompacto(Base):
 
 class ParseWiki(Base):
     def test_parse_wiki_reproduz_o_csv_byte_a_byte(self):
+        import gzip
         with tempfile.TemporaryDirectory() as d:
+            entrada = os.path.join(d, "_wiki-pesquisas-estados.json")
+            with open(entrada, "w", encoding="utf-8") as f:
+                json.dump(abrir_dump(DUMP), f, ensure_ascii=False)
             saida = os.path.join(d, "pesquisas-estados-wiki.csv")
-            r = subprocess.run([sys.executable, PARSE_WIKI, DUMP, saida], capture_output=True, text=True, cwd=d)
+            r = subprocess.run([sys.executable, PARSE_WIKI, entrada, saida], capture_output=True, text=True, cwd=d)
             self.assertEqual(r.returncode, 0, r.stderr)
             with open(saida, "rb") as f:
                 gerado = f.read()
-        with open(CSV_WIKI, "rb") as f:
+        with gzip.open(CSV_WIKI, "rb") as f:
             esperado = f.read()
         self.assertTrue(gerado.startswith(b"\xef\xbb\xbf"))
         self.assertIn(b"\r\n", gerado[:200])

@@ -119,6 +119,13 @@ jobs:
           fi
           python3 coleta/wikipedia_pageviews.py "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/coleta/pageviews.log"
 
+      # O Trends responde ao runner desde que a sessão pegue os cookies da página antes (medido em
+      # 7/9/2026). Se um dia bloquear, o coletor não grava nada e a rodada segue com o resto: a
+      # série antiga continua no lugar, com a data da última coleta à vista no mural.
+      - name: Busca no Google Trends
+        continue-on-error: true
+        run: python3 coleta/google_trends.py 2>&1 | tee "$RUNNER_TEMP/coleta/trends.log"
+
       - name: Regenerar o mural
         env:
           MURAL_ATUALIZADO: ${{ steps.hora.outputs.atualizado }}
@@ -230,6 +237,14 @@ jobs:
           if acessos:
               partes.append(plural(acessos, "linha de acessos aos verbetes", "linhas de acessos aos verbetes"))
           detalhes += [l for l in pv if "acrescentad" in l]
+
+          tr = linhas("trends")
+          m = acha(tr, r"(\d+) linhas, (\d+) termos, de (\S+) a (\S+)")
+          if m:
+              partes.append("série de busca até %s" % m.group(4))
+              detalhes.append("Google Trends: %s linhas, %s termos, até %s" % (m.group(1), m.group(2), m.group(4)))
+          elif any("nada gravado" in l for l in tr):
+              detalhes.append("Google Trends: nenhum lote respondeu; a série anterior fica como está")
           # os coletores imprimem caminhos absolutos do runner; no histórico basta o relativo
           raiz = os.environ.get("GITHUB_WORKSPACE") or os.getcwd()
           detalhes = [l.replace(raiz.rstrip("/") + "/", "") for l in detalhes]

@@ -21,6 +21,7 @@ import csv
 import datetime as dt
 import importlib.util
 import io
+import gzip
 import json
 import os
 import shutil
@@ -40,6 +41,13 @@ ENTRADAS = [
     os.path.join("dados", "estados", "wikipedia-verbetes-estados.csv"),
     os.path.join("dados", "estados", "wikipedia-estados.csv"),
 ]
+# As duas séries de acessos entram congeladas no estado de 6/9/2026, antes da primeira coleta
+# automática. Usar o arquivo de produção não funciona: o robô coleta todo dia, a janela que os
+# cenários simulam já está lá e não sobra linha nova para medir (falhava assim em 7/9/2026).
+CONGELADOS = {
+    os.path.join("dados", "wikipedia-pageviews.csv"): os.path.join(FIXTURES, "wikipedia-pageviews-2026-09-06.csv.gz"),
+    os.path.join("dados", "estados", "wikipedia-estados.csv"): os.path.join(FIXTURES, "wikipedia-estados-2026-09-06.csv.gz"),
+}
 NACIONAL = os.path.join("dados", "wikipedia-pageviews.csv")
 ESTADUAL = os.path.join("dados", "estados", "wikipedia-estados.csv")
 BOM = b"\xef\xbb\xbf"
@@ -61,6 +69,12 @@ def item(titulo, data, views):
     return {"project": "pt.wikipedia", "article": titulo.replace(" ", "_"), "granularity": "daily",
             "timestamp": data.replace("-", "") + "00", "access": "all-access", "agent": "user",
             "views": views}
+
+
+def ler_congelado(rel):
+    """Bytes do CSV congelado que serve de estado inicial das cópias."""
+    with gzip.open(CONGELADOS[rel], "rb") as f:
+        return f.read()
 
 
 def gravar_resposta(pasta, titulo, pares):
@@ -124,7 +138,11 @@ class Base(unittest.TestCase):
         for rel in ENTRADAS:
             destino = os.path.join(raiz, rel)
             os.makedirs(os.path.dirname(destino), exist_ok=True)
-            shutil.copyfile(os.path.join(RAIZ, rel), destino)
+            if rel in CONGELADOS:
+                with gzip.open(CONGELADOS[rel], "rb") as e, open(destino, "wb") as sa:
+                    shutil.copyfileobj(e, sa)
+            else:
+                shutil.copyfile(os.path.join(RAIZ, rel), destino)
         offline = os.path.join(raiz, "offline")
         os.makedirs(offline)
         return raiz, offline
@@ -321,7 +339,7 @@ class InsercaoNoMeio(Base):
             if (l[0], l[1]) == ("2026-04-02", "Augusto Cury"):
                 self.assertNotEqual(l[3], "999")
         # o estadual não foi tocado (--so nacional)
-        self.assertEqual(ler_bytes(os.path.join(raiz, ESTADUAL)), ler_bytes(os.path.join(RAIZ, ESTADUAL)))
+        self.assertEqual(ler_bytes(os.path.join(raiz, ESTADUAL)), ler_congelado(ESTADUAL))
 
     def test_estadual_preenche_lacuna_no_fim(self):
         raiz, offline = self.montar_copia("lacuna")
@@ -343,7 +361,7 @@ class InsercaoNoMeio(Base):
         self.assertEqual(ld[-1][:5], ["2026-01-02", uf, slug, verbete, "0"])
         self.assertEqual(len(ld), len(la) + 1)
         # o nacional não foi tocado (--so estadual)
-        self.assertEqual(ler_bytes(os.path.join(raiz, NACIONAL)), ler_bytes(os.path.join(RAIZ, NACIONAL)))
+        self.assertEqual(ler_bytes(os.path.join(raiz, NACIONAL)), ler_congelado(NACIONAL))
 
 
 class Janela(Base):
@@ -369,7 +387,7 @@ class Janela(Base):
         saida = self.rodar(raiz, offline, "--desde", "2026-09-05", "--ate", "2026-09-02", esperado=1)
         self.assertIn("erro: --desde 2026-09-05 é posterior a --ate 2026-09-02", saida)
         # nada foi gravado
-        self.assertEqual(ler_bytes(os.path.join(raiz, NACIONAL)), ler_bytes(os.path.join(RAIZ, NACIONAL)))
+        self.assertEqual(ler_bytes(os.path.join(raiz, NACIONAL)), ler_congelado(NACIONAL))
 
 
 class Titulos(Base):

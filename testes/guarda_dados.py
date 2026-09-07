@@ -87,6 +87,14 @@ CSV_REGRAVADO = {
         "casamento": ("uf", "cargo", "turno", "instituto", "data_ref", "campo_inicio", "cenario", "candidato"),
         "rodada": ("uf", "cargo", "turno", "instituto", "data_ref", "campo_inicio", "cenario", "candidato"),
     },
+    # O índice do Trends é relativo à janela pedida, e a janela cresce um dia a cada coleta: a
+    # série inteira é refeita, não acrescentada. "grupos" guarda o que não pode sumir de uma
+    # coleta para a outra (nenhum termo de nenhum lote).
+    "dados/trends-2026.csv": {
+        "casamento": ("data", "lote", "termo"),
+        "rodada": ("data", "lote", "termo"),
+        "grupos": ("lote", "termo"),
+    },
 }
 JSON_REGRAVADO = "dados/estados/_wiki-pesquisas-estados.json"
 
@@ -98,7 +106,6 @@ INTOCAVEIS = (
     "dados/estados/bens-estados.csv",
     "dados/partidos.csv",
     "dados/avante-chapas.csv",
-    "dados/trends-2026.csv",
     "dados/estados/trends-estados.csv",
     "dados/estados/pesquisas-estados.csv",
     "dados/redes-fontes.csv",
@@ -495,6 +502,16 @@ def verificar_regravado(caminho, chave, antigo, novo, hoje, rel):
             rel.falha(caminho, "UF(s) presentes em HEAD sumiram: %s" % ", ".join(sumiram))
         else:
             rel.ok(caminho, "as %d UFs de HEAD continuam presentes" % len(ufs_a))
+    if chave.get("grupos"):
+        idx_g = indices_da_chave(caminho, cabecalho, chave["grupos"], rel)
+        if idx_g is not None:
+            g_a, g_n = chaves(lin_a, idx_g), chaves(lin_n, idx_g)
+            sumiram = sorted(g_a - g_n)
+            if sumiram:
+                rel.falha(caminho, "%d grupo(s) de HEAD sumiram: %s"
+                          % (len(sumiram), "; ".join(" ".join(x) for x in sumiram[:EXEMPLOS])))
+            else:
+                rel.ok(caminho, "os %d grupos de HEAD continuam presentes" % len(g_a))
     mapa_a = indexar_com_ocorrencia(lin_a, idx)
     mapa_n = indexar_com_ocorrencia(lin_n, idx)
     verificar_zeros(caminho, cabecalho, mapa_a, mapa_n, rel)
