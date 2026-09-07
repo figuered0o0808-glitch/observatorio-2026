@@ -46,7 +46,9 @@ env:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 60, e não 30: a rodada da noite soma o Trends por estado (133 consultas, uns quinze
+    # minutos) aos acessos aos verbetes e aos dois testes de navegador
+    timeout-minutes: 60
     environment:
       name: github-pages
       url: ${{ steps.publicacao.outputs.page_url }}
