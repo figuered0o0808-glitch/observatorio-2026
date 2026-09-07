@@ -100,6 +100,21 @@ def main(argv=None):
             erros.append("%s: %s" % (chave, e))
             print("%3d/%d %s: FALHOU (%s)" % (i + 1, len(chaves), chave, e), flush=True)
 
+    # segunda passada nos que falharam: quase sempre é 429 de momento, e uma pausa maior resolve
+    if erros and not a.dry_run:
+        refazer = [e.split(":")[0] for e in erros]
+        print("\nsegunda passada em %d lote(s) que falharam" % len(refazer), flush=True)
+        erros = []
+        for chave in refazer:
+            lote = plano[chave]
+            time.sleep(a.pausa * 3)
+            try:
+                novos[chave] = serie_bruta(ses, lote["kws"], lote["geo"], a.desde, fim)
+                print("  %s: recuperado" % chave, flush=True)
+            except Exception as e:
+                erros.append("%s: %s" % (chave, e))
+                print("  %s: FALHOU de novo (%s)" % (chave, e), flush=True)
+
     limite = max(1, int(len(chaves) * FALHAS_TOLERADAS))
     print("\n%d lote(s) coletados, %d falha(s); o limite é %d" % (len(novos), len(erros), limite))
     if len(erros) > limite:
