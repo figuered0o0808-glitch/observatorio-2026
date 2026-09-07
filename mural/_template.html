@@ -190,7 +190,9 @@ section.block{margin-top:56px}
 .howto{margin:-6px 0 14px;font-size:13px;color:var(--ink-2);max-width:84ch}
 .howto summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:12.5px;letter-spacing:.02em}
 .howto p{margin:8px 0 0}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:var(--pad) var(--pad) calc(var(--pad) - 4px);box-shadow:var(--shadow);min-width:0}
+/* painéis sem cara de cartão: fundo transparente sobre a página, régua superior (2px --ink no principal da editoria, 1px --line nos demais), sem sombra nem raio */
+.panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 8px;box-shadow:none;min-width:0}
+.panel.main{border-top:2px solid var(--ink)}
 .panel h3{margin:0;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 78,"wght" 800;font-stretch:78%;font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.02em}
 .panel .ph{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .cap{color:var(--ink-3);font-size:12.5px;line-height:1.45;margin:4px 0 8px;max-width:90ch}
@@ -213,18 +215,16 @@ section.block{margin-top:56px}
 .pv{font-size:32px;color:var(--band-ink)}
 .pd{font-size:12px;color:var(--band-mut);line-height:1.35}
 
-/* destaques */
-.hls{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--gap);margin-top:var(--gap)}
-.hl{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--ink);border-radius:4px;padding:14px 16px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+/* blocos numéricos da home (quem mais subiu, busca da semana): sem cartão, régua fina em cima */
+.hls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;margin-top:24px}
+.hl{border-top:1px solid var(--line);padding:12px 0 8px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .hl .eyebrow{font-size:11px}
 .hl .big{font-size:30px;line-height:1}
 .hl .big small{font-size:14px;color:var(--ink-3);font-variation-settings:"wdth" 90,"wght" 600}
-.hl .line{font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.hl .line{font-size:13.5px;color:var(--ink-2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hl .line b{color:var(--ink);font-weight:600}
-.hl .go{margin-top:auto;font-size:12.5px;font-weight:600;color:var(--ink)}
-.hl ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
-.hl li{display:grid;grid-template-columns:42px 1fr;gap:8px;line-height:1.35}
-.hl li .dt{color:var(--ink-3);font-size:12px}
+.hl .dt{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.hl .go{font-size:12.5px;font-weight:600;color:var(--ink)}
 
 /* filtros e legendas */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
@@ -476,29 +476,84 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:
 .foot .go{display:inline-block;margin-top:6px;font-weight:600}
 
 
-/* hero da home */
-.hero{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:stretch;margin:0 0 22px}
-.hero .tagline{margin:0;font-size:clamp(26px,7.6vw,40px);line-height:1;text-transform:uppercase;letter-spacing:.005em;text-wrap:balance}
-.hero .lede{margin:14px 0 0;color:var(--ink-2);font-size:15.5px;line-height:1.55;max-width:66ch}
-.count{background:var(--band);color:var(--band-ink);border-top:3px solid var(--red-deep);border-radius:4px;padding:18px 20px 16px;display:flex;flex-direction:column;justify-content:center;gap:6px}
-.count .pl{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--band-mut)}
-.count .big{font-size:52px;line-height:.95;color:var(--band-ink)}
-.count .big small{font-size:18px;color:var(--band-mut);font-variation-settings:"wdth" 90,"wght" 600;margin-left:6px}
-.count .hm{font-size:20px;color:var(--band-ink)}
+/* abertura da home e dos estados: eyebrow, manchete numérica gerada pelo dado e lede de uma linha
+   (as classes .hero e .tagline ficam como apelidos, usadas pelo teste de regressão do celular) */
+.lead{margin:0 0 22px;min-width:0}
+.lead .eyebrow{display:block;margin-bottom:8px}
+.lead .manchete{margin:0;font-size:44px;line-height:1;text-transform:uppercase;letter-spacing:.005em;text-wrap:balance;overflow-wrap:anywhere}
+.lead .lede{margin:12px 0 0;color:var(--ink-2);font-size:15.5px;line-height:1.5;max-width:90ch}
+.lead .lede a{color:var(--ink);font-weight:600}
+/* corpo da home: coluna principal de 820px e trilho de 388px */
+.home{display:grid;grid-template-columns:minmax(0,820px) minmax(0,388px);gap:24px;align-items:start;margin-top:24px}
+.home>.col{min-width:0}
+.rail{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rail .rb{background:var(--paper-2);padding:14px 16px;border-radius:2px;min-width:0}
+.rail .rb .eyebrow{display:block;margin-bottom:6px}
+.rail .rb .ident{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+/* texto secundário dos blocos do trilho em --ink-2: --ink-3 sobre --paper-2 fica abaixo de 4,5:1 no tema claro */
+.rail .rb .src,.rail .rb .ah .n,.rail .rb li .dt,.rail .rb .rfoot span{color:var(--ink-2)}
+.rail .rb .rfoot{display:flex;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-top:10px}
+.rail .rb .rfoot a{font-weight:600;color:var(--ink)}
+.rail .hbars{gap:5px}
+.rail .hb{grid-template-columns:minmax(72px,120px) 1fr 52px;font-size:13px}
+.rail .hb .val{font-size:15px}
+.rail .hb .bar{height:12px}
+.home+.placar{margin-top:24px}
+.home.sec{margin-top:24px}
+/* painel da corrida na home: título, carimbo e segmentado de janela numa linha; legenda-placar embaixo */
+#p-home .ph .ztools .seg button{padding:5px 10px;font-size:11px}
+.lg-placar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 16px;margin:12px 0 4px}
+.lp{appearance:none;border:0;background:none;padding:6px 0 4px;margin:0;font:inherit;color:var(--ink);text-align:left;cursor:pointer;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"i nm" "i v" "i d";gap:0 8px;align-items:center;border-top:1px solid var(--line-2);min-width:0}
+.lp i{grid-area:i;width:10px;height:10px;border-radius:2px;background:var(--chipc,var(--ink-3));align-self:start;margin-top:5px}
+.lp .nm{grid-area:nm;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:13px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lp .v{grid-area:v;font-size:20px;line-height:1.05}
+.lp .v small{font-size:12px;color:var(--ink-3);font-variation-settings:"wdth" 90,"wght" 600}
+.lp .d{grid-area:d;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lp[aria-pressed="true"] .nm{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--chipc,var(--ink))}
+.lp.dim{opacity:.4}
+.lp:hover .nm{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--chipc,var(--ink))}
+.pfoot{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3);margin-top:8px;padding-top:8px;border-top:1px solid var(--line-2)}
+.pfoot a{font-weight:600;color:var(--ink)}
+/* contagem regressiva: faixa preta compacta (84px) no trilho da home */
+.count{background:var(--band);color:var(--band-ink);border-top:3px solid var(--red-deep);border-radius:2px;padding:12px 16px 12px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"pl pl" "big hm" "pd pd";column-gap:14px;align-items:baseline;min-height:84px}
+.count .pl{grid-area:pl;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--band-mut)}
+.count .big{grid-area:big;font-size:36px;line-height:1;color:var(--band-ink)}
+.count .big small{font-size:14px;color:var(--band-mut);font-variation-settings:"wdth" 90,"wght" 600;margin-left:5px}
+.count .hm{grid-area:hm;font-size:16px;color:var(--band-ink)}
 .count .hm b{font-variation-settings:"wdth" 72,"wght" 900;font-weight:900;font-stretch:72%;font-family:Archivo,sans-serif}
-.count .pd{font-size:12.5px;color:var(--band-mut)}
-/* alertas do dia */
-.alerts{margin:0 0 22px}
-.alerts .ah{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+.count .pd{grid-area:pd;font-size:12px;color:var(--band-mut);margin-top:2px}
+.count.fim{grid-template-areas:"pl pl" "big big" "pd pd"}
+/* alertas do dia como lista: o primeiro em destaque com a borda na cor da gravidade, os seguintes compactos */
+.alerts .ah{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin-bottom:6px}
 .alerts .ah .eyebrow{color:var(--ink)}
 .alerts .ah span.n{color:var(--ink-3);font-size:12.5px}
-.alist{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
-.al{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--alc,var(--ink-3));border-radius:4px;padding:10px 14px 10px 12px;font-size:13.5px;line-height:1.45;min-width:0}
-.al .k{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--alc,var(--ink-3));padding-top:3px;white-space:nowrap}
+.alist{display:flex;flex-direction:column;min-width:0}
+.al{display:block;padding:7px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.4;min-width:0}
+.al .k{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--alc,var(--ink-3));margin-right:6px;white-space:nowrap}
 .al .t b{color:var(--ink)}
-.al .src{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
+.al .src{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
+.al.first{border-top:0;border-left:4px solid var(--alc,var(--ink-3));padding:2px 0 4px 12px;margin-bottom:6px;font-size:14px;line-height:1.45}
+.al.first .k{display:block;margin:0 0 2px}
+.al.compact .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .al.crit{--alc:var(--crit)}.al.warn{--alc:var(--warn)}.al.info{--alc:var(--ink-2)}
-.al-more{display:none;margin-top:8px}
+.alerts .go,.eventos .go{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.eventos ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.eventos li{display:grid;grid-template-columns:42px 1fr;gap:8px;font-size:13px;line-height:1.4;padding:6px 0;border-top:1px solid var(--line)}
+.eventos li:first-child{border-top:0}
+.eventos li .dt{color:var(--ink-3);font-size:12px;font-variant-numeric:tabular-nums;padding-top:1px}
+.eventos li b{font-weight:600}
+/* abertura dos estados: mapa à esquerda (440px), manchete e alertas à direita */
+.e-lead{display:grid;grid-template-columns:440px minmax(0,1fr);grid-template-areas:"mapa lead" "mapa alerts" "mapa sel";gap:16px 28px;align-items:start}
+.e-lead>details.mapa{grid-area:mapa;margin:0}
+.e-lead>.lead{grid-area:lead;margin:0}
+.e-lead>.alerts{grid-area:alerts;min-width:0}
+.e-lead>.mapa-sel{grid-area:sel;max-width:none}
+.e-lead .manchete{font-size:36px}
+.e-lead+.placar{margin-top:24px}
+@media (max-width:1000px){
+  .home{grid-template-columns:1fr}
+  .e-lead{grid-template-columns:1fr;grid-template-areas:"lead" "mapa" "alerts" "sel"}
+}
 /* dobras (conteúdo sob botão) */
 details.fold>summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;cursor:pointer}
 details.fold>summary .cap{margin:0!important}
@@ -512,7 +567,20 @@ details.fold>.panel,details.fold>.grid2{margin-top:12px}
 .credit{display:inline-flex;align-items:center;gap:8px;color:var(--ink-3)}
 .credit .indica{display:inline-flex;align-items:center;color:var(--ink)}
 .credit .indica .marca-indica{height:17px;width:auto;display:block;fill:currentColor}
-@media (max-width:760px){.hero{grid-template-columns:1fr}.count .big{font-size:40px}}
+/* celular: manchete menor, corpo da home numa coluna na ordem manchete, gráfico com legenda-placar, última rodada, contagem, placar, alertas, régua, blocos numéricos, eventos */
+@media (max-width:760px){
+  .lead .manchete,.e-lead .manchete{font-size:clamp(26px,6.6vw,34px)}
+  .e-lead>.mapa-sel{display:none}
+  .lead .lede{font-size:14.5px}
+  .home{gap:16px;margin-top:20px}
+  .home.sec>.col,.home.sec>.rail{display:contents}
+  .home.sec #alerts{order:0}.home.sec #p-regua{order:1}.home.sec #hls{order:2}.home.sec #eventos{order:3}
+  .home .rail .rb{background:var(--paper-2)}
+  .lg-placar{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}
+  .lp .v{font-size:18px}
+  .hls{grid-template-columns:1fr;gap:0}
+  .count .big{font-size:32px}
+}
 svg.tempo{user-select:none;-webkit-user-select:none}
 svg.tempo.hover .ser:not(.hot){opacity:.12}
 svg.tempo.hover .cand-label:not(.hot){opacity:.25}
@@ -584,7 +652,8 @@ svg.tempo .cand-label.hot{font-size:14px}
 [hidden]{display:none!important}
 /* o mapa da disputa, dentro da Visão geral do estado */
 details.mapa{margin-top:var(--gap)}
-.mapa-grid{display:grid;grid-template-columns:minmax(260px,440px) minmax(240px,1fr);gap:20px 28px;align-items:start}
+/* dentro da coluna de 440px da abertura do estado o mapa, a legenda e o cartão da disputa escolhida empilham */
+.mapa-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
 .mapa-svg svg{width:100%;height:auto;display:block}
 .mapa-svg path.uf{stroke:var(--map-line);stroke-width:1.6;cursor:pointer;transition:filter .15s}
 .mapa-svg path.uf:hover{filter:brightness(1.12);stroke:var(--ink)}
@@ -595,10 +664,10 @@ details.mapa{margin-top:var(--gap)}
 .mapa-svg line.ld{stroke:var(--ink-2);stroke-width:1.6;pointer-events:none}
 .mapa-svg circle.dot{fill:var(--ink);pointer-events:none}
 .mapa-svg rect.hit{fill:transparent;pointer-events:all;cursor:pointer}
-.mapa-side{display:flex;flex-direction:column;gap:16px;min-width:0}
-.panel.pick{border-top:3px solid var(--ink)}
+.mapa-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel.pick{border-top:2px solid var(--ink)}
 .panel.pick .ph h3::after{content:"disputa escolhida";font:600 10px/1 Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-left:10px;vertical-align:middle}
-.mapa-sel{border:1px solid var(--line);border-radius:4px;background:var(--ground);padding:12px 14px;max-width:420px}
+.mapa-sel{border:0;border-radius:2px;background:var(--paper-2);padding:12px 14px;max-width:440px}
 .mapa-sel .nm{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:20px;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
 .mapa-sel .disp{font-size:12px;color:var(--ink-3);margin:2px 0 10px}
 .mapa-sel .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px;padding:4px 0;border-top:1px solid var(--line-2)}
@@ -778,13 +847,8 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   .brow .lab{flex-wrap:wrap;row-gap:0}
   .brow .lab>span:last-child{flex:1 1 44px}
   .grid2.wide-left{grid-template-columns:1fr}
-  /* alertas: uma coluna, kicker acima, quatro visíveis */
-  .al{grid-template-columns:1fr;gap:3px;padding:10px 12px}
-  .al .k{padding-top:0}
-  .alerts .ah{flex-wrap:wrap;gap:2px 10px}
-  .alist{gap:8px}
-  .alist:not(.todos) .al:nth-child(n+5){display:none}
-  .al-more{display:inline-flex}
+  /* alertas: a mesma lista do desktop, com o primeiro em destaque */
+  .al.first{font-size:13.5px}
   /* método */
   .pipe{flex-direction:column;gap:4px}
   .pipe>.pnode{flex:none;width:100%}
@@ -834,21 +898,39 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 <main>
 <section class="view" id="v-geral" role="tabpanel" data-title="Visão geral">
-  <div class="hero">
-    <div class="hero-t">
-      <p class="tagline display">A disputa presidencial de 2026, medida todos os dias.</p>
-      <p class="lede">O Mural dos Candidatos acompanha os treze registrados no TSE em quatro frentes: as pesquisas do ano inteiro, separadas por instituto e por modo de coleta; o que o país procura sobre cada um no Google e na Wikipédia; a evolução dos seguidores nas redes; e a cronologia do que cada campanha fez. As pesquisas e os acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; buscas no Google, seguidores e ficha do TSE entram a cada coleta do observatório. Cada número carrega data e fonte.</p>
-    </div>
-    <div class="count" id="count" aria-live="polite"></div>
+  <div class="lead hero">
+    <span class="eyebrow">Presidência · 1º turno · média móvel de <span class="sig-dias">4</span> dias até <span id="lead-ult"></span></span>
+    <h1 class="manchete tagline display" id="manchete"></h1>
+    <p class="lede" id="lede-dados"></p>
   </div>
-  <div class="alerts" id="alerts"></div>
+  <div class="home">
+    <div class="col">
+      <div class="panel main" id="p-home">
+        <div class="ph"><h3>A corrida</h3><span class="ztools"><span class="stamp-dt" id="home-ate"></span><span class="seg" role="group" aria-label="Janela do gráfico" id="home-seg"><button type="button" data-hj="90" aria-pressed="false">90 dias</button><button type="button" data-hj="ano" aria-pressed="true">2026</button></span></span></div>
+        <div id="ch-home"></div>
+        <div class="lg-placar" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
+        <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><span id="home-fonte"></span></div>
+      </div>
+    </div>
+    <aside class="rail">
+      <div class="rb" id="ult-rodada"></div>
+      <div class="count" id="count" aria-live="polite"></div>
+    </aside>
+  </div>
   <div class="placar" id="strip" role="list" aria-label="Placar da disputa"></div>
-  <div class="hls" id="hls"></div>
-  <div class="panel" style="margin-top:var(--gap)">
-    <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; a janela encurta um dia a cada dez até a eleição</span></div>
-    <div class="cap">Onde cada candidato está agora e de onde veio: o círculo vazio é a posição de 30 dias atrás e o traço é o movimento. Seta quando a diferença passa de 1 ponto.</div>
-    <div id="ch-regua"></div>
-    <div class="regua-legend" id="lg-regua"></div>
+  <div class="home sec">
+    <div class="col">
+      <div class="panel" id="p-regua">
+        <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; o círculo vazio é a posição de 30 dias atrás</span></div>
+        <div id="ch-regua"></div>
+        <div class="regua-legend" id="lg-regua"></div>
+      </div>
+      <div class="hls" id="hls"></div>
+    </div>
+    <aside class="rail">
+      <div class="rb alerts" id="alerts"></div>
+      <div class="rb eventos" id="eventos"></div>
+    </aside>
   </div>
 </section>
 
@@ -856,7 +938,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display">A corrida</h2></div>
   <p class="sub">Cada ponto é uma rodada registrada (primeiro turno, estimulada); a linha é a média móvel de <span class="sig-dias">4</span> dias dos institutos selecionados, e a janela encurta um dia a cada dez dias até a eleição, para pesar as rodadas mais recentes.</p>
   <details class="howto"><summary>Como ler</summary><p>Metodologias diferentes convivem no mesmo gráfico de propósito: a AtlasIntel (digital) costuma medir Lula acima dos presenciais e telefônicos, por exemplo. Os filtros de instituto e de modo de coleta (presencial, telefônica, digital) isolam réguas comparáveis. A janela de tempo e os candidatos em foco vêm de "Personalizar".</p></details>
-  <div class="panel">
+  <div class="panel main">
     <div class="ph"><h3>Intenção de voto no primeiro turno</h3></div>
     <div id="ch-corrida"></div>
     <div class="chips legenda" id="f-cands"></div>
@@ -888,7 +970,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Coleta própria</span><h2 class="t display">Busca e descoberta</h2><div class="right"><div class="seg" role="group" aria-label="Modo de exibição"><button type="button" data-multi="0">Sobrepostos</button><button type="button" data-multi="1">Um por candidato</button></div></div></div>
   <p class="sub">Google Trends (índice relativo de busca, 0 a 100) e acessos reais ao verbete de cada candidato na Wikipédia, coletados pelo observatório: a Wikipédia entra sozinha todo dia, o Trends a cada coleta, com a data ao lado.</p>
   <details class="howto"><summary>Como ler</summary><p>O Trends compara intenção de busca dentro de cada consulta; Zema, Marçal e Samara vêm de um segundo lote ancorado por Lula (máximo de 5 termos por consulta), com escala comparável mas não idêntica. O dia 16/8 veio zerado do Google e foi tratado como lacuna. A Wikipédia conta gente de verdade (all-access, sem robôs), em escala logarítmica.</p></details>
-  <div class="panel"><div class="ph"><h3>Buscas pelos candidatos no Google</h3></div><div id="ch-trends"></div></div>
+  <div class="panel main"><div class="ph"><h3>Buscas pelos candidatos no Google</h3></div><div id="ch-trends"></div></div>
   <div class="grid2">
     <div class="panel"><h3>O teste do transbordamento</h3><div class="cap">Os quatro termos do briefing na mesma consulta: "eleições 2026" saltou com a onda Cury; "como votar" ainda não.</div><div id="ch-termos"></div></div>
     <div class="panel"><h3>Acessos ao verbete na Wikipédia</h3><div class="cap">Acessos diários, escala logarítmica.</div><div id="ch-wiki"></div></div>
@@ -960,7 +1042,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <section class="view" id="v-metodo" role="tabpanel" data-title="Método">
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e fontes</h2></div>
   <p class="sub">De onde vem cada número, como ele entra no mural e o que ainda falta.</p>
-  <div class="panel"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia entram duas vezes por dia; as outras fontes, a cada coleta. Nenhum número entra sem data e fonte.</div><div class="pipe" id="pipe"></div></div>
+  <div class="panel main"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia entram duas vezes por dia; as outras fontes, a cada coleta. Nenhum número entra sem data e fonte.</div><div class="pipe" id="pipe"></div></div>
   <div class="grid2 wide-left">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. Mede dado, não mérito.</div><div id="ch-cobertura"></div></div>
     <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta sai da ficha técnica registrada no TSE, por palavra-chave. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
@@ -968,24 +1050,24 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <details class="fold"><summary><span class="btn">Ler as notas completas de método</span><span class="cap" style="margin:0">pesquisas, metodologias, redes, busca, partidos, TSE e eventos</span></summary><div class="panel"><div class="notes" id="notes"></div></div></details>
 </section>
 <section class="view" id="v-e-geral" role="tabpanel" data-title="Visão geral do estado">
-  <div class="hero">
-    <div class="hero-t">
-      <p class="tagline display" id="e-tag"></p>
+  <div class="e-lead">
+    <div class="lead hero">
+      <span class="eyebrow" id="e-eyebrow"></span>
+      <h1 class="manchete tagline display" id="e-tag"></h1>
       <p class="lede" id="e-lede"></p>
     </div>
-    <div class="count" id="e-count"></div>
-  </div>
-  <div class="alerts" id="e-alerts"></div>
-  <div class="placar" id="e-strip" role="list"></div>
 <details class="mapa panel" id="mapa" open><summary><div class="ph"><h3>O mapa da disputa</h3><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span><span class="tg" aria-hidden="true"></span></div></summary>
   <div class="mapa-grid">
     <div class="mapa-svg" id="mapa-svg" role="group" aria-label="Mapa do Brasil com o líder de cada estado"></div>
     <div class="mapa-side">
-      <div class="mapa-sel" id="mapa-sel"></div>
       <div class="mapa-legend" id="mapa-legend"></div>
     </div>
   </div>
   <div class="cap">A cor de cada estado é a do partido do candidato à frente na rodada mais recente registrada no observatório; hachura quer dizer diferença menor que o dobro da margem de erro daquela pesquisa, o que é empate técnico; cinza claro quer dizer que ainda não há pesquisa daquele estado para essa disputa. <span id="mapa-como">Passe o cursor para ver os números e clique para abrir o estado.</span></div></details>
+    <div class="alerts" id="e-alerts"></div>
+    <div class="mapa-sel" id="mapa-sel"></div>
+  </div>
+  <div class="placar" id="e-strip" role="list"></div>
   <div class="grid2" style="margin-top:var(--gap)">
     <div class="panel" id="e-panel-gov"><div class="ph"><h3>Quem lidera o governo</h3><span class="cap" style="margin:0" id="e-cap-gov"></span></div><div id="e-ch-gov"></div></div>
     <div class="panel" id="e-panel-sen"><div class="ph"><h3>Quem lidera o Senado</h3><span class="cap" style="margin:0" id="e-cap-sen"></span></div><div id="e-ch-sen"></div></div>
@@ -996,7 +1078,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display" id="e-t-pesq">A corrida</h2></div>
   <p class="sub" id="e-sub-pesq"></p>
   <details class="howto"><summary>Como ler</summary><p>Cada ponto é uma rodada de pesquisa; a linha é a média móvel dos pontos de cada candidato quando há três ou mais rodadas. Institutos diferentes não são somados nem ponderados: use os filtros para ver a corrida pela régua de um instituto só. Quando uma rodada testa vários cenários, o gráfico usa o cenário que mais coincide com as candidaturas registradas no TSE; os outros cenários ficam no seletor da rodada em destaque. No Senado cada eleitor vota em dois nomes, então as porcentagens somam mais de 100 e duas vagas estão em jogo: os dois primeiros aparecem sublinhados. Sublinhado pontilhado quer dizer empate no patamar da segunda vaga.</p></details>
-  <div class="panel"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
+  <div class="panel main"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
     <div id="e-ch-corrida"></div>
     <div class="chips legenda" id="e-f-cands"></div>
     <details class="filtros"><summary>Filtrar institutos (<span id="e-f-n"></span>)</summary><div class="chips" id="e-f-inst"></div></details></div>
@@ -1010,7 +1092,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Coleta própria</span><h2 class="t display" id="e-t-busca">Busca e redes</h2></div>
   <p class="sub" id="e-sub-busca"></p>
   <details class="howto"><summary>Como ler</summary><p>O Google Trends mede interesse de busca dentro do próprio estado (geografia BR-UF), em índice de 0 a 100 relativo ao pico da consulta; a linha é a média móvel de 7 dias e os pontos são o valor diário, que em disputas estaduais costuma ser esparso, com muitos zeros. Cada consulta compara até cinco nomes; os lotes de um mesmo estado são ancorados pelo líder da última pesquisa, o que torna as escalas comparáveis mas não idênticas. Nomes comuns ("Fábio", "Renan", "Marina") captam buscas por homônimos e vêm marcados. Os acessos à Wikipédia são diários e só existem para quem tem verbete; o verbete usado aparece no tooltip. Seguidores no Instagram são o número exato lido no perfil público informado ao TSE, na data indicada.</p></details>
-  <div class="panel"><div class="ph"><h3 id="e-h-trends">Buscas no Google dentro do estado</h3><span class="cap" style="margin:0" id="e-cap-trends"></span></div><div id="e-ch-trends"></div><div class="chips legenda" id="e-f-trends"></div></div>
+  <div class="panel main"><div class="ph"><h3 id="e-h-trends">Buscas no Google dentro do estado</h3><span class="cap" style="margin:0" id="e-cap-trends"></span></div><div id="e-ch-trends"></div><div class="chips legenda" id="e-f-trends"></div></div>
   <div class="grid2">
     <div class="panel"><div class="ph"><h3>Acessos ao verbete na Wikipédia</h3><span class="cap" style="margin:0" id="e-cap-wiki"></span></div><div id="e-ch-wiki"></div></div>
     <div class="panel"><div class="ph"><h3>Seguidores no Instagram</h3><span class="cap" style="margin:0" id="e-cap-ig"></span></div><div id="e-ch-ig"></div></div>
@@ -1054,7 +1136,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <section class="view" id="v-e-metodo" role="tabpanel" data-title="Método dos estados">
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e cobertura</h2></div>
   <p class="sub">O que o observatório já tem de cada disputa estadual e o que ainda falta.</p>
-  <div class="panel"><h3>Cobertura por estado</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele estado nesta edição: registro dos candidatos ao governo, ao Senado, coligações, pesquisa de governo, pesquisa de Senado, ao menos uma rodada com número de registro no TSE, simulações de segundo turno, perfil detalhado no TSE (bens, vice, redes), série de busca no Google dentro do estado, verbetes na Wikipédia e seguidores lidos no Instagram.</div><div id="e-ch-cobertura"></div></div>
+  <div class="panel main"><h3>Cobertura por estado</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele estado nesta edição: registro dos candidatos ao governo, ao Senado, coligações, pesquisa de governo, pesquisa de Senado, ao menos uma rodada com número de registro no TSE, simulações de segundo turno, perfil detalhado no TSE (bens, vice, redes), série de busca no Google dentro do estado, verbetes na Wikipédia e seguidores lidos no Instagram.</div><div id="e-ch-cobertura"></div></div>
   <div class="panel"><h3>De onde vem cada número</h3><div class="notes" id="e-notes"></div></div>
 </section>
 
@@ -1402,12 +1484,15 @@ addEventListener("hashchange",rotear);
 const diasP1=Math.round((Date.parse("2026-10-04")-Date.parse(ULT))/864e5);
 const fefcTot=DATA.partidos.filter(p=>!p.secundario).reduce((s,p)=>s+(p.fefc||0),0);
 const nDef=C.filter(c=>c.situacao==="Deferido").length;
+// o placar não presume quem lidera: os dois primeiros saem da média móvel do dia, ordenada pelo valor
+const ORDEM=()=>OITO.map(posicao).filter(Boolean).sort((a,b)=>b.agora-a.agora);
+const TSE_DT=dBR(String((C[0]&&C[0].atualizado_tse)||"").slice(0,10));
 $("#strip").innerHTML=[
- ["13","registrados no TSE",`${nDef} deferidos; os demais aguardam julgamento`],
+ ["13","registrados no TSE",`${nDef} deferidos; os demais aguardam julgamento · TSE${TSE_DT?", "+TSE_DT:""}`],
  [String(DATA.meta.rodadas),"rodadas de pesquisa",`${DATA.meta.institutos} institutos, de ${dBR(DATA.meta.primeira)} a ${dBR(DATA.meta.ultima)}`],
  ["2","campanhas restritas","Renan Santos (31/8) e Pablo Marçal (20/8), por decisão do TSE"],
- (()=>{const a=posicao("Lula"),b=posicao("Flávio Bolsonaro");const d=a&&b?a.agora-b.agora:null;return [d==null?"":fPct(d)+"<small> pts</small>","vantagem do líder",d==null?"":`${d>=0?"Lula sobre Flávio":"Flávio sobre Lula"}, média móvel de ${SIG} dias`];})(),
- [fBRL(fefcTot),"de fundo eleitoral","FEFC 2026 somado dos 13 partidos da disputa"],
+ (()=>{const o=ORDEM();const a=o[0],b=o[1];const d=a&&b?a.agora-b.agora:null;return [d==null?"":fPct(d)+"<small> pts</small>","vantagem do líder",d==null?"":`${esc(curto(a.nome))} sobre ${esc(curto(b.nome))}, média móvel de ${SIG} dias até ${dBR(DATA.meta.ultima)}`];})(),
+ [fBRL(fefcTot),"de fundo eleitoral","FEFC 2026 somado dos 13 partidos da disputa, tabela do TSE"],
  ["14/9","próximo debate","consórcio CNN, SBT e RedeTV!"],
 ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
 
@@ -1417,44 +1502,87 @@ function posicao(n){
   const antes=smoothAt(pts.filter(p=>p.t<=tAntes+SIG*864e5),SIG,tAntes);
   return {nome:n,agora:fim.v,antes,delta:antes==null?null:fim.v-antes,ultima:pts[pts.length-1]};
 }
+// última rodada registrada e o modo de coleta dela (a ficha técnica não traz o modo; ele vem da linha de pesquisa)
+function ultimaFicha(){const ult=DATA.fichas[DATA.fichas.length-1];if(!ult)return null;const pts=DATA.polls.filter(p=>p[0]===ult.inst&&p[1]===ult.dt).sort((a,b)=>b[3]-a[3]);const modo=pts[0]?pts[0][5]:"";return {...ult,pts,modo:modo&&modo!=="não informada"?modo:""};}
+const fmtDelta=d=>d==null?"":(d>0?"+":"")+fPct(d);
+// ---- manchete numérica: os três primeiros da média móvel do dia, sem verbo interpretativo (dado com data e fonte, não leitura)
+function drawManchete(){
+  const o=ORDEM(),ult=ultimaFicha(),M=DATA.meta;
+  $("#lead-ult").textContent=dBR(M.ultima);
+  if(o.length<2||!ult){
+    $("#manchete").textContent="A disputa presidencial de 2026, medida todos os dias.";
+    $("#lede-dados").innerHTML=`Pesquisas, busca, redes e ficha do TSE dos treze registrados, com data e fonte em cada número. <a href="#metodo">Como a média é feita →</a>`;
+    return;}
+  $("#manchete").textContent=o.slice(0,3).map(p=>`${curto(p.nome)} ${fPct(p.agora)}%`).join(" · ");
+  $("#lede-dados").innerHTML=`${M.rodadas} rodadas de ${M.institutos} institutos desde ${dBR(M.primeira)}. Última: ${esc(ult.inst)}, ${dBR(ult.dt)}${ult.modo?", "+esc(ult.modo):""}. <a href="#metodo">Como a média é feita →</a>`;
+}
+// ---- o gráfico da corrida na home: oito séries, todos os institutos, sem marcos, janela própria (90 dias ou 2026)
+let homeJanela="ano";
+function drawHome(){
+  const t1=T1,t0=homeJanela==="90"?t1-93*864e5:Date.parse("2026-01-01");
+  const series=OITO.filter(n=>!some(n)).map(n=>{const pts=serieDe(n);return {nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,r:2.8,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
+  const [ymax,ticks]=escalaY(series,52,t0);
+  const cw=larguraDe("#ch-home");
+  pinta("#ch-home",chartTempo({W:820,H:340,ml:44,mr:104,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw,Hm:MOBILE?260:undefined,aria:"Intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+  $("#home-ate").textContent=`até ${dBR(DATA.meta.ultima)}`;
+  $$("#home-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hj===homeJanela));
+  $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.institutos} institutos · média móvel de ${SIG} dias`;
+  // legenda-placar: quadrado de cor, nome, média móvel de hoje e variação de 30 dias; clicar põe o candidato em foco
+  $("#lg-home").innerHTML=OITO.map(n=>{const p=posicao(n);const on=prefs.foco.includes(n);
+    return `<button type="button" class="lp${dimDe(n)?" dim":""}" data-vig="${esc(n)}" aria-pressed="${on}" style="--chipc:${COR[n]}" title="${on?"Tirar do foco":"Pôr em foco em todos os gráficos"}"><i></i><span class="nm">${esc(CURTO[n])}</span><b class="v display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem série</small>"}</b><span class="d">${p&&p.delta!=null?`${p.delta>=1?"▲ ":p.delta<=-1?"▼ ":""}${fmtDelta(p.delta)} em 30 dias`:(p?"sem base há 30 dias":"menos de 3 rodadas")}</span></button>`;}).join("");
+}
+DRAW["#ch-home"]=drawHome;
+$$("#home-seg button").forEach(b=>b.addEventListener("click",()=>{homeJanela=b.dataset.hj;drawHome();}));
+// ---- trilho: a última rodada em barras
+function drawUltimaRodada(){
+  const ult=ultimaFicha();const el=$("#ult-rodada");
+  if(!ult){el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="empty"><b>Nada apurado</b>Nenhuma ficha técnica nesta edição.</div>`;return;}
+  const pts=ult.pts.slice(0,8),max=Math.max(...pts.map(p=>p[3]),10);
+  el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="ident"><b>${esc(ult.inst)}</b> · ${dBR(ult.dt)}${ult.modo?" · "+esc(ult.modo):""} · ${ult.reg?"registro "+esc(ult.reg):"sem número de registro na fonte"}</div>`
+   +`<div class="hbars">${pts.map(p=>{const n=p[2],c=byName[n];return `<div class="hb${dimDe(n)?" dim":""}"><span class="nm">${c?`<button type="button" class="nmbtn" data-dossie="${esc(n)}" title="Abrir dossiê"><b>${esc(curto(n))}</b></button>`:`<b>${esc(curto(n))}</b>`}</span><span class="bar"><i style="width:${Math.max(1.5,p[3]/max*100)}%;background:${COR[n]||"var(--neutro)"}"></i></span><span class="val display tnum">${fPct(p[3])}<small>%</small></span></div>`;}).join("")}</div>`
+   +`<div class="rfoot"><span>${DATA.meta.rodadas}ª rodada do ano${ult.url?` · <a href="${esc(ult.url)}" target="_blank" rel="noopener">fonte</a>`:""}</span><a href="#pesquisas">ver todas →</a></div>`;
+}
+// ---- dois blocos numéricos sob a régua: quem mais subiu em 30 dias e a busca da semana
 function drawDestaques(){
   const pos=OITO.map(posicao).filter(Boolean);
-  const ult=DATA.fichas[DATA.fichas.length-1];
-  const top3=DATA.polls.filter(p=>p[0]===ult.inst&&p[1]===ult.dt).sort((a,b)=>b[3]-a[3]).slice(0,3);
   const sobe=pos.filter(p=>p.delta!=null).sort((a,b)=>b.delta-a.delta)[0], desce=pos.filter(p=>p.delta!=null).sort((a,b)=>a.delta-b.delta)[0];
   const ult7=T1-10*864e5;
   const buscas=OITO.map(n=>{const s=(DATA.trends[n]||[]).map(p=>({t:MMDD2T(p[0]),v:p[1]})).filter(p=>p.t>=ult7);if(!s.length)return null;const m=s.reduce((a,b)=>b.v>a.v?b:a);return {n,v:m.v,t:m.t};}).filter(Boolean).sort((a,b)=>b.v-a.v)[0];
-  const evs=TL.filter(e=>e.data<=HOJE).slice(0,4);
-  const f=prefs.foco;
   const cards=[
-   {k:"Última rodada",big:`${esc(ult.inst.split("/")[0])}<small> ${dBR(ult.dt)}</small>`,line:top3.map(p=>`<b>${esc(curto(p[2]))}</b> ${fPct(p[3])}%`).join(" · "),go:["pesquisas","Ver a corrida"]},
-   sobe?{k:"Quem mais subiu em 30 dias",big:`${esc(curto(sobe.nome))}<small> ${sobe.delta>0?"+":""}${fPct(sobe.delta)} pts</small>`,line:`de ${fPct(sobe.antes)}% para ${fPct(sobe.agora)}% na média móvel${desce&&desce.delta<0?`; quem mais caiu: <b>${esc(curto(desce.nome))}</b> (${fPct(desce.delta)})`:""}`,go:["geral","Ver a régua"]}:null,
-   buscas?{k:"Busca da semana",big:`${esc(curto(buscas.n))}<small> índice ${buscas.v}</small>`,line:`maior pico de busca no Google nos últimos dez dias (${dBR(dISO(buscas.t))})`,go:["busca","Ver busca e redes"]}:null,
-   {k:"Últimos eventos",list:evs.map(e=>`<li><span class="dt">${dBR(e.data)}</span><span><b>${esc(curto(e.candidato.split(",")[0]))}</b> ${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></li>`).join(""),go:["tempo","Ver a linha do tempo"]},
-  ].filter(Boolean);
-  if(f.length)cards.unshift({k:"Em foco",list:f.map(n=>{const p=posicao(n),c=byName[n];return `<li><span class="dt">${esc(c.numero)}</span><span><b>${esc(n)}</b> · ${p?fPct(p.agora)+"%"+(p.delta!=null&&Math.abs(p.delta)>=1?(p.delta>0?" ▲ +":" ▼ ")+fPct(p.delta):""):"sem menção"} · <a href="#dossie-${slug(n)}" data-dossie="${esc(n)}">dossiê</a></span></li>`;}).join(""),go:["candidatos","Ver os candidatos"]});
-  $("#hls").innerHTML=cards.map(c=>`<div class="hl"><span class="eyebrow">${c.k}</span>${c.big?`<span class="big display tnum">${c.big}</span>`:""}${c.line?`<span class="line">${c.line}</span>`:""}${c.list?`<ul>${c.list}</ul>`:""}<a class="go" href="#${c.go[0]}">${c.go[1]} →</a></div>`).join("");
+   sobe?{k:"Quem mais subiu em 30 dias",big:`${esc(curto(sobe.nome))}<small> ${fmtDelta(sobe.delta)} pts</small>`,line:`de ${fPct(sobe.antes)}% para ${fPct(sobe.agora)}% na média móvel${desce&&desce.delta<0?`; quem mais caiu: <b>${esc(curto(desce.nome))}</b> (${fmtDelta(desce.delta)})`:""}`,dt:`até ${dBR(DATA.meta.ultima)} · ${DATA.meta.institutos} institutos`,go:["pesquisas","Ver a corrida"]}:{k:"Quem mais subiu em 30 dias",big:`<small>sem base de 30 dias</small>`,line:"a série ainda não tem um mês de rodadas",dt:`até ${dBR(DATA.meta.ultima)}`,go:["pesquisas","Ver a corrida"]},
+   buscas?{k:"Busca da semana",big:`${esc(curto(buscas.n))}<small> índice ${buscas.v}</small>`,line:"maior pico de busca no Google nos últimos dez dias",dt:`${dBR(dISO(buscas.t))} · Google Trends, coleta própria`,go:["busca","Ver busca e redes"]}:{k:"Busca da semana",big:`<small>sem coleta recente</small>`,line:"o Google Trends não entrou nos últimos dez dias",dt:"",go:["busca","Ver busca e redes"]},
+  ];
+  $("#hls").innerHTML=cards.map(c=>`<div class="hl"><span class="eyebrow">${c.k}</span><span class="big display tnum">${c.big}</span><span class="line">${c.line}</span>${c.dt?`<span class="dt">${c.dt}</span>`:""}<a class="go" href="#${c.go[0]}">${c.go[1]} →</a></div>`).join("");
+}
+// ---- trilho: os últimos eventos datados
+function drawEventos(){
+  const evs=TL.filter(e=>e.data<=HOJE&&e.data.length>=10).slice(0,4);
+  $("#eventos").innerHTML=`<span class="eyebrow">Últimos eventos</span><ul>${evs.map(e=>`<li><span class="dt">${dBR(e.data)}</span><span><b>${esc(e.candidato==="todos"?"eleição":curto(e.candidato.split(",")[0]))}</b> ${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></li>`).join("")||`<li><span class="dt"></span><span>Nenhum evento datado até hoje.</span></li>`}</ul><a class="go" href="#tempo">Linha do tempo →</a>`;
 }
 function drawRegua(){
   const pos=OITO.map(posicao).filter(Boolean).filter(p=>!some(p.nome));
   const lw=larguraDe("#ch-regua");
-  if(MOBILE||lw<900){pinta("#ch-regua",reguaVertical(pos));legendaRegua(pos);return;}
-  const W=Math.min(1180,lw),H=200,ml=24,mr=24,yAxis=136,max=50,iw=W-ml-mr;
+  if(MOBILE||lw<560){pinta("#ch-regua",reguaVertical(pos));legendaRegua(pos);return;}
+  // faixa compacta na largura da coluna (820 no desktop): eixo a 86, rótulos dos líderes numa altura e os do grupo baixo (abaixo de 6%) alternando em duas
+  const W=lw,H=130,ml=24,mr=24,yAxis=86,max=50,iw=W-ml-mr;
   const X=v=>ml+v/max*iw;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato" data-w="${W}" data-w0="1180">`;
-  s+=`<g class="tick">`+[0,10,20,30,40,50].map(v=>`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-6}" y2="${yAxis+6}" stroke="var(--ink-3)"/><text x="${X(v)}" y="${yAxis+24}" text-anchor="middle">${v}%</text>`).join("")+`</g>`;
+  // data-w0 acima da largura desenhada: quando a editoria aparece com outra largura (estimada com ela oculta), reajustarGraficos refaz a régua
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato" data-w="${W}" data-w0="${Math.max(W,1180)}">`;
+  s+=`<g class="tick">`+[0,10,20,30,40,50].map(v=>`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-6}" y2="${yAxis+6}" stroke="var(--ink-3)"/><text x="${X(v)}" y="${yAxis+22}" text-anchor="middle">${v}%</text>`).join("")+`</g>`;
   s+=`<line x1="${ml}" x2="${W-mr}" y1="${yAxis}" y2="${yAxis}" stroke="var(--ink)" stroke-width="2"/>`;
   for(let v=5;v<max;v+=10)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-3}" y2="${yAxis+3}" stroke="var(--ink-3)"/>`;
-  const rot=[];
+  const alto=[],baixo=[];
   for(const p of pos){
     const x1=X(p.agora),cor=COR[p.nome],dim=dimDe(p.nome);
     s+=`<g class="ser${dim?" dim":""}">`;
     if(p.antes!=null){const x0=X(p.antes);s+=`<line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${yAxis}" y2="${yAxis}" stroke="${cor}" stroke-width="3" opacity=".55"/><circle cx="${x0.toFixed(1)}" cy="${yAxis}" r="5" fill="var(--paper)" stroke="${cor}" stroke-width="2" data-tip="<b>${esc(p.nome)}</b> há 30 dias: ${fPct(p.antes)}%"/>`;}
     const seta=p.delta==null?"":p.delta>=1?" ▲":p.delta<=-1?" ▼":"";
-    s+=`<circle cx="${x1.toFixed(1)}" cy="${yAxis}" r="7.5" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(p.nome)}" data-tip="<b>${esc(p.nome)}</b> · ${fPct(p.agora)}% (média móvel de ${SIG} dias)<br>última rodada: ${esc(p.ultima.inst)}, ${dBR(p.ultima.d)}${p.delta!=null?`<br>30 dias: ${p.delta>0?"+":""}${fPct(p.delta)} pontos`:""}<br>clique para abrir o dossiê"/></g>`;
-    rot.push({x:x1,y:yAxis-9,cor,dim,txt:`${curto(p.nome)} ${fPct(p.agora)}${seta}${p.delta!=null&&Math.abs(p.delta)>=1?" "+(p.delta>0?"+":"")+fPct(p.delta):""}`});
+    s+=`<circle cx="${x1.toFixed(1)}" cy="${yAxis}" r="7.5" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(p.nome)}" data-tip="<b>${esc(p.nome)}</b> · ${fPct(p.agora)}% (média móvel de ${SIG} dias)<br>última rodada: ${esc(p.ultima.inst)}, ${dBR(p.ultima.d)}${p.delta!=null?`<br>30 dias: ${fmtDelta(p.delta)} pontos`:""}<br>clique para abrir o dossiê"/></g>`;
+    (p.agora>=6?alto:baixo).push({x:x1,y:yAxis-9,cor,dim,txt:`${curto(p.nome)} ${fPct(p.agora)}${seta}${p.delta!=null&&Math.abs(p.delta)>=1?" "+fmtDelta(p.delta):""}`});
   }
-  s+=rotulosEmFila(rot,52,W)+`</svg>`;
+  baixo.sort((a,b)=>a.x-b.x);
+  const fila1=[...alto,...baixo.filter((_,i)=>i%2===0)],fila2=baixo.filter((_,i)=>i%2===1);
+  s+=rotulosEmFila(fila1,52,W,10,12)+rotulosEmFila(fila2,24,W,10,12)+`</svg>`;
   pinta("#ch-regua",s);
   legendaRegua(pos);
 }
@@ -1488,7 +1616,7 @@ const T_1T=Date.parse("2026-10-04T08:00:00-03:00"), T_2T=Date.parse("2026-10-25T
 function contagem(){
   const now=Date.now();let alvo=T_1T,rot="para o 1º turno",sub="4 de outubro; urnas abertas das 8h às 17h de Brasília";
   if(now>T_1T){alvo=T_2T;rot="para o 2º turno";sub="25 de outubro, se houver segundo turno";}
-  if(now>T_2T){$("#count").innerHTML=`<span class="pl">Eleição de 2026</span><span class="big display">Encerrada</span><span class="pd">1º turno em 4/10 e 2º turno em 25/10</span>`;return;}
+  if(now>T_2T){$("#count").classList.add("fim");$("#count").innerHTML=`<span class="pl">Eleição de 2026</span><span class="big display">Encerrada</span><span class="pd">1º turno em 4/10 e 2º turno em 25/10</span>`;return;}
   const ms=alvo-now,d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
   $("#count").innerHTML=`<span class="pl">Contagem regressiva ${rot}</span><span class="big display tnum">${d}<small>dias</small></span><span class="hm tnum"><b>${h}</b> h <b>${String(m).padStart(2,"0")}</b> min</span><span class="pd">${sub}</span>`;
 }
@@ -1510,14 +1638,21 @@ function drawAlertas(){
   for(const e of TL.filter(e=>e.categoria==="justiça eleitoral"&&e.data<=ref&&tRef-Date.parse(e.data)<=2*864e5).slice(0,2))A.push({s:"crit",k:"Justiça eleitoral",t:`<b>${esc(e.candidato)}</b>: ${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}`,src:dBR(e.data)+"/"+e.data.slice(0,4),go:"tempo"});
   for(const e of TL.filter(e=>e.data>ref&&Date.parse(e.data)-tRef<=4*864e5).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,2))A.push({s:"info",k:"A seguir",t:`${esc(e.evento)} em <b>${dBR(e.data)}</b>`,src:esc(e.categoria),go:"tempo"});
   const ord={crit:0,warn:1,info:2};A.sort((a,b)=>ord[a.s]-ord[b.s]);
-  $("#alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas de ${dBR(ref)}</span><span class="n">${A.length?A.length+(A.length>1?" sinais":" sinal")+" fora do padrão nos dados desta edição":"nenhum sinal fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,8).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}${a.n?` · <a href="#dossie-${slug(a.n)}" data-dossie="${esc(a.n)}">dossiê</a>`:""} · <a href="#${a.go}">ver</a></span></span></div>`).join("")}</div>${A.length>4?`<button type="button" class="btn al-more" data-al-more="1">Ver mais ${Math.min(A.length,8)-4} sinais</button>`:""}`:"");
+  renderAlertas($("#alerts"),A,`Alertas de ${dBR(ref)}`,"#tempo");
+}
+// lista de alertas: o primeiro em destaque, até quatro compactos e o caminho para o resto
+function renderAlertas(el,A,titulo,verMais){
+  const n=A.length;
+  el.innerHTML=`<div class="ah"><span class="eyebrow">${titulo}</span><span class="n">${n?pl(n,"sinal","sinais")+" nos dados desta edição":"nada fora do padrão nos dados desta edição"}</span></div>`
+   +(n?`<div class="alist">${A.slice(0,5).map((a,i)=>`<div class="al ${a.s} ${i?"compact":"first"}"><span class="t"><span class="k">${a.k}</span>${a.t}</span><span class="src">${a.src}${a.n?` · <a href="#dossie-${slug(a.n)}" data-dossie="${esc(a.n)}">dossiê</a>`:""}${a.go?` · <a href="#${a.go}">ver</a>`:""}</span></div>`).join("")}</div>`:"")
+   +(n>5&&verMais?`<a class="go" href="${verMais}">ver os ${n} na linha do tempo →</a>`:"");
 }
 
 // ---- pesquisas
 let candOn=new Set(OITO), instOn=new Set(DATA.institutos), modoOn=new Set(["presencial","telefônica","digital","não informada"]);
 // escala vertical que acompanha as séries visíveis (foco e janela)
-function escalaY(series,cheio){
-  const vis=series.filter(s=>!s.dim).flatMap(s=>s.pts.filter(p=>p.t>=T0).map(p=>p.v));
+function escalaY(series,cheio,t0=T0){
+  const vis=series.filter(s=>!s.dim).flatMap(s=>s.pts.filter(p=>p.t>=t0).map(p=>p.v));
   if(!vis.length)return [cheio,[0,10,20,30,40,50,60].filter(v=>v<cheio)];
   const m=Math.max(...vis),top=m>cheio?Math.ceil((m+5)/10)*10:m>40?cheio:m>20?45:m>10?25:m>5?12:6;
   const passo=top>=45?10:top>=25?5:top>=12?2:1;const tk=[];for(let v=0;v<=top;v+=passo)tk.push(v);
@@ -2146,11 +2281,14 @@ function drawGeralUF(){
   const u=UF[ufAtual]; if(!u) return;
   const nGov=u.gov.length, nSen=u.sen.length, nPart=new Set([...u.gov,...u.sen].map(c=>c.partido)).size;
   const nRod=u.rodadas.length, insts=new Set(u.rodadas.map(r=>r.inst)).size;
-  $("#e-tag").textContent=ufCargo==="senador"?`${u.nome}: duas vagas no Senado em disputa.`:`${u.nome}: a disputa pelo governo do estado.`;
+  // manchete numérica do estado: os três primeiros da última rodada da disputa escolhida, sem verbo
+  {const l=liderDe(ufAtual,ufCargo),disp=ufCargo==="senador"?"Senado":"Governo";
+    $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${l?`última rodada ${l.r.inst}, ${dBR(l.r.data)}`:"sem pesquisa registrada"}`;
+    $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · "):`Sem pesquisa registrada para ${ufCargo==="senador"?"o Senado":"o governo"} ${emUF(ufAtual)}`;
+    const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;
+    $("#e-lede").innerHTML=`${pl(nGov,"candidatura")} ao governo e ${nSen} ao Senado, de ${pl(nPart,"partido")}, registradas no TSE. ${rc.length?`${pl(rc.length,"rodada")} de ${pl(ic,"instituto")} para ${ufCargo==="senador"?"o Senado":"o governo"} no observatório${nRod>rc.length?`, ${nRod} no estado`:""}.`:`Nenhuma rodada de ${cargoLabel(ufCargo)} no observatório ainda${nRod?`; ${pl(nRod,"rodada")} da outra disputa`:""}.`} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;}
   $("#e-panel-gov").style.order=ufCargo==="governador"?0:1; $("#e-panel-sen").style.order=ufCargo==="senador"?0:1;
   $("#e-panel-gov").classList.toggle("pick",ufCargo==="governador"); $("#e-panel-sen").classList.toggle("pick",ufCargo==="senador");
-  $("#e-lede").innerHTML=`O mural acompanha a disputa estadual com a mesma régua da presidencial: as candidaturas registradas no TSE, as pesquisas com ficha técnica, os partidos e as coligações. ${cap(emUF(ufAtual))} são <b>${nGov}</b> candidaturas ao governo e <b>${nSen}</b> ao Senado, de <b>${nPart}</b> partidos, com <b>${nRod}</b> rodada${nRod===1?"":"s"} de pesquisa ${nRod?`de ${insts} instituto${insts===1?"":"s"}`:""} no observatório.`;
-  $("#e-count").innerHTML=$("#count").innerHTML;
   // alertas do estado
   const A=[];
   for(const cargo of ["governador","senador"]){
@@ -2165,7 +2303,7 @@ function drawGeralUF(){
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
   for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${c.cargo==="senador"?"Senado":"governo"}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
   if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});
-  $("#e-alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas ${deUF(ufAtual)}</span><span class="n">${A.length?pl(A.length,"sinal","sinais")+" nos dados desta edição":"nada fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,6).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}</span></span></div>`).join("")}</div>${A.length>4?`<button type="button" class="btn al-more" data-al-more="1">Ver mais ${Math.min(A.length,6)-4} sinais</button>`:""}`:"");
+  renderAlertas($("#e-alerts"),A,`Alertas ${deUF(ufAtual)}`,hashDe("e-tempo"));
   const lg=liderDe(ufAtual,"governador"), ls=liderDe(ufAtual,"senador");
   $("#e-strip").innerHTML=[
     [String(nGov),"candidatos ao governo",`${u.gov.filter(c=>c.sit==="Deferido").length} com registro deferido`],
@@ -2575,7 +2713,7 @@ function montarSecoes(){
 }
 function atualizarCarimbos(){$$("[data-carimbo]").forEach(el=>{el.textContent=carimboDe(el.dataset.carimbo);});}
 // ---- desenho geral
-function redraw(){aplicarJanela();drawRegua();drawDestaques();drawAlertas();drawRedesHoje();drawPartidosBarras();drawCorrida();draw2T();drawRej();drawModo();drawBusca();renderWall();drawBens();renderLadoControls();renderLado();renderTL();atualizarCarimbos();requestAnimationFrame(()=>rolarFim());}
+function redraw(){aplicarJanela();drawManchete();drawHome();drawUltimaRodada();drawEventos();drawRegua();drawDestaques();drawAlertas();drawRedesHoje();drawPartidosBarras();drawCorrida();draw2T();drawRej();drawModo();drawBusca();renderWall();drawBens();renderLadoControls();renderLado();renderTL();atualizarCarimbos();requestAnimationFrame(()=>rolarFim());}
 function aplicarTudo(){aplicarAparencia();aplicarJanela();}
 aplicarTudo();
 // todo painel com título solto ganha a linha .ph, que recebe o carimbo de data e as ferramentas de janela
@@ -2596,7 +2734,6 @@ INICIADO=true;
 atualizarCarimbos();
 if(TOQUE){const mc=$("#mapa-como");if(mc)mc.textContent="Toque num estado para ver os números e abrir a disputa.";}
 ajustarTabs();
-document.addEventListener("click",e=>{const m=e.target.closest("[data-al-more]");if(m){const l=m.previousElementSibling;if(l)l.classList.add("todos");m.remove();}});
 // ao mudar de largura (celular gira, janela muda de faixa) os gráficos são redesenhados, com 150 ms de espera
 let _rsT,_rsW=innerWidth;
 addEventListener("resize",()=>{clearTimeout(_rsT);_rsT=setTimeout(()=>{if(innerWidth===_rsW)return;_rsW=innerWidth;MOBILE=matchMedia("(max-width:760px)").matches;redraw();if(escopo==="uf")desenharUF();centrarAba();},150);});

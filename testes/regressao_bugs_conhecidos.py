@@ -665,6 +665,42 @@ with sync_playwright() as p:
     check("nenhum 'média móvel de 7 dias' fixo na editoria de Pesquisas; a legenda usa a janela do dia", not sete["sete"] and sete["viva"], sete)
     b.close()
 
+    # ================= fase C da repaginação: a home editorial e a abertura dos estados =================
+    # ---- manchete numérica gerada pelo dado: não vazia, sem 'undefined' nem 'NaN', até 44px e no máximo duas linhas a 1280,
+    #      até 34px a 390; legenda-placar com os oito; painéis de .grid2 com o topo alinhado; manchete do estado no alto a 390
+    JS_M = """() => { const m = document.querySelector('#manchete'), l = document.querySelector('#lede-dados'); const cs = getComputedStyle(m);
+        return {txt: m.textContent.trim(), lede: l ? l.textContent : '', fs: parseFloat(cs.fontSize), linhas: Math.round(m.getBoundingClientRect().height / parseFloat(cs.lineHeight)),
+                legenda: document.querySelectorAll('#lg-home .lp').length, ult: document.querySelectorAll('#ult-rodada .hb').length}; }"""
+    JS_G = """() => [...document.querySelectorAll('.view.on .grid2')].filter(g => g.querySelectorAll(':scope>.panel').length > 1 && g.getBoundingClientRect().height > 0)
+        .map(g => [...g.querySelectorAll(':scope>.panel')].map(p => Math.round(p.getBoundingClientRect().top)))"""
+    b, page, errs = novo_ctx(p, viewport=(1280, 800))
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    r = page.evaluate(JS_M)
+    check("#manchete não vazio, sem 'undefined' nem 'NaN' (manchete e lede)", bool(r["txt"]) and not re.search(r"undefined|NaN", r["txt"] + r["lede"]), r)
+    check("#manchete com font-size <= 44px e no máximo duas linhas a 1280", r["fs"] <= 44 and 1 <= r["linhas"] <= 2, r)
+    check("legenda-placar com 8 itens e última rodada com barras", r["legenda"] == 8 and r["ult"] >= 3, r)
+    tops = {}
+    for h in ("pesquisas", "uf-sp-governo"):
+        page.goto(URL + "#" + h)
+        page.wait_for_timeout(700)
+        tops[h] = page.evaluate(JS_G)
+    check("topos dos painéis de .grid2 iguais a 1280 (Pesquisas e Visão geral de SP)", bool(tops["uf-sp-governo"]) and all(len(set(t)) == 1 for g in tops.values() for t in g), tops)
+    check("rotas do bloco (fase C, 1280) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+    b, page, errs = novo_ctx(p, viewport=(390, 844))
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    r = page.evaluate(JS_M)
+    check("#manchete com font-size <= 34px a 390", bool(r["txt"]) and r["fs"] <= 34, r)
+    page.goto(URL + "#uf-sp-governo")
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => { const e = document.querySelector('#e-tag'); const b = e.getBoundingClientRect();
+        return {top: Math.round(b.top + scrollY), bottom: Math.round(b.bottom + scrollY), txt: e.textContent.trim()}; }""")
+    check("#e-tag (manchete do estado) dentro dos primeiros 700px em #uf-sp-governo a 390px", bool(r["txt"]) and r["bottom"] <= 700, r)
+    check("rotas do bloco (fase C, 390) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:
