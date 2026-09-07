@@ -177,16 +177,58 @@ Denarium/Marcos Rocha.
 
 ## Publicação
 
-O mural é publicado como página no Claude (Artifact "Mural dos Candidatos").
-Publicar e sincronizar acontece a partir da conversa no Claude (claude.ai ou
-Cowork), não daqui - uma sessão de Claude Code comum, rodando só nesta pasta,
-não tem essa ferramenta. Depois de regenerar e verificar aqui, avise para
-publicar de lá.
+O mural é publicado no GitHub Pages, em
+https://figuered0o0808-glitch.github.io/observatorio-2026/, a partir do
+repositório https://github.com/figuered0o0808-glitch/observatorio-2026 (branch
+`main`). O Pages está no modo "GitHub Actions": quem publica é o workflow
+`.github/workflows/publicar.yml`, a cada push na `main` que mude o
+`index.html`, e o `atualizar.yml` no fim de cada rodada automática. Um push
+sozinho não publica nada. O site serve só o `index.html` e o cartão de prévia
+de link; os CSVs ficam versionados aqui, fora do site.
+
+A publicação antiga como página no Claude (Artifact) não é mais o canal
+principal; se for feita, usa o mesmo `mural/mural.html`.
+
+## Atualização automática
+
+Duas vezes por dia, às 8h e às 20h de Brasília (`0 11,23 * * *` em UTC), o
+workflow `.github/workflows/atualizar.yml` roda num runner do GitHub, que
+alcança a Wikipédia (o ambiente do Claude e o Mac atrás do proxy não
+alcançam). Ele coleta o que é público e sem login, regenera, confere e
+publica:
+
+- `coleta/wikipedia_pesquisas_nacional.py` acrescenta a
+  `dados/pesquisas-registradas.csv` as rodadas presidenciais que a compilação
+  da Wikipédia tem e o arquivo ainda não tem (nunca altera linha existente;
+  `registro_tse` fica vazio porque a página não traz).
+- `coleta/wikipedia_pesquisas_estados.py` regrava
+  `dados/estados/_wiki-pesquisas-estados.json` no mesmo formato compacto que o
+  navegador produzia, só para as páginas cuja revisão mudou; depois rodam
+  `_parse_wiki.py` e `_consolidar_pesquisas.py` como sempre.
+- `coleta/wikipedia_pageviews.py` acrescenta os acessos diários aos verbetes,
+  nacionais (`dados/wikipedia-pageviews.csv`) e estaduais
+  (`dados/estados/wikipedia-estados.csv`), com a lista de verbetes congelada
+  em `wikipedia-verbetes-estados.csv` e em `candidatos.csv`.
+- `testes/guarda_dados.py` compara cada CSV com o HEAD e bloqueia o commit se
+  alguma regra de dado for violada (BOM, CRLF, linha antiga tocada, vazio que
+  vira zero, data inválida ou futura, arquivo manual alterado).
+- Os dois testes Playwright rodam; só com tudo verde o workflow commita
+  dados e mural (como `github-actions[bot]`) e publica.
+
+TSE, Google Trends e Instagram não entram nessa rotina: o TSE bloqueia IPs de
+fora do Brasil, o Trends devolve 429 de servidor e o Instagram exige sessão
+logada (testado no runner em 6/9/2026). Continuam pelo roteiro de navegador
+em `coleta/navegador_estados.md`, com a data de cada número visível no mural.
+
+O HTML real das páginas da Wikipédia usado nos testes está em
+`testes/fixtures/wikipedia/` (workflow `fixtures-wikipedia.yml`, à mão).
 
 ## Cuidados
 
-Este repositório git é local; não tem remoto configurado. Não adicione um
-`remote` nem publique em GitHub ou qualquer outro serviço sem o Francisco
-pedir explicitamente. Não edite `mural/mural.html` à mão (é gerado). Ao mudar
+O remoto é o GitHub (decisão do Francisco em 3/9/2026) e a publicação é pelo
+Pages; não publique em outro serviço sem ele pedir. O que a automação grava
+em `dados/` passa pelo guarda; o que é digitado à mão (fichas da Gazeta,
+eventos, seguidores, TSE) continua sendo fonte primária e a automação nunca
+o regrava. Não edite `mural/mural.html` à mão (é gerado). Ao mudar
 `_template.html`, rode `testes/verificar.sh` antes de considerar a mudança
 pronta.

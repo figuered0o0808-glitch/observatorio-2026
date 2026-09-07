@@ -565,7 +565,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="hero">
     <div class="hero-t">
       <p class="tagline display">A disputa presidencial de 2026, medida todos os dias.</p>
-      <p class="lede">O Mural dos Candidatos acompanha os treze registrados no TSE em quatro frentes: as pesquisas do ano inteiro, separadas por instituto e por modo de coleta; o que o país procura sobre cada um no Google e na Wikipédia; a evolução dos seguidores nas redes; e a cronologia do que cada campanha fez. Tudo é regenerado às 8h e às 20h, e cada número carrega data e fonte.</p>
+      <p class="lede">O Mural dos Candidatos acompanha os treze registrados no TSE em quatro frentes: as pesquisas do ano inteiro, separadas por instituto e por modo de coleta; o que o país procura sobre cada um no Google e na Wikipédia; a evolução dos seguidores nas redes; e a cronologia do que cada campanha fez. As pesquisas e os acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; buscas no Google, seguidores e ficha do TSE entram a cada coleta do observatório. Cada número carrega data e fonte.</p>
     </div>
     <div class="count" id="count" aria-live="polite"></div>
   </div>
@@ -573,7 +573,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="placar" id="strip" role="list" aria-label="Placar da disputa"></div>
   <div class="hls" id="hls"></div>
   <div class="panel" style="margin-top:var(--gap)">
-    <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de 7 dias, todos os institutos</span></div>
+    <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; a janela encurta um dia a cada dez até a eleição</span></div>
     <div class="cap">Onde cada candidato está agora e de onde veio: o círculo vazio é a posição de 30 dias atrás e o traço é o movimento. Seta quando a diferença passa de 1 ponto.</div>
     <div id="ch-regua"></div>
     <div class="regua-legend" id="lg-regua"></div>
@@ -582,7 +582,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 <section class="view" id="v-pesquisas" role="tabpanel" data-title="Pesquisas">
   <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display">A corrida</h2></div>
-  <p class="sub">Cada ponto é uma rodada registrada (primeiro turno, estimulada); a linha é a média móvel de 7 dias dos institutos selecionados.</p>
+  <p class="sub">Cada ponto é uma rodada registrada (primeiro turno, estimulada); a linha é a média móvel de <span class="sig-dias">4</span> dias dos institutos selecionados, e a janela encurta um dia a cada dez dias até a eleição, para pesar as rodadas mais recentes.</p>
   <details class="howto"><summary>Como ler</summary><p>Metodologias diferentes convivem no mesmo gráfico de propósito: a AtlasIntel (digital) costuma medir Lula acima dos presenciais e telefônicos, por exemplo. Os filtros de instituto e de modo de coleta (presencial, telefônica, digital) isolam réguas comparáveis. A janela de tempo e os candidatos em foco vêm de "Personalizar".</p></details>
   <div class="panel">
     <div class="chips" id="f-cands"></div>
@@ -614,7 +614,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 <section class="view" id="v-busca" role="tabpanel" data-title="Busca e redes">
   <div class="blkhead"><span class="eyebrow">Coleta própria</span><h2 class="t display">Busca e descoberta</h2><div class="right"><div class="seg" role="group" aria-label="Modo de exibição"><button type="button" data-multi="0">Sobrepostos</button><button type="button" data-multi="1">Um por candidato</button></div></div></div>
-  <p class="sub">Google Trends (índice relativo de busca, 0 a 100) e acessos reais ao verbete de cada candidato na Wikipédia, coletados pelo navegador do observatório.</p>
+  <p class="sub">Google Trends (índice relativo de busca, 0 a 100) e acessos reais ao verbete de cada candidato na Wikipédia, coletados pelo observatório: a Wikipédia entra sozinha todo dia, o Trends a cada coleta, com a data ao lado.</p>
   <details class="howto"><summary>Como ler</summary><p>O Trends compara intenção de busca dentro de cada consulta; Zema, Marçal e Samara vêm de um segundo lote ancorado por Lula (máximo de 5 termos por consulta), com escala comparável mas não idêntica. O dia 16/8 veio zerado do Google e foi tratado como lacuna. A Wikipédia conta gente de verdade (all-access, sem robôs), em escala logarítmica.</p></details>
   <div class="panel"><div class="ph"><h3>Buscas pelos candidatos no Google</h3></div><div id="ch-trends"></div></div>
   <div class="grid2">
@@ -623,7 +623,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   </div>
   <section class="block">
     <div class="blkhead"><span class="eyebrow">Seguidores</span><h2 class="t display">Redes</h2></div>
-    <p class="sub">Seguidores no Instagram publicados pela imprensa ao longo do ano, mais o snapshot diário próprio; índices de presença digital ao lado.</p>
+    <p class="sub">Seguidores no Instagram publicados pela imprensa ao longo do ano, mais as leituras próprias no perfil público; índices de presença digital ao lado.</p>
     <div class="panel"><div class="ph"><h3>Redes hoje</h3><span class="cap" style="margin:0">último número de cada perfil e a variação desde a leitura anterior</span></div><div class="tablewrap"><table id="tb-redes"><thead><tr><th>Candidato</th><th class="num">Instagram</th><th class="num">Variação</th><th>Outras redes</th><th>Origem do último número</th></tr></thead><tbody></tbody></table></div><div class="cap">Coleta própria: leitura do número exato no perfil público, às 8h e às 20h de Brasília, pelo navegador do observatório. Pontos maiores no gráfico são coleta própria; os menores, números publicados pela imprensa.</div></div>
     <div class="grid2">
       <div class="panel"><h3>Seguidores no Instagram</h3><div class="cap">Pontos: valores publicados, com fonte no tooltip. Linhas ligam as medianas diárias.</div><div id="ch-ig"></div></div>
@@ -688,7 +688,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <section class="view" id="v-metodo" role="tabpanel" data-title="Método">
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e fontes</h2></div>
   <p class="sub">De onde vem cada número, como ele entra no mural e o que ainda falta.</p>
-  <div class="panel"><h3>O caminho do dado</h3><div class="cap">Quatro etapas, duas vezes por dia. Nenhum número entra sem data e fonte.</div><div class="pipe" id="pipe"></div></div>
+  <div class="panel"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia entram duas vezes por dia; as outras fontes, a cada coleta. Nenhum número entra sem data e fonte.</div><div class="pipe" id="pipe"></div></div>
   <div class="grid2">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. Mede dado, não mérito.</div><div id="ch-cobertura"></div></div>
     <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta sai da ficha técnica registrada no TSE, por palavra-chave. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
@@ -854,6 +854,15 @@ function bindTips(root){root.querySelectorAll("[data-tip]").forEach(el=>{el.addE
 const HOJE=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const ULT=[...DATA.polls.map(p=>p[1]),...Object.values(DATA.ig).flat().map(p=>p.d),...TL.map(e=>e.data)].filter(d=>/^\d{4}-\d\d-\d\d$/.test(d)&&d<=HOJE).sort().pop();
 const T1=Date.parse(ULT)+3*864e5;let T0=Date.parse("2026-01-01");
+// Régua da corrida: janela da média móvel decidida pelo Francisco em 6/9/2026.
+// Começa em 4 dias e perde um dia a cada 10 dias, até o mínimo de 1, para que
+// na eleição só as rodadas mais recentes pesem. A contagem parte de 4/9 para
+// a janela chegar a 1 dia exatamente em 4/10 (3 dias de 14/9, 2 de 24/9).
+// Calculada pelo calendário de Brasília ao abrir a página, sem regeneração.
+const REGUA={inicio:"2026-09-04",sigma0:4,passo:10,minimo:1};
+function sigmaRegua(dia){const d=Math.floor((Date.parse(dia||HOJE)-Date.parse(REGUA.inicio))/864e5);return Math.max(REGUA.minimo,REGUA.sigma0-Math.floor(Math.max(0,d)/REGUA.passo));}
+const SIG=sigmaRegua(HOJE);
+document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
 function aplicarJanela(){T0=prefs.janela==="30"?T1-33*864e5:prefs.janela==="90"?T1-93*864e5:Date.parse("2026-01-01");}
 $("#stamp").textContent="Edição de "+DATA.atualizado;
 
@@ -1029,8 +1038,8 @@ $("#strip").innerHTML=[
 
 function posicao(n){
   const pts=serieDe(n);if(pts.length<3)return null;
-  const mm=mediaMovel(pts,7),fim=mm[mm.length-1],tAntes=fim.t-30*864e5;
-  const antes=smoothAt(pts.filter(p=>p.t<=tAntes+7*864e5),7,tAntes);
+  const mm=mediaMovel(pts,SIG),fim=mm[mm.length-1],tAntes=fim.t-30*864e5;
+  const antes=smoothAt(pts.filter(p=>p.t<=tAntes+SIG*864e5),SIG,tAntes);
   return {nome:n,agora:fim.v,antes,delta:antes==null?null:fim.v-antes,ultima:pts[pts.length-1]};
 }
 function drawDestaques(){
@@ -1124,7 +1133,7 @@ function bandaDe(pts,sigma=7,jan=14){
 }
 const MARCOS=(()=>{const seen=new Set();return TL.filter(e=>e.data.length>=10&&(e.categoria==="debate"||(e.categoria==="justiça eleitoral"&&e.candidato!=="todos"&&/suspend|impedid|revog|ineleg|restabelec/i.test(e.evento)))).filter(e=>{const k=e.data+e.categoria;if(seen.has(k))return false;seen.add(k);return true;}).map(e=>({t:Date.parse(e.data),txt:e.evento,tip:`<b>${dBR(e.data)}</b> · ${esc(e.candidato)}<br>${esc(e.evento)}`,cor:e.categoria==="debate"?"var(--m2)":"var(--crit)"})).sort((a,b)=>a.t-b.t);})();
 function drawCorrida(){
-  const series=OITO.filter(n=>candOn.has(n)&&!some(n)).map(n=>{const pts=serieDe(n).filter(p=>instOn.has(p.inst)&&modoOn.has(p.modo));return {nome:n,cor:COR[n],dim:dimDe(n),sigma:7,r:3.2,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
+  const series=OITO.filter(n=>candOn.has(n)&&!some(n)).map(n=>{const pts=serieDe(n).filter(p=>instOn.has(p.inst)&&modoOn.has(p.modo));return {nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,r:3.2,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
   const [ymax,ticks]=escalaY(series,52);
   pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:400,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
   const M=chartTempo.last.marcos;
@@ -1133,7 +1142,7 @@ function drawCorrida(){
 DRAW["#ch-corrida"]=drawCorrida;
 DRAW["#ch-2t"]=()=>draw2T();
 function draw2T(){
-  const series=["Lula","Flávio Bolsonaro"].map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:7,r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
+  const series=["Lula","Flávio Bolsonaro"].map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
   pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:250,ml:44,mr:74,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro",fs:11.5}));
 }
 DRAW["#ch-rej"]=()=>drawRej();
@@ -1325,7 +1334,7 @@ const igGanho=n=>{const s=(DATA.ig[n]||[]);if(s.length<2)return null;const a=s[0
 const resumoFonte=f=>{const s=String(f||"").replace(/\s*\(.*$/,"");return s.length>42?s.slice(0,40)+"…":s;};
 const sinal=v=>(v<0?"-":"+")+fM(Math.abs(v));
 const CRIT=[
- ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de 7 dias${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":""}`,better:"max",bar:true};}],
+ ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de ${SIG} dias${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":""}`,better:"max",bar:true};}],
  ["Pesquisas","Última rodada",c=>{const r=ultimaRodada(c.nome);if(!r)return {txt:"não medido"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])} · ${r[5]}`,bar:true};}],
  ["Pesquisas","Rejeição",c=>{const r=rejUltInfo(c.nome);if(!r)return {txt:"não medida"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])}`,better:"min",bar:true};}],
  ["Busca e redes","Buscas no Google, pico",c=>{const p=picoDe(DATA.trends[c.nome]);if(!p)return {txt:"não coletado"};return {v:p.v,txt:String(p.v),src:`índice relativo, em ${p.d}`,better:"max",bar:true};}],
@@ -1411,7 +1420,7 @@ function drawRedesHoje(){
 function drawMetodo(){
   $("#pipe").innerHTML=[
     ["Fontes",["TSE DivulgaCandContas (fichas, bens, situação)","15 institutos registrados (fichas técnicas)","Google Trends e Wikimedia REST","Perfis públicos no Instagram","Imprensa e calendário oficial"]],
-    ["Coleta",["Duas rodadas por dia, 8h e 20h de Brasília","Navegador do observatório lê Trends, Wikipédia e seguidores","Consulta ao TSE e varredura da imprensa","Nenhum número entra sem data e fonte"]],
+    ["Coleta",["Pesquisas e Wikipédia: sozinhas, às 8h e às 20h de Brasília","Trends, seguidores e TSE: pelo navegador do observatório, a cada coleta","Varredura da imprensa e ficha técnica das pesquisas","Nenhum número entra sem data e fonte"]],
     ["Dados",["CSVs versionados: pesquisas, série diária, Trends, Wikipédia, eventos, candidatos, partidos","Uma linha por candidato, plataforma e dia","Modo de coleta classificado pela ficha técnica"]],
     ["Mural",["Gerador monta a página a partir dos CSVs","Régua, alertas, médias e faixas são calculados na hora","Foco, janela e tema ficam no seu navegador"]],
   ].map(([k,itens],i)=>(i?`<div class="parrow" aria-hidden="true">→</div>`:"")+`<div class="pnode"><span class="eyebrow">${k}</span>${itens.map(x=>`<span>${x}</span>`).join("")}</div>`).join("");
@@ -1568,11 +1577,11 @@ pr.addEventListener("change",e=>{
 });
 
 // ---- notas
-$("#notes").innerHTML=`<p><b>Atualização e verificação.</b> O mural é regenerado a partir dos CSVs do observatório em duas rodadas diárias, às 8h e às 20h de Brasília, quando o computador conectado está ligado: coleta própria de Google Trends, Wikipédia e Instagram pelo navegador, consulta ao TSE e varredura da imprensa. Cada número carrega a data e a fonte ao lado; "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato, e mede disponibilidade de dado, não mérito. Foco, janela de tempo, tema e densidade ficam guardados só no navegador de quem escolheu.</p>
+$("#notes").innerHTML=`<p><b>Atualização e verificação.</b> As pesquisas, nacionais e estaduais, e os acessos aos verbetes da Wikipédia entram sozinhos, duas vezes por dia, às 8h e às 20h de Brasília: uma rotina no GitHub lê a compilação pública da Wikipédia e a API oficial da Wikimedia, regenera o mural, confere as regras de dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE dependem do navegador do observatório e entram a cada coleta, com a data ao lado. Cada número carrega a data e a fonte ao lado; "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato, e mede disponibilidade de dado, não mérito. Foco, janela de tempo, tema e densidade ficam guardados só no navegador de quem escolheu.</p>
 <p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro TSE na tabela "ver as rodadas". O gráfico da corrida mistura metodologias distintas de propósito; a AtlasIntel (digital) roda sistematicamente acima dos presenciais e telefônicos para Lula, e a linha é média móvel simples, não modelo. Rejeição: cada instituto pergunta a seu modo; leia cada cor dentro do mesmo instituto. Rodadas de janeiro e fevereiro do Datafolha e do PoderData não foram localizadas; Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período; a AtlasIntel de 19/5 teve divulgação suspensa por liminar e entrou parcial.</p>
 <p><b>Metodologias.</b> O modo de cada rodada (presencial, telefônica, digital) é classificado a partir da ficha técnica registrada; "não informada" quando a ficha não diz. O desvio por instituto compara cada rodada com a média de todos os outros institutos numa janela de 28 dias; com poucos concorrentes na janela (janeiro e fevereiro), o desvio fica mais ruidoso. Ele mede efeito de casa e de metodologia, não acerto: só a urna diz quem acertou.</p>
-<p><b>Redes.</b> Desde 1/9 o número de seguidores no Instagram é coleta própria: o observatório lê o valor exato no perfil público às 8h e às 20h de Brasília, pelo navegador do Mac conectado, e grava uma linha por candidato e dia. TikTok e YouTube entram na mesma rotina assim que a alteração da tarefa agendada for aprovada no computador. Antes disso, e para o histórico do ano, os números vêm da imprensa: são ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados pela imprensa (Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon, Fanpage Karma), com a fonte em cada ponto. A série é esparsa e as fontes divergem entre si no mesmo dia; as linhas ligam medianas diárias. Instagram, TikTok, YouTube, Social Blade e a API da Wikipédia são bloqueados no ambiente do observatório: a coleta diária própria (incluindo acessos à Wikipédia de cada candidato) começa quando os coletores estiverem rodando no n8n ou com o computador conectado.</p>
-<p><b>Busca e descoberta.</b> Coleta própria de 1/9/2026 pelo navegador do computador conectado: Google Trends pela API da própria página do explore (geo BR, 1/1 a 1/9, diário; índice relativo dentro de cada consulta; dois lotes de candidatos ancorados por Lula; dia 16/8 zerado pelo Google, tratado como lacuna) e Wikimedia REST API oficial de pageviews (all-access, agente user, sem robôs, 1/1 a 31/8). O snapshot de seguidores de 1/9 no gráfico de Instagram também é coleta própria, dos perfis públicos, com o número exato de cada um. Dados em <code>dados/trends-2026.csv</code> e <code>dados/wikipedia-pageviews.csv</code>.</p>
+<p><b>Redes.</b> Desde 1/9 o número de seguidores no Instagram é coleta própria: o observatório lê o valor exato no perfil público pelo navegador do Mac e grava uma linha por candidato e dia da leitura. Essa leitura não é automática, porque o Instagram exige sessão logada, e por isso a data de cada número fica ao lado dele. TikTok e YouTube entram na mesma rotina. Antes disso, e para o histórico do ano, os números vêm da imprensa: são ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados pela imprensa (Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon, Fanpage Karma), com a fonte em cada ponto. A série é esparsa e as fontes divergem entre si no mesmo dia; as linhas ligam medianas diárias. Os acessos à Wikipédia de cada candidato, ao contrário, entram sozinhos todo dia pela API oficial da Wikimedia.</p>
+<p><b>Busca e descoberta.</b> Google Trends: coleta própria pelo navegador do observatório, pela API da própria página do explore (geo BR, diário desde 1/1; índice relativo dentro de cada consulta; dois lotes de candidatos ancorados por Lula; dia 16/8 zerado pelo Google, tratado como lacuna), regravada inteira a cada coleta e datada no gráfico. Wikipédia: Wikimedia REST API oficial de pageviews (all-access, agente user, sem robôs), desde 1/1, acrescida sozinha todo dia. O snapshot de seguidores de 1/9 no gráfico de Instagram também é coleta própria, dos perfis públicos, com o número exato de cada um. Dados em <code>dados/trends-2026.csv</code> e <code>dados/wikipedia-pageviews.csv</code>.</p>
 <p><b>Partidos.</b> Bancadas pela API da Câmara e pela lista de senadores em exercício (1/9); FEFC 2026 pela tabela oficial do TSE (total R$ 4,96 bilhões); filiados pela estatística do TSE de abril de 2026; tempo de TV pela Resolução TSE 23.776/2026. Fundo partidário 2026 por partido segue pendente (o TSE publica em planilha inacessível daqui). Governadores são os eleitos em 2022, com os estados no tooltip.</p>
 <p><b>TSE e eventos.</b> Fichas dos candidatos pela API pública do DivulgaCandContas (1/9). A linha do tempo junta o calendário oficial, os marcos de cada campanha e a cobertura desde o debate da Band, com URL em quase todo evento; os nove sem URL vêm da linha de base de agosto e estão listados em fontes.md.</p>`;
 
