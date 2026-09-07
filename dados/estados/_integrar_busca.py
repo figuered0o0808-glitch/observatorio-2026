@@ -7,9 +7,17 @@
 Saídas: candidatos-detalhe.csv, trends-estados.csv, wikipedia-estados.csv, instagram-estados.csv
 Regras: só campos públicos de perfil (nada de CPF ou título de eleitor); célula vazia = indisponível.
 """
-import csv, io, json, os, re, datetime as dt, unicodedata
+import csv, io, json, os, re, sys, datetime as dt, unicodedata
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
+# A coleta automática refaz só o Trends estadual e chama este script com --so-trends: sem o filtro
+# ele regravaria também wikipedia-estados.csv (que hoje é de acréscimo, alimentado por
+# coleta/wikipedia_pageviews.py) e candidatos-detalhe.csv (intocável), destruindo dado bom.
+SO_TRENDS = "--so-trends" in sys.argv
+
+
+def rodar(secao):
+    return not SO_TRENDS or secao == "trends"
 def carregar(nome):
     p = os.path.join(AQUI, nome)
     return json.load(io.open(p, encoding="utf-8")) if os.path.exists(p) else None
@@ -26,7 +34,7 @@ for c in cands:
 HOJE = dt.date.today().isoformat()
 
 # ---------- TSE detalhe
-det = carregar("_tse-detalhe-estados.json")
+det = carregar('_tse-detalhe-estados.json') if rodar('tse') else None
 handles = {}
 if det:
     linhas = []
@@ -69,7 +77,7 @@ if det:
     print("handles de instagram:", len(handles), "| erros da coleta:", len(det.get("erros") or []))
 
 # ---------- Trends
-tr = carregar("_trends-estados.json")
+tr = carregar('_trends-estados.json') if rodar('trends') else None
 if tr:
     linhas = []; notas = {}
     COMUNS = {"fabio", "renan", "marina", "andre", "daniel", "carol", "tiago", "gabriel", "helder", "marley", "capi", "salles", "arruda", "elisson", "reginaldo", "edvaldo", "nabor", "pimenta", "zucco", "veneziano", "gleisi", "fufuca", "chicao", "conti", "juliete", "garotinho", "waguinho", "allyson", "tarcisio", "clecio", "estevao", "sanderson", "rigotto", "lunelli", "randolfe", "petecao", "luizianne", "gaguim", "renatinha", "neidinha", "nicoletti", "helder", "jhc"}
@@ -116,7 +124,7 @@ if tr:
     gravar("trends-estados.csv", ["data", "uf", "cargo", "slug", "termo", "indice", "lote", "geo", "nota", "fonte"], linhas)
 
 # ---------- Wikipédia
-wk = carregar("_wikipedia-estados.json")
+wk = carregar('_wikipedia-estados.json') if rodar('wiki') else None
 COMUNS_TOK = set("jose joao maria carlos antonio francisco paulo pedro luiz luis marcos marcelo andre roberto ricardo rafael daniel eduardo fernando fabio felipe gabriel rodrigo bruno lucas mateus jorge sergio oliveira silva santos souza sousa lima costa pereira rodrigues almeida nascimento ferreira araujo ribeiro carvalho gomes martins rocha barbosa alves moreira mendes freitas cardoso correia correa dias teixeira monteiro moura castro campos andrade nunes machado marques cunha melo ramos fernandes goncalves lopes vieira batista medeiros pinto cavalcante cavalcanti neves xavier azevedo rezende resende barros duarte leal miranda soares reis morais moraes borges pires guimaraes coelho farias filho neto junior dos das de da do e".split())
 def _toks(n):
     n = unicodedata.normalize("NFKD", n or "").encode("ascii", "ignore").decode().lower()
@@ -151,7 +159,7 @@ if wk:
     gravar("wikipedia-estados.csv", ["data", "uf", "slug", "verbete", "pageviews", "fonte"], linhas)
 
 # ---------- Instagram
-ig = carregar("_instagram-estados.json")
+ig = carregar("_instagram-estados.json") if rodar("instagram") else None
 if ig:
     linhas = []
     for slug, r in ig["perfis"].items():

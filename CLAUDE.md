@@ -261,6 +261,12 @@ publica:
   oráculos ficam congelados em `testes/fixtures/wikipedia/` (dump do navegador de
   2/9, CSV de pesquisas de 6/9, as duas séries de acessos de 6/9).
 
+- `coleta/google_trends_estados.py` refaz os 133 lotes do Trends por estado no mesmo
+  plano que o navegador montou (`dados/estados/_trends-estados.json`, âncora por
+  disputa) e `dados/estados/_integrar_busca.py --so-trends` transforma em
+  `trends-estados.csv` com a reescala pela âncora. São quinze minutos, então roda
+  só na rodada da noite. O `--so-trends` existe porque sem ele o script regravaria
+  também `wikipedia-estados.csv` e `candidatos-detalhe.csv`, que têm dono próprio.
 - `coleta/google_trends.py` refaz a série de busca nacional (`dados/trends-2026.csv`)
   nos três lotes da coleta de navegador. O índice do Trends é relativo à janela
   pedida, então a série inteira é regravada a cada coleta, não acrescentada; é o

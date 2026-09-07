@@ -19,8 +19,11 @@ name: Atualizar o mural
 
 on:
   schedule:
-    # 8h e 20h de Brasília (UTC-3); a Wikimedia fecha a véspera por volta das 6h UTC
-    - cron: '0 11,23 * * *'
+    # 8h e 20h de Brasília (UTC-3); a Wikimedia fecha a véspera por volta das 6h UTC.
+    # São duas entradas, e não '0 11,23', porque github.event.schedule devolve a entrada inteira:
+    # é assim que a rodada da noite se distingue e ganha o Trends por estado, que leva quinze minutos.
+    - cron: '0 11 * * *'
+    - cron: '0 23 * * *'
   workflow_dispatch:
     inputs:
       desde:
@@ -125,6 +128,15 @@ jobs:
       - name: Busca no Google Trends
         continue-on-error: true
         run: python3 coleta/google_trends.py 2>&1 | tee "$RUNNER_TEMP/coleta/trends.log"
+
+      # São 133 consultas, uns quinze minutos: só na rodada da noite (23h UTC) ou quando disparada
+      # à mão. A da manhã fica com pesquisas, Wikipédia e o Trends nacional, que são rápidos.
+      - name: Busca por estado no Google Trends
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 23 * * *'
+        continue-on-error: true
+        run: |
+          python3 coleta/google_trends_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/trends-estados.log"
+          python3 dados/estados/_integrar_busca.py --so-trends 2>&1 | tee -a "$RUNNER_TEMP/coleta/trends-estados.log"
 
       - name: Regenerar o mural
         env:
@@ -245,6 +257,12 @@ jobs:
               detalhes.append("Google Trends: %s linhas, %s termos, até %s" % (m.group(1), m.group(2), m.group(4)))
           elif any("nada gravado" in l for l in tr):
               detalhes.append("Google Trends: nenhum lote respondeu; a série anterior fica como está")
+
+          tre = linhas("trends-estados")
+          m = acha(tre, r"gravado .*_trends-estados\.json \((\d+) lotes atualizados de (\d+)\)")
+          if m:
+              partes.append("busca por estado em %s de %s lotes" % (m.group(1), m.group(2)))
+              detalhes += [l for l in tre if l.startswith("trends-estados.csv ")]
           # os coletores imprimem caminhos absolutos do runner; no histórico basta o relativo
           raiz = os.environ.get("GITHUB_WORKSPACE") or os.getcwd()
           detalhes = [l.replace(raiz.rstrip("/") + "/", "") for l in detalhes]

@@ -1,6 +1,6 @@
 # Coletores de navegador para as disputas estaduais
 
-Roteiro usado em 2 de setembro de 2026 para montar a edição 11 do Mural dos Candidatos. Desde 6/9 as duas seções de Wikipédia (1 e 4) rodam sozinhas às 8h e às 20h de Brasília no GitHub Actions (`.github/workflows/atualizar.yml`, scripts `wikipedia_pesquisas_estados.py` e `wikipedia_pageviews.py`, que produzem os mesmos arquivos que o navegador produzia); o roteiro delas fica aqui como referência do formato. As seções 2, 3 e 5 (TSE, Google Trends e Instagram) continuam manuais e rodam no navegador do Mac (o embutido do app do Claude para o que baixa arquivo, o Chrome para o que precisa de login), porque nem o sandbox nem o runner do GitHub alcançam essas fontes (TSE 403 para IP de fora do Brasil, Trends 429, Instagram exige login).
+Roteiro usado em 2 de setembro de 2026 para montar a edição 11 do Mural dos Candidatos. Desde 6/9 as duas seções de Wikipédia (1 e 4) e, desde 7/9, a do Google Trends (3) rodam sozinhas às 8h e às 20h de Brasília no GitHub Actions (`.github/workflows/atualizar.yml`, scripts `wikipedia_pesquisas_estados.py` e `wikipedia_pageviews.py`, que produzem os mesmos arquivos que o navegador produzia); o roteiro delas fica aqui como referência do formato. As seções 2 e 5 (TSE e Instagram) continuam manuais e rodam no navegador do Mac (o embutido do app do Claude para o que baixa arquivo, o Chrome para o que precisa de login), porque nem o sandbox nem o runner do GitHub alcançam essas fontes (TSE 403 para IP de fora do Brasil, Instagram 429 na API e sem o número no HTML público).
 
 ## Regras que aprendemos no caminho
 
@@ -19,6 +19,9 @@ No sandbox: `_parse_wiki.py` lê o dump e gera `pesquisas-estados-wiki.csv`; `_c
 Aba em `divulgacandcontas.tse.jus.br/divulga/`. Para cada uma das 510 candidaturas, `GET /divulga/rest/v1/candidatura/buscar/2026/{UF}/20322002026/candidato/{id}` com 300 ms entre chamadas. Guardar só campos públicos de perfil: nome, número, partido, situação, coligação e composição, nascimento, instrução, ocupação, naturalidade, total e quantidade de bens, vice ou suplentes, sites informados, foto publicável e eleições anteriores. Nunca guardar CPF nem título de eleitor, que a API devolve. Exportar em linhas `slug|instagram|tiktok|facebook|youtube|x|site|bens|nbens|instrucao|ocupacao|nascimento|sexo|ufnasc|munnasc|vice|composicao|fotopub|anteriores` e ler pelo `get_page_text`. A foto de cada candidato fica em `https://divulgacandcontas.tse.jus.br/divulga/rest/arquivo/img/20322002026/{id}/{UF}`.
 
 ## 3. Google Trends dentro de cada estado
+
+Desde 7/9/2026 esta seção também roda sozinha, na rodada da noite: `coleta/google_trends_estados.py` refaz os mesmos 133 lotes deste roteiro e `_integrar_busca.py --so-trends` regrava o CSV. O roteiro abaixo fica como referência do plano de lotes e da reescala.
+
 
 Aba em `trends.google.com`. Plano de lotes em `dados/estados/_trends-estados.json`: por disputa (uf e cargo), o líder da última pesquisa é a âncora e entra em todos os lotes daquela disputa, com até quatro outros nomes por lote, geo `BR-UF`, período 2026-01-01 até hoje. Cada lote são duas chamadas da API interna: `/trends/api/explore` (token do widget TIMESERIES) e `/trends/api/widgetdata/multiline`. Nove segundos entre lotes; em 429, espera um minuto vezes a tentativa. Os 133 lotes levam cerca de meia hora. `_integrar_busca.py` reescala os lotes de cada disputa pela soma da âncora do lote zero (fator limitado entre 0,1 e 10) e marca nomes comuns como termo ambíguo.
 

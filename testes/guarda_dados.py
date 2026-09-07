@@ -95,6 +95,11 @@ CSV_REGRAVADO = {
         "rodada": ("data", "lote", "termo"),
         "grupos": ("lote", "termo"),
     },
+    "dados/estados/trends-estados.csv": {
+        "casamento": ("data", "uf", "cargo", "termo"),
+        "rodada": ("data", "uf", "cargo", "termo"),
+        "grupos": ("uf", "cargo", "termo"),
+    },
 }
 JSON_REGRAVADO = "dados/estados/_wiki-pesquisas-estados.json"
 
@@ -106,7 +111,6 @@ INTOCAVEIS = (
     "dados/estados/bens-estados.csv",
     "dados/partidos.csv",
     "dados/avante-chapas.csv",
-    "dados/estados/trends-estados.csv",
     "dados/estados/pesquisas-estados.csv",
     "dados/redes-fontes.csv",
     "dados/seguidores-historico-fontes.csv",
