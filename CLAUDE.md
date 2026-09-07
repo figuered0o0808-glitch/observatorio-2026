@@ -145,6 +145,28 @@ projeto:
 - `esc()` escapa HTML para uso em `innerHTML`; nunca aplicar `esc()` a um valor
   que vai para `.textContent` (que já escapa sozinho) - isso produz
   `&#39;`/`&amp;` literais na tela.
+- A página é uma casca de site: `header.band.band-top` (masthead), `div.band`
+  com a navegação fixa (escopo Presidência/Estados mais oito editorias),
+  `div.band.subnav` do estado, o `main` dentro de `.wrap` e o
+  `footer.band`. As faixas ocupam a largura toda e o conteúdo para em 1280px
+  pelo `.wrap`. Quem navega por hash passa por `irPara()`, que mede o masthead
+  (não a barra fixa) para rolar até o topo da editoria.
+- A janela da média móvel não é fixa: `REGUA` e `sigmaRegua(dia)` calculam
+  `SIG` pela data de Brasília (4 dias, perdendo um a cada dez até 1 em 4/10).
+  Todo texto que cite a janela usa `${SIG}` ou a classe `.sig-dias`; nunca
+  escrever "7 dias" à mão.
+- A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
+  factuais, montadas por `ORDEM()` (média móvel do dia) e por `liderDe()`
+  (última rodada do estado). Não escrever leitura editorial ali: o observatório
+  publica número com data e fonte, e quem lidera muda com o dado.
+- Gráficos: `chartTempo` desenha na largura do contêiner sempre que ela for
+  menor que o viewBox pedido, e `drawRegua`/`drawBens` aceitam largura (versão
+  vertical no celular). Ao mostrar uma editoria que estava oculta,
+  `reajustarGraficos()` redesenha na largura real; `DRAW` guarda quem redesenha
+  cada contêiner.
+- Ausência de dado não vira texto repetido: quando a rodada não traz modo de
+  coleta, o texto omite o trecho em vez de anunciar a falta em cada linha. A
+  falta de registro no TSE continua dita uma vez, porque muda o valor da ficha.
 
 ## Estilo de escrita
 
@@ -174,6 +196,14 @@ mais recente em 9 estados; `casar()` (que liga nomes pesquisados a
 candidaturas registradas) aceitava correspondências fracas demais e misturou
 identidades de 26 candidaturas em casos como Geraldo Alckmin/Antônio
 Denarium/Marcos Rocha.
+
+Da repaginação de setembro: `.cover{white-space:nowrap}` genérico empurrava o
+dossiê e a sparkline para fora da caixa; os ids `lado` e `e-lado` faziam o
+navegador rolar até o comparador ao abrir um hash; o carimbo de Pesquisas do
+estado contava governo e Senado juntos enquanto o painel contava só a disputa
+escolhida; navegar por hash com a página rolada parava no meio da editoria de
+destino; entre 761 e 960px o masthead transbordava e a página inteira rolava
+de lado.
 
 ## Publicação
 
