@@ -90,14 +90,16 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
 
-      # A curadoria manual de pesquisas-registradas.csv vai até 1/9/2026; a
-      # automação assume dali em diante. Rodadas anteriores que a Wikipédia
-      # tenha e o arquivo não (Palver 3-7/8, Veritá 16-20/8, Vox Brasil 25-27/8)
-      # ficam para decisão editorial, não entram sozinhas.
+      # Varre o ano inteiro: toda rodada que a compilação da Wikipédia tem e o
+      # arquivo não entra, inclusive as anteriores a 1/9 que a curadoria manual
+      # não tinha visto (Palver 3-7/8, Veritá 16-20/8, Vox Brasil 25-27/8,
+      # trazidas em 7/9/2026 por decisão do Francisco: quanto mais base, melhor
+      # a média). O coletor nunca altera linha existente e deduplica por
+      # instituto e data de campo, então rodar desde janeiro é idempotente.
       - name: Pesquisas presidenciais novas na Wikipédia
         run: |
           mkdir -p "$RUNNER_TEMP/coleta"
-          python3 coleta/wikipedia_pesquisas_nacional.py --desde 2026-09-01 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-nacional.log"
+          python3 coleta/wikipedia_pesquisas_nacional.py --desde 2026-01-01 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-nacional.log"
 
       - name: Páginas estaduais de pesquisas cuja revisão mudou
         run: python3 coleta/wikipedia_pesquisas_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-estados.log"

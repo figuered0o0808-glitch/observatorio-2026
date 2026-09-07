@@ -1,4 +1,4 @@
-# Briefing: Observatório do capital político digital (Eleições 2026)
+# Briefing: Observatório do desempenho dos candidatos (Eleições 2026)
 
 **Versão 4, 2/9/2026. Substitui a versão 3 do mesmo dia.** Preparado no chat do Claude para continuidade no Cowork. A mudança da versão 4: o escopo dos estados ganhou mapa geográfico, série completa de pesquisas de 2026 e busca e redes por candidato (seção 10), com os dados e os coletores descritos em `dados/estados/LEIA-ME.md` e `coleta/navegador_estados.md`.
 
@@ -150,7 +150,7 @@ Verificar preços antes de contratar. Prioridade:
 
 ## 10. A plataforma: Mural dos Candidatos
 
-Deixou de ser fase futura. O painel público existe, chama-se **Mural dos Candidatos** e é publicado como artefato no claude.ai, privado até Francisco decidir compartilhar. Assinatura editorial: "Observatório do capital político digital, Eleições 2026", desenvolvido pela INDICA.
+Deixou de ser fase futura. O painel público existe, chama-se **Mural dos Candidatos** e é publicado como artefato no claude.ai, privado até Francisco decidir compartilhar. Assinatura editorial: "Observatório do desempenho dos candidatos, Eleições 2026", desenvolvido pela INDICA (nome trocado em 7/9/2026; antes era "do capital político digital").
 
 **Como se constrói.** Os CSVs de `dados/` e `dados/estados/` são lidos por `mural/_gerar_mural.py`, que injeta um único blob JSON no marcador `/*__DATA__*/` de `mural/_template.html` e escreve `mural/mural.html`. O `mural.html` é artefato de saída e nunca deve ser editado à mão: toda mudança de conteúdo entra pelos CSVs, toda mudança de página entra pelo template.
 

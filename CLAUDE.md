@@ -1,4 +1,4 @@
-# Observatório do capital político digital, Eleições 2026
+# Observatório do desempenho dos candidatos, Eleições 2026
 
 Acompanhamento de dados públicos (TSE, pesquisas registradas, Wikipédia, Google
 Trends, redes sociais oficiais) da disputa presidencial e das disputas estaduais
