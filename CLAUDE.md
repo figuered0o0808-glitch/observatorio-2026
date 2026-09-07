@@ -151,6 +151,16 @@ projeto:
   `footer.band`. As faixas ocupam a largura toda e o conteúdo para em 1280px
   pelo `.wrap`. Quem navega por hash passa por `irPara()`, que mede o masthead
   (não a barra fixa) para rolar até o topo da editoria.
+- A linha das pesquisas não é média simples. `agregarEm(rodadas,nomes,sigma,t)` pondera cada
+  rodada pelo tempo (a régua) e depois desconta discrepância; `linhaAgregada` desenha a série e
+  `incertezaEm`/`empatam` dizem quando a diferença entre dois nomes cabe dentro da incerteza da
+  própria média (aí o mural diz empate técnico em vez de anunciar um líder). As quatro defesas
+  estão comentadas no código, junto de `AG`: uma rodada por instituto, janela que alarga até
+  cinco institutos, desconto de quem aponta disputa diferente do conjunto (medido depois de
+  tirar o nível da rodada) e teto de 15% por rodada. Todo gráfico de intenção de voto passa a
+  `chartTempo` a chave `linha` com esse resultado, nunca `sigma` sozinho: o rótulo do gráfico
+  sai do último ponto da linha, e um gráfico que fique na média antiga mostra número diferente
+  do placar.
 - A janela da média móvel não é fixa: `REGUA` e `sigmaRegua(dia)` calculam
   `SIG` pela data de Brasília (4 dias, perdendo um a cada dez até 1 em 4/10).
   Todo texto que cite a janela usa `${SIG}` ou a classe `.sig-dias`; nunca
@@ -203,7 +213,9 @@ navegador rolar até o comparador ao abrir um hash; o carimbo de Pesquisas do
 estado contava governo e Senado juntos enquanto o painel contava só a disputa
 escolhida; navegar por hash com a página rolada parava no meio da editoria de
 destino; entre 761 e 960px o masthead transbordava e a página inteira rolava
-de lado.
+de lado; a média das pesquisas era simples e uma rodada isolada (a Veritá de 6/9, única a dar
+Flávio à frente no segundo turno) respondia por 27% do peso e invertia a corrida; o gráfico da
+home ficou na média antiga por uma passada e mostrava número diferente do placar.
 
 ## Publicação
 

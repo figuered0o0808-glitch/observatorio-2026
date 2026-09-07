@@ -701,6 +701,58 @@ with sync_playwright() as p:
     check("rotas do bloco (fase C, 390) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ================= agregação das pesquisas: uma rodada isolada não vira a corrida sozinha =================
+    # (bug de 7/9/2026: com a régua de 4 dias, a rodada da Veritá de 6/9, única das nove recentes a dar
+    #  Flávio à frente no segundo turno, respondia por 27% do peso da média e invertia a linha)
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(700)
+    ag = page.evaluate("""() => {
+        const t = Date.parse(DATA.meta.ultima), n2 = ['Lula', 'Flávio Bolsonaro'];
+        const r1 = rodadas1T(), r2 = rodadas2T();
+        const p1 = pesosEm(r1, OITO, SIG, t), p2 = pesosEm(r2, n2, SIG, t);
+        const share = q => { const tot = q.peso.reduce((a, b) => a + b, 0); return Math.max(...q.peso) / tot; };
+        // um instituto que publica duas vezes na janela entra uma vez só
+        const insts = p2.dentro.filter(x => Math.abs(x.r.t - t) <= 2 * p2.janela * 864e5).map(x => x.r.inst);
+        const veri = p2.dentro.map((x, i) => [x.r.inst, p2.peso[i]]).filter(x => x[0] === 'Instituto Veritá');
+        const tot2 = p2.peso.reduce((a, b) => a + b, 0);
+        return {maior1: share(p1), maior2: share(p2), repetido: insts.length !== new Set(insts).size,
+                institutos: new Set(insts).size, veritaShare: veri.length ? veri[0][1] / tot2 : null,
+                m2: agregarEm(r2, n2, SIG, t), inc2: incertezaEm(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro'),
+                empate2: empatam(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro'),
+                empate1: empatam(r1, OITO, SIG, t, 'Lula', 'Flávio Bolsonaro')}; }""")
+    check("nenhuma rodada passa de 15% do peso da média (primeiro e segundo turno)",
+          ag["maior1"] <= 0.1501 and ag["maior2"] <= 0.1501, {k: ag[k] for k in ("maior1", "maior2")})
+    check("cada instituto entra uma vez só na janela", not ag["repetido"], ag["institutos"])
+    check("a janela junta pelo menos cinco institutos", ag["institutos"] >= 5, ag["institutos"])
+    check("a rodada que destoa do conjunto perde peso (Veritá abaixo do teto no segundo turno)",
+          ag["veritaShare"] is not None and ag["veritaShare"] < 0.15, ag["veritaShare"])
+    check("segundo turno hoje é empate técnico, e o primeiro turno não",
+          ag["empate2"] and not ag["empate1"],
+          {"dif2": round(ag["m2"]["Lula"] - ag["m2"]["Flávio Bolsonaro"], 2), "erro2": round(ag["inc2"]["erro"], 2)})
+    texto = page.evaluate("() => document.querySelector('#cap-2t').textContent")
+    check("o painel do segundo turno diz o empate em vez de anunciar um líder",
+          "Empate técnico" in texto and "Nenhum dos dois está à frente" in texto, texto[:120])
+    # a média não pode achatar movimento real: a subida do Cury em agosto continua na linha
+    cury = page.evaluate("""() => { const p = posicao('Augusto Cury');
+        return {agora: p.agora, antes: p.antes, delta: p.delta}; }""")
+    check("a subida real do Cury em 30 dias continua na média (mais de 5 pontos)",
+          cury["delta"] is not None and cury["delta"] > 5, cury)
+    # o gráfico da home e a legenda-placar precisam mostrar o mesmo número (bug: o gráfico da home
+    # ficou na média antiga quando a agregação entrou, e dizia 33,8% onde a legenda dizia 33,4%)
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    home = page.evaluate("""() => { const num = t => { const m = (t || '').match(/(\\d+(?:,\\d+)?)%/); return m ? m[1] : null; };
+        const rot = {}, leg = {};
+        for (const t of document.querySelectorAll('#ch-home text.cand-label')) { const p = t.textContent.trim().split(' '); rot[p.slice(0, -1).join(' ')] = num(t.textContent); }
+        for (const e of document.querySelectorAll('#lg-home .lp')) leg[e.querySelector('.nm').textContent.trim()] = num(e.querySelector('.v').textContent);
+        return {rot, leg}; }""")
+    iguais = [k for k in home["leg"] if k in home["rot"] and home["leg"][k] != home["rot"][k]]
+    check("gráfico da home e legenda-placar com o mesmo valor para cada candidato", not iguais,
+          {k: (home["rot"].get(k), home["leg"].get(k)) for k in iguais} or home["leg"])
+    check("agregação sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:
