@@ -9,10 +9,23 @@ Roda contra o mural.html já gerado (não regenera nada). Uso:
     python3 testes/varredura_geral.py
 """
 from pathlib import Path
+from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
 
 URL = (Path(__file__).resolve().parent.parent / "mural" / "mural.html").as_uri()
 ok, fail = [], []
+
+# Hosts de recurso externo que o mural pede (as fontes do Google). Num ambiente sem rede o
+# Chromium registra "Failed to load resource" para eles; isso não é bug do mural.
+FONTES_EXTERNAS = ("fonts.googleapis.com", "fonts.gstatic.com")
+
+
+def externo(m):
+    """Mensagem de console causada por um recurso de fora da página, não por erro do mural.
+    Exceções de JS chegam pelo evento pageerror e continuam contando como falha."""
+    url = (m.location or {}).get("url") or ""
+    host = urlsplit(url).hostname or ""
+    return host in FONTES_EXTERNAS
 
 
 def check(nome, cond, detalhe=""):
@@ -32,8 +45,11 @@ def novo_ctx(p, viewport=(1400, 900), color_scheme=None):
         kw["color_scheme"] = color_scheme
     ctx = b.new_context(**kw)
     page = ctx.new_page()
+    # as fontes do Google nunca são pedidas de verdade: o teste não depende de rede
+    for padrao in ("**/fonts.googleapis.com/**", "**/fonts.gstatic.com/**"):
+        page.route(padrao, lambda r: r.abort())
     errs = []
-    page.on("console", lambda m: errs.append((m.type, m.text)) if m.type == "error" else None)
+    page.on("console", lambda m: errs.append((m.type, m.text)) if m.type == "error" and not externo(m) else None)
     page.on("pageerror", lambda e: errs.append(("pageerror", str(e))))
     return b, page, errs
 

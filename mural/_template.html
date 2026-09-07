@@ -37,6 +37,8 @@
   --accent:#14161A; --accent-ink:#FFFFFF;
   --accent-text:#14161A; --surface:#FFFFFF;
   --shadow:0 1px 2px rgba(20,22,26,.06);
+  --map-line:#FFFFFF; --zebra:rgba(20,22,26,.035);
+  --foot-bg:#14161A; --foot-line:transparent;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -44,14 +46,16 @@
     --ground:#0F1013; --paper:#17181C; --paper-2:#1E2025;
     --ink:#F1F1EF; --ink-2:#B7BAC0; --ink-3:#83878F; --line:#2C2E33; --line-2:#242629;
     --red:#FF5163; --red-deep:#C8102E; --red-soft:#341A1F; --red-ink:#17181C;
-    --band:#101114; --band-2:#1A1C21; --band-ink:#F1F1EF; --band-mut:#8B9099; --band-line:#2A2D33;
+    --band:#1E2025; --band-2:#262930; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#353840;
     --neutro:#9AA4AE;
     --good:#5BC27F; --good-soft:#1C3526; --warn:#E0B052; --warn-soft:#3A2F14; --crit:#FF5163; --crit-soft:#341A1F;
-    --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#F0844F;
+    --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#2FBF4F; --c7:#9085e9; --c8:#F0844F;
     --m1:#C98500; --m2:#9085E9; --m3:#2FB5B8;
     --accent:#F1F1EF; --accent-ink:#17181C;
     --accent-text:#F1F1EF; --surface:#17181C;
   --shadow:0 1px 2px rgba(0,0,0,.45);
+  --map-line:#2C2E33; --zebra:rgba(255,255,255,.04);
+  --foot-bg:#262930; --foot-line:#353840;
   }
 }
 :root[data-theme="dark"]{
@@ -59,17 +63,21 @@
   --ground:#0F1013; --paper:#17181C; --paper-2:#1E2025;
   --ink:#F1F1EF; --ink-2:#B7BAC0; --ink-3:#83878F; --line:#2C2E33; --line-2:#242629;
   --red:#FF5163; --red-deep:#C8102E; --red-soft:#341A1F; --red-ink:#17181C;
-  --band:#101114; --band-2:#1A1C21; --band-ink:#F1F1EF; --band-mut:#8B9099; --band-line:#2A2D33;
+  --band:#1E2025; --band-2:#262930; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#353840;
   --neutro:#9AA4AE;
   --good:#5BC27F; --good-soft:#1C3526; --warn:#E0B052; --warn-soft:#3A2F14; --crit:#FF5163; --crit-soft:#341A1F;
-  --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#F0844F;
+  --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#2FBF4F; --c7:#9085e9; --c8:#F0844F;
   --m1:#C98500; --m2:#9085E9; --m3:#2FB5B8;
   --accent:#F1F1EF; --accent-ink:#17181C;
   --accent-text:#F1F1EF; --surface:#17181C;
   --shadow:0 1px 2px rgba(0,0,0,.45);
+  --map-line:#2C2E33; --zebra:rgba(255,255,255,.04);
+  --foot-bg:#262930; --foot-line:#353840;
 }
 *{box-sizing:border-box}
 html{--fs:15px;--pad:20px;--gap:20px}
+@media (min-width:761px){html{scrollbar-gutter:stable}}
+html:has(dialog[open]){overflow:hidden}
 html[data-dens="compacta"]{--fs:14px;--pad:12px;--gap:10px}
 html[data-textos="off"] .cap,html[data-textos="off"] .howto,html[data-textos="off"] .sub{display:none}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:var(--fs);line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -78,7 +86,10 @@ a:hover{text-decoration-color:var(--ink)}
 .tabs a,.chip,.btn,.hl .go{text-decoration:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button{font:inherit}
-.wrap{max-width:1280px;margin:0 auto;padding:0 24px 56px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+/* faixas de largura total: cabeçalho, navegação, subnível dos estados e rodapé atravessam a janela; o conteúdo fica limitado a 1280px por dentro */
+.band{width:100%;border-radius:0;min-width:0}
+.band-top{background:var(--paper);border-bottom:1px solid var(--line)}
 .display{font-family:Archivo,"Arial Narrow",sans-serif;font-variation-settings:"wdth" 72,"wght" 900;font-weight:900;font-stretch:72%;letter-spacing:0;line-height:.95}
 .eyebrow{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-weight:700;font-stretch:80%;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
 .eyebrow.mut{color:var(--ink-3)}
@@ -90,28 +101,62 @@ button{font:inherit}
 .btn.star[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
 .btn .glyph{font-size:14px;line-height:1}
 
-/* masthead + abas */
-.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:22px 0 14px}
-.brand{display:flex;align-items:center;gap:14px}
-.brand svg.mark{display:block;height:58px;width:auto}
-.word .m2{display:block;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:13.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--red);margin-top:6px;padding-left:1px}
-.mast-r{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.ed{text-align:right;color:var(--ink-3);font-size:12.5px;line-height:1.45;padding-right:34px}
-.masthead{position:relative}
-.tema-btn{position:absolute;top:10px;right:0;width:28px;height:28px;border:0;padding:0;background:transparent;color:var(--ink-3);opacity:.75;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.tema-btn:hover,.tema-btn:focus-visible{color:var(--ink);opacity:1;background:var(--paper-2);outline:none}
-.tema-btn:focus-visible{box-shadow:0 0 0 2px var(--ink-3)}
+/* masthead: 64px no desktop, marca e edição numa linha */
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px}
+.brand{display:flex;align-items:center;gap:14px;color:var(--ink)}
+.word{display:flex;align-items:center;gap:12px;margin:0}
+.brand svg.mark{display:block;height:40px;width:auto}
+.word .m2{display:block;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--red);padding-top:5px;white-space:nowrap}
+.mast-r{display:flex;align-items:center;gap:12px;flex:none}
+.ed{color:var(--ink-2);font-size:12.5px;line-height:1.3;white-space:nowrap}
+.ed b{color:var(--ink);font-weight:600}
+.ed .ed-s{display:none}
+.tema-btn{width:34px;height:34px;border:1px solid var(--line);padding:0;background:var(--paper);color:var(--ink-2);border-radius:3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.tema-btn:hover{color:var(--ink);border-color:var(--ink)}
 .tema-btn svg{width:16px;height:16px;display:block}
 .tema-btn .sol,.tema-btn .lua{display:none}
 .tema-btn[data-modo="claro"] .lua{display:block}
 .tema-btn[data-modo="escuro"] .sol{display:block}
-.ed b{display:block;color:var(--ink);font-weight:600}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.tabs{position:sticky;top:0;z-index:6;background:var(--ground);border-bottom:2px solid var(--ink);display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding-top:4px}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{appearance:none;border:0;background:transparent;color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:12px 14px 10px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+#b-prefs{height:34px;padding:0 12px}
+/* tablet (761 a 1000px): edição curta e Personalizar como ícone, como no celular, para o masthead de 64px caber sem transbordar */
+@media (min-width:761px) and (max-width:1000px){
+  .ed .ed-l,.ed b{display:none}
+  .ed .ed-s{display:inline;color:var(--ink);font-weight:600}
+  #b-prefs{width:34px;padding:0;justify-content:center}
+  #b-prefs .lbl{display:none}
+  #b-prefs .glyph{font-size:16px}
+}
+/* navegação: faixa fixa de 48px com o escopo como primeiro nível e as oito editorias ao lado */
+.nav-band{position:sticky;top:0;z-index:6;background:var(--paper);border-bottom:2px solid var(--ink)}
+.tabs{display:flex;align-items:stretch;gap:2px;height:48px;min-width:0}
+.tabs button{appearance:none;border:0;background:transparent;color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:0 12px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;display:inline-flex;align-items:center;line-height:1}
 .tabs button:hover{color:var(--ink)}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs .scope{display:flex;gap:2px;flex:none}
+.tabs .scope button{font-variation-settings:"wdth" 80,"wght" 900;font-weight:900;letter-spacing:.06em;color:var(--ink-2)}
+.tabs .scope button:hover{color:var(--ink)}
+.tabs .scope button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--red)}
+.tabs .div{flex:none;width:1px;background:var(--line);margin:14px 10px;align-self:stretch}
+.tabs-ed{position:relative;display:flex;gap:2px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs-ed::-webkit-scrollbar{display:none}
+.tabs-ed::after{content:"";position:sticky;right:0;flex:none;width:32px;margin-left:-32px;align-self:stretch;background:linear-gradient(90deg,transparent,var(--paper) 75%);pointer-events:none;transition:opacity .15s}
+.tabs-ed.fim::after{opacity:0}
+.tabs .tc{display:none}
+@media (max-width:1180px){.tabs button{padding:0 7px;font-size:12px;letter-spacing:.02em}.tabs .tl{display:none}.tabs .tc{display:inline}}
+/* subnível dos estados: uma linha de 44px */
+.subnav{background:var(--paper-2);border-bottom:1px solid var(--line)}
+.ufb-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:44px;padding:4px 24px}
+.ufb-top .eyebrow{color:var(--ink-2)}
+.ufb-top select{padding:4px 8px;height:32px}
+.ufb-top .seg button{padding:6px 12px}
+.ufb-top .seg{background:var(--paper)}
+#ufb-cap{margin:0 0 0 auto;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ufb-mapa{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;text-decoration-color:var(--ink-3)}
+#ufb-cap+.ufb-mapa{margin-left:0}
+/* acima do celular a faixa não quebra: até 1180px a legenda não cabe ao lado do select e do segmentado e sai (o placar da Visão geral já traz o número); o link segue à direita */
+@media (min-width:761px){.ufb-top{flex-wrap:nowrap}}
+@media (min-width:761px) and (max-width:1180px){#ufb-cap{display:none}#ufb-cap+.ufb-mapa{margin-left:auto}}
+@media (min-width:761px) and (max-width:900px){.ufb-top .lt{display:none}}
 .view{display:none;padding-top:30px}
 .view.on{display:block}
 .focus[hidden]{display:none}
@@ -124,11 +169,22 @@ button{font:inherit}
 .focus .seg button{padding:5px 10px;font-size:11px}
 
 /* editorias e painéis */
-.blkhead{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin:0 0 10px}
-.blkhead .eyebrow{white-space:nowrap;transform:translateY(-2px)}
-.blkhead h2.t{margin:0;font-size:30px;text-transform:uppercase;letter-spacing:.01em}
-.blkhead .right{margin-left:auto;display:flex;gap:8px;align-items:center}
-section.block+section.block{margin-top:72px}
+/* cabeçalho de seção: filete de 3px, eyebrow em vermelho de editoria, título e, à direita, o carimbo dos dados e "Copiar link" */
+.blkhead{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;border-top:3px solid var(--ink);padding-top:12px;margin:0 0 10px}
+.blkhead .eyebrow{white-space:nowrap;color:var(--red);font-size:12px;letter-spacing:.14em}
+.blkhead h2.t{margin:0;font-size:34px;text-transform:uppercase;letter-spacing:.01em;line-height:.95}
+section.block .blkhead h2.t{font-size:26px}
+.blkhead .right{margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.blkhead .stamp-dt{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.blkhead .copy{appearance:none;border:0;background:none;padding:0;margin:0;font:inherit;font-size:12.5px;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer;white-space:nowrap}
+.blkhead .copy:hover{color:var(--ink);text-decoration-color:var(--ink)}
+section.block{margin-top:56px}
+/* fecho de seção: fio, "Continua em" e o caminho para o método */
+.secfoot{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:40px;padding-top:14px;font-size:13px}
+.secfoot a{font-weight:600;color:var(--ink);text-decoration-color:var(--line)}
+.secfoot .next{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}
+.secfoot .next:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.secfoot .next span{color:var(--ink-2);font-weight:600;letter-spacing:.04em;margin-right:6px}
 .view>.blkhead+.sub,.block>.blkhead+.sub{margin-top:14px}
 .sub{margin:10px 0 14px;color:var(--ink-2);max-width:80ch}
 .howto{margin:-6px 0 14px;font-size:13px;color:var(--ink-2);max-width:84ch}
@@ -140,8 +196,10 @@ section.block+section.block{margin-top:72px}
 .cap{color:var(--ink-3);font-size:12.5px;line-height:1.45;margin:4px 0 8px;max-width:90ch}
 .panel svg{display:block;width:100%;height:auto;overflow:visible}
 .panel+.panel,.grid2,.fold{margin-top:calc(var(--gap) + 6px)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:var(--gap)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:var(--gap);align-items:start}
 .grid2>.panel{min-width:0}
+.grid2>.panel+.panel,.pgrid>.panel+.panel{margin-top:0}
+.grid2.wide-left{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
 .multi{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:6px}
 .multi .mini{border:1px solid var(--line-2);border-radius:3px;padding:8px 10px 4px;min-width:0}
 .multi .mini .nm{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
@@ -175,8 +233,23 @@ section.block+section.block{margin-top:72px}
 .chipbtn[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
 .chipbtn[aria-pressed="false"]{opacity:.5}
 .chipbtn.plain[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);box-shadow:none}
+/* legenda clicável debaixo do gráfico: os mesmos chips de candidato, sem borda nem caixa alta */
+.chips.legenda{gap:4px 16px;margin:10px 0 4px}
+.chips.legenda .chipbtn{border:0;background:none;padding:2px 0;border-radius:0;font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-variation-settings:normal;font-stretch:100%;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2);gap:6px}
+.chips.legenda .chipbtn[aria-pressed="true"]{color:var(--ink);box-shadow:none;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--chipc,var(--ink))}
+.chips.legenda .chipbtn[aria-pressed="false"]{opacity:.45}
+.chips.legenda .cap{align-self:center}
+/* filtros secundários (institutos e modos) ficam dobrados por padrão */
+details.filtros{margin:8px 0 4px;font-size:13px}
+details.filtros>summary{cursor:pointer;color:var(--ink-2);font-weight:600;list-style:none;display:inline-block;text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:3px}
+details.filtros>summary:hover{color:var(--ink);text-decoration-color:var(--ink)}
+details.filtros>summary::-webkit-details-marker{display:none}
+details.filtros>summary::after{content:" ↓"}
+details.filtros[open]>summary::after{content:" ↑"}
+details.filtros .chips{margin:8px 0 0}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--ink-2);margin-top:8px}
-.legend span{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%;min-width:0}
+.legend span{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-width:0}
+.legend i{flex:none}
 .legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--paper)}
 .seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 600;font-stretch:84%;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px;cursor:pointer}
@@ -189,15 +262,19 @@ input[type="search"]{min-width:220px}
 .controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 14px}
 .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);font-size:12.5px;padding:7px 10px;border-radius:3px;z-index:30;max-width:300px;line-height:1.4;opacity:0;transition:opacity .08s}
 .tip.on{opacity:1}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:8px 14px;border-radius:3px;font-size:13px;z-index:40;opacity:0;pointer-events:none;transition:opacity .15s}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:8px 14px;border-radius:3px;font-size:13px;z-index:40;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:0 0 0 1.5px var(--ground),0 8px 24px rgba(0,0,0,.35)}
+dialog.drawer .toast{bottom:calc(80px + env(safe-area-inset-bottom))}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.tip,.toast{transition:none}}
-.axis text,.tick text{fill:var(--ink-3);font-size:12px;font-family:"Source Sans 3",sans-serif;font-variant-numeric:tabular-nums}
+.axis text,.tick text,text.axis,text.tick{fill:var(--ink-3);font-size:12px;font-family:"Source Sans 3",sans-serif;font-variant-numeric:tabular-nums}
 .grid line{stroke:var(--line);stroke-width:1}
 .grid .subl{stroke:var(--line-2)}
 .cand-label{fill:var(--ink);font-size:12.5px;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700}
 .ser.dim{opacity:.2}
 .lbl.dim{opacity:.4}
+.marcos{margin:6px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:12px;color:var(--ink-2)}
+.marcos li{display:contents}
+.marcos b{color:var(--ink)}
 .lead-line{stroke:var(--ink-3);stroke-width:1;opacity:.6}
 details.rodadas{margin-top:12px;color:var(--ink-2);font-size:13px}
 details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
@@ -205,7 +282,7 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .empty b{display:block;color:var(--ink);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 72,"wght" 900;font-stretch:72%;font-weight:900;font-size:20px;text-transform:uppercase;margin-bottom:4px}
 
 /* cartões dos candidatos */
-.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--gap)}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--gap)}
 .card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--ink);border-radius:4px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
 .card.vigiado{border-top-color:var(--accent)}
 .card .head{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:14px 16px 10px;align-items:start}
@@ -227,10 +304,15 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .card .st span.d{display:block;color:var(--ink-3);font-size:11px;margin-top:1px;text-transform:none;letter-spacing:0;font-weight:400}
 .card .sparkrow{padding:0 16px 10px;display:flex;align-items:center;gap:10px}
 .card .sparkrow .cap{margin:0;flex:1}
-.spark{width:150px;height:46px;flex:none}
+.spark{width:150px;max-width:100%;height:46px;flex:0 1 150px;min-width:84px}
 .card .foot{margin-top:auto;padding:9px 16px;border-top:1px solid var(--line-2);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;background:var(--paper-2)}
 .card .foot .spacer{flex:1}
 .cover{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+.card .cover{flex:0 0 auto;min-width:0;white-space:nowrap;gap:6px}
+.card .cover .blocks{grid-template-columns:repeat(10,6px);gap:1px}
+.card .cover .blocks i{height:7px}
+.dz .cover{white-space:normal}
+.dz .cover>span:last-child{min-width:0}
 .cover .blocks{display:inline-grid;grid-template-columns:repeat(10,9px);gap:2px}
 .cover .blocks i{display:block;height:9px;border-radius:1px;background:var(--line)}
 .cover .blocks i.on{background:var(--ink)}
@@ -260,17 +342,19 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .evs .cat{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 
 /* tabelas */
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background-color:var(--paper);background-image:linear-gradient(90deg,var(--paper) 30%,transparent),linear-gradient(270deg,var(--paper) 30%,transparent),radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.18),transparent),radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.18),transparent);background-position:0 0,100% 0,0 0,100% 0;background-repeat:no-repeat;background-size:40px 100%,40px 100%,14px 100%,14px 100%;background-attachment:local,local,scroll,scroll}
+.tablewrap th:first-child,.tablewrap td:first-child{position:sticky;left:0;z-index:1;background:var(--paper);box-shadow:1px 0 0 var(--line-2)}
+.tablewrap tbody tr:nth-child(even) td:first-child{background:linear-gradient(var(--zebra),var(--zebra)) var(--paper)}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
 #tb-part{min-width:940px}
-th{text-align:left;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);padding:10px 12px;border-bottom:2px solid var(--ink);background:var(--paper);position:sticky;top:0}
+th{text-align:left;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);padding:10px 12px;border-bottom:2px solid var(--ink);background:transparent}
 th[data-sort]{cursor:pointer;user-select:none}
 th[data-sort]:hover{color:var(--accent)}
 th[aria-sort]{color:var(--ink)}
 th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
 th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
 td{padding:8px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
-tbody tr:nth-child(even) td{background:var(--paper-2)}
+tbody tr:nth-child(even) td{background:var(--zebra)}
 tr:last-child td{border-bottom:0}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 th.num{text-align:right}
@@ -319,11 +403,11 @@ td .desc{display:block;color:var(--ink-2);font-size:12.5px;margin-top:3px;max-wi
 .lado .bar i{display:block;height:100%;background:var(--barc,var(--neutro))}
 
 /* dossiê */
-dialog.dossie{width:min(1080px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:0;border-radius:4px;padding:0;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog.dossie{width:min(1080px,calc(100vw - 24px));max-height:calc(100dvh - 24px);border:0;overscroll-behavior:contain;border-radius:4px;padding:0;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
 dialog::backdrop{background:rgba(15,16,19,.7)}
 .dz{display:flex;flex-direction:column}
 .dz .top{position:sticky;top:0;z-index:2;background:var(--band);color:var(--band-ink);border-top:4px solid var(--red-deep);padding:16px 22px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
-.dz .top .n{background:var(--paper);color:var(--ink);font-size:30px;line-height:1;padding:12px 10px;min-width:58px;text-align:center;border-radius:4px}
+.dz .top .n{background:var(--band-ink);color:var(--band);font-size:30px;line-height:1;padding:12px 10px;min-width:58px;text-align:center;border-radius:4px}
 .dz .top h2{margin:0;font-size:30px;line-height:.95;text-transform:uppercase;color:var(--band-ink)}
 .dz .top .party{color:var(--band-mut);font-size:13px;margin-top:6px}
 .dz .top .kick{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--band-mut)}
@@ -339,12 +423,15 @@ dialog::backdrop{background:rgba(15,16,19,.7)}
 .dz .box h4{margin:0;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 78,"wght" 800;font-stretch:78%;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.02em}
 .dz .cap{margin:0}
 .dz .box svg{display:block;width:100%;height:auto;overflow:visible}
+.dz .box .chart{min-width:0;overflow-x:auto;overscroll-behavior-x:contain}
+.dz .top :focus-visible,.count :focus-visible{outline-color:var(--band-ink)}
+.dz .foot-acts{display:none;gap:8px;flex-wrap:wrap}
 .dz .sit{margin:0;color:var(--ink-2);font-size:14px;line-height:1.55}
 .dz .miss{font-size:12.5px;color:var(--ink-3)}
 .dz .foot{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line-2);padding-top:12px}
 
 /* personalizar */
-dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100vh;max-height:100vh;width:min(380px,100vw);border:0;border-left:1px solid var(--line);padding:0;background:var(--paper);color:var(--ink);box-shadow:-10px 0 40px rgba(0,0,0,.25)}
+dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:100dvh;overscroll-behavior:contain;width:min(380px,100vw);border:0;border-left:1px solid var(--line);padding:0;background:var(--paper);color:var(--ink);box-shadow:-10px 0 40px rgba(0,0,0,.25)}
 .dr{display:flex;flex-direction:column;height:100%}
 .dr .dhead{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:2px solid var(--ink)}
 .dr .dhead h2{margin:0;font-size:24px;text-transform:uppercase}
@@ -357,40 +444,41 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100vh;max-height:1
 .dr label.ck i{width:10px;height:10px;border-radius:2px;display:inline-block}
 .dr label.ck.on{border-color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
 .dr .hint{font-size:12.5px;color:var(--ink-3);margin:6px 0 0}
-.dr .dfoot{margin-top:auto;padding:14px 20px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-3)}
-footer{margin-top:44px;border-top:2px solid var(--ink);padding-top:12px;color:var(--ink-3);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-
-@media (max-width:760px){
-  .wrap{padding:0 14px 40px}
-  .masthead{flex-direction:column;align-items:flex-start;gap:10px;padding-top:16px}
-  .mast-r{align-items:flex-start;max-width:100%}
-  .ed{text-align:left;padding-right:0}
-  .brand svg.mark{height:48px}
-  .blkhead{flex-wrap:wrap;gap:4px 12px}
-  .blkhead h2.t{font-size:24px}
-  .pv{font-size:26px}
-  .panel>div[id^="ch-"],.dz .box{overflow-x:auto}
-  .panel>div[id^="ch-"] svg,.dz .box>svg{min-width:520px}
-  #ch-corrida svg,#ch-trends svg,#ch-regua svg,#ch-bens svg{min-width:860px}
-  .panel>div[id^="ch-"] .multi .mini svg{min-width:0}
-  #lado{overflow-x:auto}
-  .lado{min-width:640px;grid-template-columns:minmax(110px,130px) repeat(var(--n,2),minmax(0,1fr))}
+.dr .dfoot{margin-top:auto;padding:14px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-3)}
+@media (max-width:1000px){
   .dz .top{grid-template-columns:auto 1fr;padding:14px 14px 12px}
   .dz .top .acts{grid-column:1/-1;justify-content:flex-start}
-  .dz .body{padding:14px}
-  .dz .row2{grid-template-columns:1fr}
-  .card .stats{grid-template-columns:1fr 1fr 1fr}
-  .panel>div[id^="e-ch-"]{overflow-x:auto}
-  .panel>div[id^="e-ch-"] svg{min-width:520px}
-  #e-ch-cobertura svg{min-width:700px}
-  #e-ch-gov svg,#e-ch-sen svg,#e-ch-rodada svg,#e-ch-part svg,#e-ch-colig svg{min-width:0}
-  #e-lado{overflow-x:auto}
-  .ufb-top .cap{margin:0!important;flex-basis:100%}
 }
+/* rodapé: faixa escura com filete vermelho, frase de método e quatro colunas */
+.foot-band{margin-top:64px;background:var(--foot-bg);color:var(--band-mut);border-top:3px solid var(--red-deep);box-shadow:inset 0 1px 0 var(--foot-line)}
+.foot{padding:40px 24px 48px;font-size:13.5px;line-height:1.5}
+.foot-lead{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--band-line);margin-bottom:28px}
+.foot-motto{font-size:22px;color:var(--band-ink);line-height:1.05}
+.foot-ed{font-size:12.5px;color:var(--band-mut)}
+.foot-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:32px}
+.fc{min-width:0}
+.fc .fh{display:block;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--band-ink);margin-bottom:10px}
+.fc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.fc p{margin:0 0 8px}
+.foot a{color:var(--band-ink);text-decoration-color:var(--band-line)}
+.foot a:hover{text-decoration-color:var(--band-ink)}
+.fc ul.foot-ufs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px 4px}
+.foot-ufs a{display:block;text-align:center;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:11.5px;letter-spacing:.06em;text-decoration:none;border:1px solid var(--band-line);border-radius:2px;padding:4px 0;line-height:1.2}
+.foot-ufs a:hover{border-color:var(--band-ink)}
+.brand-f{display:flex;align-items:center;gap:10px;color:var(--band-ink)}
+.brand-f svg.mark{display:block;height:28px;width:auto}
+.brand-f .m2f{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--band-mut);padding-top:3px;white-space:nowrap}
+.fc-marca p{margin:12px 0 0;max-width:48ch}
+.fc-marca .slogan{color:var(--band-ink);font-weight:600}
+.fc-marca .slogan+p{margin-top:4px}
+.foot .credit{margin-top:14px;color:var(--band-mut)}
+.foot .credit .indica{color:var(--band-ink)}
+.foot .go{display:inline-block;margin-top:6px;font-weight:600}
+
 
 /* hero da home */
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:stretch;margin:0 0 22px}
-.hero .tagline{margin:0;font-size:40px;line-height:1;text-transform:uppercase;letter-spacing:.005em;text-wrap:balance}
+.hero .tagline{margin:0;font-size:clamp(26px,7.6vw,40px);line-height:1;text-transform:uppercase;letter-spacing:.005em;text-wrap:balance}
 .hero .lede{margin:14px 0 0;color:var(--ink-2);font-size:15.5px;line-height:1.55;max-width:66ch}
 .count{background:var(--band);color:var(--band-ink);border-top:3px solid var(--red-deep);border-radius:4px;padding:18px 20px 16px;display:flex;flex-direction:column;justify-content:center;gap:6px}
 .count .pl{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--band-mut)}
@@ -410,25 +498,31 @@ footer{margin-top:44px;border-top:2px solid var(--ink);padding-top:12px;color:va
 .al .t b{color:var(--ink)}
 .al .src{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
 .al.crit{--alc:var(--crit)}.al.warn{--alc:var(--warn)}.al.info{--alc:var(--ink-2)}
+.al-more{display:none;margin-top:8px}
 /* dobras (conteúdo sob botão) */
 details.fold>summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;cursor:pointer}
 details.fold>summary .cap{margin:0!important}
 details.fold>summary::-webkit-details-marker{display:none}
-details.fold>summary .btn::before{content:"+";font-size:14px;line-height:1}
-details.fold[open]>summary .btn::before{content:"−"}
+details.fold>summary .btn{border:0;background:none;padding:0;border-radius:0;font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-variation-settings:normal;font-stretch:100%;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:3px;gap:5px}
+details.fold>summary .btn::after{content:"→";font-size:14px;line-height:1}
+details.fold[open]>summary .btn::after{content:"↑"}
+details.fold>summary:hover .btn{text-decoration-color:var(--ink)}
 details.fold>.panel,details.fold>.grid2{margin-top:12px}
 /* crédito */
 .credit{display:inline-flex;align-items:center;gap:8px;color:var(--ink-3)}
 .credit .indica{display:inline-flex;align-items:center;color:var(--ink)}
 .credit .indica .marca-indica{height:17px;width:auto;display:block;fill:currentColor}
-@media (max-width:760px){.hero{grid-template-columns:1fr}.hero .tag{font-size:30px}.count .big{font-size:40px}}
+@media (max-width:760px){.hero{grid-template-columns:1fr}.count .big{font-size:40px}}
 svg.tempo{user-select:none;-webkit-user-select:none}
 svg.tempo.hover .ser:not(.hot){opacity:.12}
 svg.tempo.hover .cand-label:not(.hot){opacity:.25}
 svg.tempo .ser.hot .linha{stroke-width:3.6}
 svg.tempo .cand-label.hot{font-size:14px}
-.ztools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 6px;position:sticky;left:0;max-width:100%;box-sizing:border-box}
-.ztools .cap{margin-right:auto}
+.ztools{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 0 auto;max-width:100%}
+.ph .ztools{flex:0 1 auto}
+.ztools .stamp-dt{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-right:4px;white-space:nowrap}
+.zhint{margin:10px 0 0}
+@media (hover:none){.zhint{display:none}}
 .zb{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 600;font-stretch:84%;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:3px;cursor:pointer}
 .zb.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 /* partidos em barras */
@@ -436,7 +530,11 @@ svg.tempo .cand-label.hot{font-size:14px}
 .bars{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .brow{display:grid;grid-template-columns:132px 1fr 84px;gap:10px;align-items:center;font-size:12.5px}
 .brow .lab{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brow .lab b{font-weight:600}
+.brow .lab b{font-weight:600;flex:none}
+.brow .lab>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow-cands{margin:-2px 0 6px 132px}
+#e-tb-rodadas .fonte-c{display:none}
+@media (max-width:760px){#e-tb-rodadas .fonte-c{display:inline}}
 .brow .lab .k{display:inline-block;min-width:22px;padding:2px 4px;border-radius:2px;background:var(--ink);color:var(--paper);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center;line-height:1}
 .brow .bar{height:14px;background:var(--line-2);border-radius:2px;overflow:hidden}
 .brow .bar i{display:block;height:100%;background:var(--bc,var(--neutro))}
@@ -458,7 +556,8 @@ svg.tempo .cand-label.hot{font-size:14px}
 .cov i.on{background:var(--ink)}
 .cov td.tot{font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .modos{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.modos .mr{display:grid;grid-template-columns:130px 1fr 60px;gap:10px;align-items:center;font-size:13px}
+.modos .mr{display:grid;grid-template-columns:130px 1fr auto;gap:10px;align-items:center;font-size:13px}
+.modos .mr .val{white-space:nowrap}
 .modos .mr .lab{display:flex;align-items:center;gap:7px;font-weight:600}
 .modos .mr .lab i{width:11px;height:11px;border-radius:2px;display:inline-block}
 .modos .mr .bar{height:12px;background:var(--line-2);border-radius:2px;overflow:hidden}
@@ -482,12 +581,12 @@ svg.tempo .cand-label.hot{font-size:14px}
 .cg .d.eleicao .dots i,.cg .d.sel .dots i{background:var(--paper)!important}
 .cal-legend{font-size:12px;color:var(--ink-3);margin-top:8px}
 /* estados */
-.ufbar{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:12px 14px;margin-top:14px}
-.ufbar[hidden],[hidden]{display:none!important}
-.ufb-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px}
-.mapa-grid{display:grid;grid-template-columns:minmax(260px,440px) minmax(0,1fr);gap:20px 28px;align-items:start}
+[hidden]{display:none!important}
+/* o mapa da disputa, dentro da Visão geral do estado */
+details.mapa{margin-top:var(--gap)}
+.mapa-grid{display:grid;grid-template-columns:minmax(260px,440px) minmax(240px,1fr);gap:20px 28px;align-items:start}
 .mapa-svg svg{width:100%;height:auto;display:block}
-.mapa-svg path.uf{stroke:var(--paper);stroke-width:1.6;cursor:pointer;transition:filter .15s}
+.mapa-svg path.uf{stroke:var(--map-line);stroke-width:1.6;cursor:pointer;transition:filter .15s}
 .mapa-svg path.uf:hover{filter:brightness(1.12);stroke:var(--ink)}
 .mapa-svg path.uf.on{stroke:var(--ink);stroke-width:4;paint-order:stroke}
 .mapa-svg path.hatch{pointer-events:none}
@@ -495,20 +594,21 @@ svg.tempo .cand-label.hot{font-size:14px}
 .mapa-svg text.sg.out{fill:var(--ink);stroke:var(--paper);stroke-width:5px;font-size:22px}
 .mapa-svg line.ld{stroke:var(--ink-2);stroke-width:1.6;pointer-events:none}
 .mapa-svg circle.dot{fill:var(--ink);pointer-events:none}
+.mapa-svg rect.hit{fill:transparent;pointer-events:all;cursor:pointer}
 .mapa-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel.pick{border-top:3px solid var(--ink)}
 .panel.pick .ph h3::after{content:"disputa escolhida";font:600 10px/1 Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-left:10px;vertical-align:middle}
-.mapa-sel{border:1px solid var(--line);border-radius:4px;background:var(--ground);padding:12px 14px}
+.mapa-sel{border:1px solid var(--line);border-radius:4px;background:var(--ground);padding:12px 14px;max-width:420px}
 .mapa-sel .nm{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:20px;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
 .mapa-sel .disp{font-size:12px;color:var(--ink-3);margin:2px 0 10px}
-.mapa-sel .row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:13px;padding:4px 0;border-top:1px solid var(--line-2)}
+.mapa-sel .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px;padding:4px 0;border-top:1px solid var(--line-2)}
 .mapa-sel .row .k{display:inline-block;min-width:24px;padding:2px 4px;border-radius:2px;color:#fff;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center}
 .mapa-sel .row b{font-weight:600}
 .mapa-sel .row .pt{color:var(--ink-3);font-size:11.5px;margin-left:4px}
 .mapa-sel .row .v{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
 .mapa-sel .row.lead b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .mapa-sel .src{font-size:11.5px;color:var(--ink-3);margin-top:8px}
-.mapa-sel .go{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.mapa-sel .go{display:inline-block;margin-top:10px;font-weight:600;color:var(--ink)}
 .mapa-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}
 .mapa-legend .lg{display:inline-flex;align-items:center;gap:6px}
 .mapa-legend .lg i{width:14px;height:14px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
@@ -520,7 +620,9 @@ svg.tempo .cand-label.hot{font-size:14px}
 .hb .nm{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb .nm .k{display:inline-block;min-width:24px;padding:2px 4px;border-radius:2px;color:#fff;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center;line-height:1.1}
 .hb .nm .pt{color:var(--ink-3);font-size:11.5px;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.hb .nm b{flex:none}
+.hb .nm b,.hb .nm .nmbtn{flex:none;min-width:0}
+.nmbtn{appearance:none;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:inline-flex;max-width:100%}
+.nmbtn:hover b,.nmbtn:focus-visible b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .hb .bar{height:16px;background:var(--line-2);border-radius:2px;overflow:hidden}
 .hb .bar i{display:block;height:100%}
 .hb .val{text-align:right;font-size:19px;line-height:1}
@@ -534,30 +636,200 @@ svg.tempo .cand-label.hot{font-size:14px}
 .colig .cp{display:flex;flex-wrap:wrap;gap:4px}
 .colig .cc{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--ink-2)}
 .colig .cc .k{display:inline-block;min-width:22px;padding:1px 4px;border-radius:2px;color:#fff;font-size:10px;font-weight:700;text-align:center;margin-right:4px}
-@media (max-width:760px){.mapa-grid{grid-template-columns:1fr}.mapa-svg text.sg{font-size:34px}.hb{grid-template-columns:minmax(96px,1fr) 1fr 52px;}.hb .mini{display:none}}
-details.mapa>summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;cursor:pointer;margin-bottom:8px}
-details.mapa>summary .btn{flex:0 0 auto}
+@media (max-width:760px){
+  .mapa-grid{grid-template-columns:1fr}
+  .mapa-svg text.sg{font-size:34px}
+  .mapa-svg text.sg.out{font-size:30px;stroke-width:6px}
+  .hbars{gap:4px}
+  .hb{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm val" "bar bar";gap:2px 10px;padding:4px 0 5px;border-top:1px solid var(--line-2)}
+  .hb:first-child{border-top:0}
+  .hb .nm{grid-area:nm;white-space:normal;overflow:visible;flex-wrap:wrap;line-height:1.3}
+  .hb .nm b,.hb .nm .nmbtn{flex:initial}
+  .hb .nm .pt{white-space:normal;overflow:visible}
+  .hb .bar{grid-area:bar;height:10px}
+  .hb .val{grid-area:val;align-self:end;font-size:17px}
+  .hb .mini{display:none}
+  .panel.pick .ph h3::after{display:block;margin:4px 0 0}
+  .ufb-top{padding:4px 14px;gap:8px 10px;flex-wrap:nowrap}
+  .ufb-top .eyebrow,.ufb-top .lt,#ufb-cap,.ufb-mapa{display:none}
+  .ufb-top .seg{flex:none}
+  .ufb-top .seg button{padding:6px 10px}
+  .ufb-top label.sel{flex:1 1 auto}
+  .ufb-top label.sel select{max-width:none;flex:1}
+  .brow{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto}
+  .brow .val{white-space:nowrap}
+  #e-ch-part .brow{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 40px}
+  #e-ch-part .brow-cands{margin-left:0}
+  #e-ch-part .tag{white-space:normal}
+}
+details.mapa>summary{list-style:none;cursor:pointer;margin-bottom:8px}
 details.mapa>summary::-webkit-details-marker{display:none}
-details.mapa>summary .btn::before{content:"−";font-size:14px;line-height:1}
-details.mapa:not([open])>summary .btn::before{content:"+"}
+details.mapa>summary .ph{cursor:pointer}
+details.mapa>summary .tg{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;white-space:nowrap}
+details.mapa>summary .tg::before{content:"Recolher o mapa ↑"}
+details.mapa:not([open])>summary .tg::before{content:"Abrir o mapa ↓"}
+details.mapa:not([open])>summary{margin-bottom:0}
 details.mapa>.cap{margin-top:8px;max-width:78ch}
+@media (pointer:coarse){
+  .btn,.chipbtn,.zb,.seg button,select,input[type="search"],.dr label.ck,.hb .mini{min-height:42px}
+  .dr label.ck input{width:18px;height:18px}
+  .tema-btn{width:40px;height:40px}
+  .al .src a,.card .foot a,.lado .src a,.lado .party a,.evs a,.cov td:first-child a,.dz .foot a,.kv a,.hl li a,.stream a,.px a,.tablewrap td a{display:inline-block;padding:13px 4px;margin:-13px -4px}
+  .hl .go{padding:12px 0}
+  .hb .nmbtn{min-height:42px;align-items:center;margin:-12px 0}
+  details.howto summary,details.rodadas summary,.stream .desc{min-height:36px;display:flex;align-items:center}
+  .stream .desc{display:-webkit-box}
+  .cg .d{min-height:42px}
+}
+/* celular: depois de todas as regras-base, para vencer por ordem */
+@media (max-width:760px){
+  .wrap{padding:0 14px}
+  /* masthead de 48px numa linha: marca a 28px, edição curta, tema e Personalizar como ícones de 40px */
+  .masthead{min-height:48px;gap:8px}
+  /* "dos Candidatos" fica ao lado da marca enquanto couber e desce para a segunda linha quando a largura não dá (cabe nos 48px) */
+  .word{gap:0 6px;flex-wrap:wrap;min-width:0}
+  .brand{min-width:0}
+  .brand svg.mark{height:28px}
+  .word .m2{font-size:8px;letter-spacing:.08em;padding-top:3px}
+  .mast-r{gap:5px;flex:none}
+  #b-prefs{flex:none}
+  .ed{font-size:10.5px}
+  .ed .ed-l,.ed b{display:none}
+  .ed .ed-s{display:inline;color:var(--ink);font-weight:600}
+  .tema-btn{width:36px;height:36px;position:relative}
+  #b-prefs{width:36px;height:36px;min-height:0;padding:0;justify-content:center;position:relative}
+  .tema-btn::before,#b-prefs::before{content:"";position:absolute;inset:-3px} /* área de toque de 42px */
+  #b-prefs .lbl{display:none}
+  #b-prefs .glyph{font-size:17px}
+  /* navegação em duas linhas: o escopo como segmentado (36px) e as editorias rolando (44px) */
+  .tabs{flex-wrap:wrap;height:auto;gap:0}
+  .tabs .scope{flex:1 1 100%;height:36px;align-items:center;gap:0}
+  .tabs .scope button{height:28px;margin:0;padding:0 12px;border:1px solid var(--line);border-bottom-width:1px;border-radius:0;font-size:11.5px;color:var(--ink-2);background:var(--paper)}
+  .tabs .scope button:first-of-type{border-radius:3px 0 0 3px}
+  .tabs .scope button:last-of-type{border-radius:0 3px 3px 0;margin-left:-1px}
+  .tabs .scope button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .tabs .div{display:none}
+  .tabs-ed{flex:1 1 100%;height:44px;margin:0 -14px;padding:0 14px}
+  .tabs button{padding:0 10px;font-size:12px;letter-spacing:.06em}
+  .ztools{gap:4px}
+  .ztools .stamp-dt{margin-right:2px}
+  .zb{padding:4px 7px;font-size:10.5px}
+  .ph .ztools{flex:0 0 auto}
+  .blkhead{flex-wrap:wrap;gap:4px 12px}
+  .blkhead h2.t{font-size:26px}
+  section.block .blkhead h2.t{font-size:22px}
+  .blkhead .right{margin-left:0;flex-basis:100%;gap:10px}
+  section.block{margin-top:40px}
+  .secfoot{margin-top:32px}
+  .pv{font-size:26px}
+  /* gráficos desenhados na largura do contêiner (MOBILE no JS): nada rola de lado aqui */
+  .panel>div[id^="ch-"] svg,.panel>div[id^="e-ch-"] svg,.dz .box .chart svg{min-width:0}
+  #e-ch-2t .panel{border:0;padding:0;box-shadow:none}
+  #e-ch-2t .grid2{grid-template-columns:1fr}
+  #e-ch-2t th{white-space:nowrap}
+  #e-ch-2t .tablewrap td,#e-ch-2t .tablewrap th{padding:6px 5px}
+  /* filtros: uma fileira rolável por grupo */
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:6px -14px 8px;padding:0 14px 4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .chips::-webkit-scrollbar{display:none}
+  .chipbtn{flex:0 0 auto;scroll-snap-align:start}
+  .controls .chips{flex:1 1 100%;min-width:0}
+  .chips.legenda{flex-wrap:wrap;overflow:visible;margin:10px 0 4px;padding:0}
+  .chips.legenda .chipbtn{flex:initial}
+  /* comparador transposto: critério em linha inteira, valores lado a lado */
+  #lado-mesa,#e-lado-mesa{overflow:visible}
+  .lado{min-width:0;grid-template-columns:repeat(var(--n,2),minmax(0,1fr))}
+  .lado>div.h.lbl,.lado>div.sec-cell{display:none}
+  .lado>div{padding:4px 8px 10px;font-size:13px}
+  .lado>div.h{padding:10px 8px}
+  .lado>div.lbl{grid-column:1/-1;padding:10px 8px 2px;border-bottom:0;font-size:10.5px}
+  .lado>div.lbl.sec-lbl{padding:8px;border-bottom:1px solid var(--line-2)}
+  .lado .v{font-size:18px}
+  .lado .v.txt{font-size:13px}
+  .lado>div.h .who{font-size:15px}
+  .lado .src{font-size:11px}
+  #lado-controls,#e-lado-controls{gap:8px 18px}
+  #lado-controls label.sel,#e-lado-controls label.sel{flex:1 1 100%;min-width:0}
+  #lado-controls label.sel select,#e-lado-controls label.sel select{max-width:none;flex:1;width:auto;min-width:0}
+  /* dossiê como folha de tela cheia */
+  dialog.dossie{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0;padding-bottom:env(safe-area-inset-bottom);overflow-x:hidden}
+  .dz .top{position:static;grid-template-columns:auto 1fr;gap:8px 12px;padding:12px 64px 10px 14px}
+  .dz .top h2{font-size:24px}
+  .dz .top .n{font-size:22px;padding:9px 8px;min-width:46px}
+  .dz .top .acts{gap:6px}
+  .stamp{transform:none;font-size:9.5px;padding:3px 6px;letter-spacing:.12em}
+  .dz .top .btn.star,.dz .top [data-copy]{display:none}
+  .dz .top [data-close]{position:fixed;top:max(8px,env(safe-area-inset-top));right:8px;height:44px;width:44px;min-height:44px;min-width:44px;padding:0;border-radius:50%;justify-content:center;z-index:3;background:var(--band);color:var(--band-ink);border-color:var(--band-line);font-size:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .dz .top [data-close]::after{content:"✕";font-size:18px;line-height:1}
+  .dz .foot-acts{display:flex}
+  .dz .body{padding:14px}
+  .dz .row2{grid-template-columns:1fr}
+  .card .stats{grid-template-columns:1fr 1fr 1fr}
+  /* tabelas */
+  .tablewrap table{font-size:12.5px}
+  .tablewrap td,.tablewrap th{padding:6px 8px}
+  .cov td,.cov th{padding:4px 3px}
+  .cov th{font-size:10.5px}
+  .cov td:first-child a{display:inline-block;padding:13px 0;margin:-13px 0}
+  #e-tb-rodadas.sem-contratante th:nth-child(3),#e-tb-rodadas.sem-contratante td:nth-child(3),#e-tb-rodadas.sem-cenarios th:nth-child(8),#e-tb-rodadas.sem-cenarios td:nth-child(8){display:none}
+  #e-tb-rodadas .fonte-l{display:none}
+  #e-tb-redes th:nth-child(4),#e-tb-redes td:nth-child(4),#e-tb-redes th:nth-child(8),#e-tb-redes td:nth-child(8){display:none}
+  #tb-redes td .desc,#tb-redes .tnum,#tb-redes td:nth-child(4){white-space:nowrap}
+  #tb-redes th:nth-child(5),#tb-redes td:nth-child(5){display:none}
+  .brow .lab{flex-wrap:wrap;row-gap:0}
+  .brow .lab>span:last-child{flex:1 1 44px}
+  .grid2.wide-left{grid-template-columns:1fr}
+  /* alertas: uma coluna, kicker acima, quatro visíveis */
+  .al{grid-template-columns:1fr;gap:3px;padding:10px 12px}
+  .al .k{padding-top:0}
+  .alerts .ah{flex-wrap:wrap;gap:2px 10px}
+  .alist{gap:8px}
+  .alist:not(.todos) .al:nth-child(n+5){display:none}
+  .al-more{display:inline-flex}
+  /* método */
+  .pipe{flex-direction:column;gap:4px}
+  .pipe>.pnode{flex:none;width:100%}
+  .parrow{align-self:center;padding:0;font-size:0;line-height:1}
+  .parrow::before{content:"↓";font-size:22px}
+  .credit{flex-wrap:wrap;gap:4px 8px}
+  .modos .mr{grid-template-columns:minmax(0,1.2fr) 1fr auto}
+  .modos .mr .val{white-space:nowrap}
+  /* rodapé em duas colunas; estados em 9 por linha */
+  .foot{padding:32px 14px 40px}
+  .foot-motto{font-size:18px}
+  .foot-lead{margin-bottom:22px;padding-bottom:16px}
+  .foot-cols{grid-template-columns:1fr 1fr;gap:22px 16px}
+  .fc-marca,.fc-estados{grid-column:1/-1}
+  .fc-estados{order:5}
+  .fc ul.foot-ufs{grid-template-columns:repeat(9,1fr)}
+}
 </style>
 </head>
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="indica-marca" viewBox="0 0 3228 967"><g transform="translate(0.000000,967.000000) scale(1.000000,-1.000000)" stroke="none" fill="currentColor"><path d="M0 741 l0 -226 79 0 79 0 0 -181 c0 -161 0 -182 2 -182 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 2 0 4 3 4 5 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 4 l0 4 -116 0 -117 0 0 223 0 223 -82 0 -82 0 0 -225z M1799 886 l0 -79 92 0 91 0 0 79 0 79 -91 0 -92 0 0 -79z M1526 955 c0 -2 0 -3 -1 -3 -2 0 -2 -15 -2 -131 0 -116 0 -131 -1 -131 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -2 1 -2 0 -3 0 -3 1 0 1 -2 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -7 1 -6 0 -7 0 -7 2 0 1 -2 1 -10 1 -9 0 -11 0 -11 2 0 1 -4 1 -28 1 -25 0 -29 0 -29 -1 0 -2 -2 -2 -10 -2 -8 0 -10 0 -10 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -2 0 -4 0 -4 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -2 -1 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -3 -4 -4 -4 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -4 0 -3 0 -5 -1 -5 -1 0 -1 -2 -1 -4 0 -3 0 -4 -1 -4 -2 0 -2 -1 -2 -6 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -5 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -7 0 -6 0 -8 -1 -8 -2 0 -2 -2 -2 -13 0 -11 0 -13 -1 -13 -2 0 -2 -5 -2 -41 0 -37 0 -42 2 -42 1 0 1 -2 1 -13 0 -11 0 -13 2 -13 1 0 1 -1 1 -7 0 -6 0 -7 2 -7 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -4 0 -2 0 -4 1 -4 1 0 1 -3 1 -6 0 -5 0 -6 2 -6 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 2 -2 9 -2 5 0 9 0 9 -1 0 -1 9 -1 26 -1 16 0 25 0 25 1 0 1 4 1 11 1 8 0 10 0 10 2 0 1 1 1 7 1 6 0 7 0 7 2 0 1 1 1 6 1 5 0 6 0 6 2 0 1 1 1 4 1 3 0 4 0 4 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 5 1 3 0 4 0 4 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 4 3 4 4 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 2 0 4 3 4 5 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 0 3 -1 0 -1 -1 -2 -1 -2 -2 0 -2 -5 -2 -37 l0 -38 90 0 c78 0 89 0 89 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 -1 1 -1 1 -2 0 -2 43 -2 380 0 337 0 380 2 380 0 0 1 1 1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 l0 3 -88 0 -88 0 0 -3z m-107 -338 c0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -2 1 -2 5 -2 2 0 4 0 4 -1 0 -1 2 -1 4 -1 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -2 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -5 0 -5 0 -6 2 -6 1 0 1 -4 1 -33 0 -30 0 -34 -1 -34 -2 0 -2 -1 -2 -7 0 -6 0 -7 -1 -7 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -4 0 -2 0 -4 -1 -4 -1 0 -1 -2 -1 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -2 -2 -14 -2 -13 0 -15 0 -15 2 0 1 -2 1 -8 1 -7 0 -9 0 -9 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 4 0 3 0 4 -1 4 -2 0 -2 1 -2 5 0 2 0 4 -1 4 -1 0 -1 4 -1 9 0 6 0 8 -1 8 -2 0 -2 4 -2 28 0 23 0 27 2 27 1 0 1 1 1 7 0 4 0 7 1 7 1 0 1 3 1 6 0 5 0 6 2 6 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 4 1 3 0 4 0 4 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 2 1 5 1 3 0 4 0 4 2 0 1 1 1 6 1 4 0 5 0 5 2 0 1 3 1 23 1 20 0 23 0 23 -1z M2842 773 c0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -1 -2 -7 -2 -6 0 -7 0 -7 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -3 0 -5 0 -5 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 -2 -5 -4 -5 -1 0 -1 -2 -1 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -3 0 -4 -1 -4 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -5 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -6 0 -3 0 -6 -1 -6 -1 0 -1 -3 -1 -7 0 -6 0 -7 -1 -7 -2 0 -2 -1 -2 -7 0 -6 0 -7 -1 -7 -2 0 -2 -2 -2 -12 0 -10 0 -12 -1 -12 -2 0 -2 -5 -2 -40 0 -35 0 -40 2 -40 1 0 1 -2 1 -11 0 -10 0 -12 2 -12 1 0 1 -1 1 -7 0 -6 0 -8 2 -8 1 0 1 -1 1 -5 0 -4 0 -6 1 -6 1 0 1 -3 1 -7 0 -6 0 -8 2 -8 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 4 -3 4 -4 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 4 -3 4 -4 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -2 1 -2 4 -2 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -2 1 -2 4 -2 3 0 4 0 4 -1 0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -2 1 -2 6 -2 4 0 5 0 5 -1 0 -2 2 -2 9 -2 5 0 9 0 9 -1 0 -1 11 -1 32 -1 20 0 31 0 31 1 0 1 4 1 9 1 6 0 8 0 8 2 0 1 1 1 6 1 5 0 6 0 6 2 0 1 1 1 6 1 4 0 5 0 5 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 1 1 1 3 1 l3 0 0 -36 c0 -31 0 -36 -1 -36 -1 0 -2 -1 -2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -2 11 -2 89 -2 l89 0 0 290 c0 256 0 289 -1 289 -1 0 -2 1 -2 2 0 1 -10 1 -87 1 l-88 0 0 -39 0 -39 -3 0 c-2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -2 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -2 1 -8 1 -7 0 -9 0 -9 2 0 1 -4 1 -27 1 -24 0 -28 0 -28 -1z m93 -156 c0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 1 -2 6 -2 3 0 5 0 5 -1 0 -1 2 -1 5 -1 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -5 0 -5 0 -6 2 -6 1 0 1 -2 1 -16 0 -14 0 -16 2 -16 1 0 1 -1 1 -3 0 -2 0 -3 -1 -3 -2 0 -2 -2 -2 -15 0 -14 0 -16 -1 -16 -2 0 -2 -1 -2 -7 0 -6 0 -8 -1 -8 -2 0 -2 -1 -2 -4 0 -3 0 -4 -1 -4 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -2 -3 -4 -5 -4 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -3 -2 -18 -2 -16 0 -19 0 -19 2 0 1 -1 1 -7 1 -6 0 -8 0 -8 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -2 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 4 0 3 0 4 -1 4 -2 0 -2 1 -2 6 0 5 0 6 -1 6 -2 0 -2 2 -2 9 0 6 0 8 -1 8 -2 0 -2 3 -2 23 0 20 0 23 2 23 1 0 1 2 1 9 0 6 0 8 2 8 1 0 1 1 1 6 0 5 0 6 2 6 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 1 1 2 2 2 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 3 4 4 4 1 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 5 1 2 0 4 0 4 1 0 1 2 1 6 1 4 0 5 0 5 2 0 1 2 1 9 1 7 0 9 0 9 2 0 1 2 1 13 1 11 0 13 0 13 -1z M2286 772 c-103 -9 -182 -64 -222 -155 -18 -39 -26 -82 -28 -132 -2 -96 25 -176 80 -232 49 -51 117 -78 196 -78 47 0 86 9 124 27 71 35 120 102 139 189 l1 3 -90 0 -89 0 -1 -3 c-3 -8 -13 -27 -18 -33 -12 -14 -27 -24 -44 -28 -13 -3 -37 -3 -48 0 -31 8 -54 31 -67 66 -14 37 -16 99 -4 143 15 54 52 85 101 82 35 -3 59 -20 75 -52 2 -5 4 -11 5 -12 l0 -3 90 0 90 0 -1 3 c-18 82 -59 143 -120 180 -47 27 -108 40 -169 35z M777 770 c0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -2 -1 -4 -1 -3 0 -4 0 -4 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -2 -1 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -3 -4 -4 -4 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 l-3 0 0 36 0 36 -88 0 c-78 0 -88 0 -88 -1 0 -1 0 -2 -1 -2 -1 0 -1 -97 -1 -289 l0 -290 89 0 89 0 0 165 c0 145 0 164 2 164 1 0 1 2 1 12 0 9 0 11 2 11 1 0 1 1 1 6 0 4 0 5 2 5 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 2 1 4 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 4 1 26 1 22 0 25 0 25 -1 0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 4 -2 2 0 4 0 4 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -2 1 -10 0 -9 0 -11 2 -11 1 0 1 -19 1 -167 l0 -167 89 0 89 0 0 176 c0 117 0 176 -1 176 -1 0 -1 7 -1 19 0 15 0 18 -1 18 -2 0 -2 2 -2 9 0 6 0 8 -1 8 -2 0 -2 1 -2 6 0 5 0 6 -1 6 -2 0 -2 1 -2 7 0 6 0 7 -1 7 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -2 0 -2 1 -2 5 0 2 0 4 -1 4 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -2 1 -9 1 -7 0 -9 0 -9 2 0 1 -4 1 -31 1 -28 0 -32 0 -32 -1z M1805 761 c0 -1 0 -2 -1 -2 -1 0 -1 -98 -1 -291 l0 -291 89 0 89 0 0 291 c0 258 0 291 -1 291 -1 0 -2 1 -2 2 0 1 -10 1 -86 1 -77 0 -87 0 -87 -1z M2066 58 l0 -58 244 0 244 0 0 58 0 57 -244 0 -244 0 0 -57z"/></g></symbol></svg>
-<div class="wrap">
-<header class="masthead">
+<header class="band band-top"><div class="wrap masthead">
   <div class="brand">
-    <h1 class="word" style="margin:0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="25 -722 4033 922" class="mark" role="img" aria-label="Mural"><path id="mm-letras" fill="var(--ink)" d="M49.0 0.0V-688.0H316.0L360.0 -445.0Q363.0 -427.0 368.0 -398.0Q373.0 -369.0 378.5 -338.0Q384.0 -307.0 388.0 -282.0H397.0Q401.0 -302.0 406.0 -330.5Q411.0 -359.0 416.0 -389.0Q421.0 -419.0 425.0 -445.0L467.0 -688.0H726.0V0.0H543.0V-211.0Q543.0 -261.0 545.0 -305.5Q547.0 -350.0 548.5 -384.0Q550.0 -418.0 550.0 -435.0H541.0Q539.0 -421.0 535.0 -401.5Q531.0 -382.0 528.0 -364.0Q525.0 -346.0 522.0 -334.0L458.0 0.0H312.0L249.0 -334.0Q247.0 -346.0 243.0 -364.0Q239.0 -382.0 236.0 -401.5Q233.0 -421.0 230.0 -435.0H222.0Q223.0 -410.0 224.5 -372.0Q226.0 -334.0 227.0 -292.0Q228.0 -250.0 228.0 -211.0V0.0Z M1062.0 12.0Q985.0 12.0 928.5 -13.0Q872.0 -38.0 842.0 -94.0Q812.0 -150.0 812.0 -242.0V-688.0H1005.0V-236.0Q1005.0 -196.0 1016.5 -171.0Q1028.0 -146.0 1061.0 -146.0Q1094.0 -146.0 1106.5 -171.0Q1119.0 -196.0 1119.0 -236.0V-688.0H1312.0V-242.0Q1312.0 -150.0 1282.0 -94.0Q1252.0 -38.0 1196.5 -13.0Q1141.0 12.0 1062.0 12.0Z M1398.0 0.0V-688.0H1695.0Q1772.0 -688.0 1817.0 -659.0Q1862.0 -630.0 1882.0 -581.5Q1902.0 -533.0 1902.0 -475.0Q1902.0 -417.0 1885.5 -368.5Q1869.0 -320.0 1830.0 -286.0L1922.0 0.0H1717.0L1655.0 -231.0H1591.0V0.0ZM1591.0 -378.0H1663.0Q1687.0 -378.0 1697.5 -402.0Q1708.0 -426.0 1708.0 -459.0Q1708.0 -481.0 1703.0 -498.0Q1698.0 -515.0 1688.5 -525.5Q1679.0 -536.0 1663.0 -536.0H1591.0Z M1924.0 0.0 2091.0 -688.0H2347.0L2514.0 0.0H2310.0L2292.0 -100.0H2139.0L2122.0 0.0ZM2166.0 -252.0H2266.0L2241.0 -395.0Q2240.0 -405.0 2237.5 -420.5Q2235.0 -436.0 2232.0 -454.5Q2229.0 -473.0 2226.0 -491.5Q2223.0 -510.0 2220.0 -525.0H2212.0Q2209.0 -506.0 2205.5 -482.5Q2202.0 -459.0 2198.5 -436.0Q2195.0 -413.0 2191.0 -395.0Z M2557.0 0.0V-688.0H2750.0V-163.0H2989.0V0.0Z"/><path id="mm-curva" d="M49 121 L2989 121 L3139 121 L3379 -169 L3539 -94 L3919 -583" fill="none" stroke="var(--red)" stroke-width="110" stroke-linejoin="round"/><circle id="mm-ponto" cx="3919" cy="-583" r="115" fill="var(--red)"/></svg><span class="m2">dos Candidatos</span></h1>
+    <h1 class="word"><svg xmlns="http://www.w3.org/2000/svg" viewBox="25 -722 4033 922" class="mark" role="img" aria-label="Mural"><path id="mm-letras" fill="currentColor" d="M49.0 0.0V-688.0H316.0L360.0 -445.0Q363.0 -427.0 368.0 -398.0Q373.0 -369.0 378.5 -338.0Q384.0 -307.0 388.0 -282.0H397.0Q401.0 -302.0 406.0 -330.5Q411.0 -359.0 416.0 -389.0Q421.0 -419.0 425.0 -445.0L467.0 -688.0H726.0V0.0H543.0V-211.0Q543.0 -261.0 545.0 -305.5Q547.0 -350.0 548.5 -384.0Q550.0 -418.0 550.0 -435.0H541.0Q539.0 -421.0 535.0 -401.5Q531.0 -382.0 528.0 -364.0Q525.0 -346.0 522.0 -334.0L458.0 0.0H312.0L249.0 -334.0Q247.0 -346.0 243.0 -364.0Q239.0 -382.0 236.0 -401.5Q233.0 -421.0 230.0 -435.0H222.0Q223.0 -410.0 224.5 -372.0Q226.0 -334.0 227.0 -292.0Q228.0 -250.0 228.0 -211.0V0.0Z M1062.0 12.0Q985.0 12.0 928.5 -13.0Q872.0 -38.0 842.0 -94.0Q812.0 -150.0 812.0 -242.0V-688.0H1005.0V-236.0Q1005.0 -196.0 1016.5 -171.0Q1028.0 -146.0 1061.0 -146.0Q1094.0 -146.0 1106.5 -171.0Q1119.0 -196.0 1119.0 -236.0V-688.0H1312.0V-242.0Q1312.0 -150.0 1282.0 -94.0Q1252.0 -38.0 1196.5 -13.0Q1141.0 12.0 1062.0 12.0Z M1398.0 0.0V-688.0H1695.0Q1772.0 -688.0 1817.0 -659.0Q1862.0 -630.0 1882.0 -581.5Q1902.0 -533.0 1902.0 -475.0Q1902.0 -417.0 1885.5 -368.5Q1869.0 -320.0 1830.0 -286.0L1922.0 0.0H1717.0L1655.0 -231.0H1591.0V0.0ZM1591.0 -378.0H1663.0Q1687.0 -378.0 1697.5 -402.0Q1708.0 -426.0 1708.0 -459.0Q1708.0 -481.0 1703.0 -498.0Q1698.0 -515.0 1688.5 -525.5Q1679.0 -536.0 1663.0 -536.0H1591.0Z M1924.0 0.0 2091.0 -688.0H2347.0L2514.0 0.0H2310.0L2292.0 -100.0H2139.0L2122.0 0.0ZM2166.0 -252.0H2266.0L2241.0 -395.0Q2240.0 -405.0 2237.5 -420.5Q2235.0 -436.0 2232.0 -454.5Q2229.0 -473.0 2226.0 -491.5Q2223.0 -510.0 2220.0 -525.0H2212.0Q2209.0 -506.0 2205.5 -482.5Q2202.0 -459.0 2198.5 -436.0Q2195.0 -413.0 2191.0 -395.0Z M2557.0 0.0V-688.0H2750.0V-163.0H2989.0V0.0Z"/><path id="mm-curva" d="M49 121 L2989 121 L3139 121 L3379 -169 L3539 -94 L3919 -583" fill="none" stroke="var(--red)" stroke-width="110" stroke-linejoin="round"/><circle id="mm-ponto" cx="3919" cy="-583" r="115" fill="var(--red)"/></svg><span class="m2">dos Candidatos</span></h1>
   </div>
   <div class="mast-r">
-    <div class="ed">Observatório do capital político digital · Eleições 2026<b id="stamp"></b></div>
+    <span class="ed"><span class="ed-l">Edição de </span><b id="stamp"></b><span class="ed-s" id="stamp-curto"></span></span>
     <button type="button" class="tema-btn" id="b-tema" data-modo="claro" aria-label="Mudar para o tema escuro" title="Mudar para o tema escuro"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><g class="lua"><path d="M9.6 1.6a6.4 6.4 0 1 0 4.8 8.6 5.2 5.2 0 0 1-4.8-8.6z" fill="currentColor"/></g><g class="sol" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.9" fill="currentColor" stroke="none"/><path d="M8 1.2v1.9M8 12.9v1.9M1.2 8h1.9M12.9 8h1.9M3.2 3.2l1.35 1.35M11.45 11.45l1.35 1.35M12.8 3.2l-1.35 1.35M4.55 11.45L3.2 12.8"/></g></svg></button>
-    <div class="acts"><div class="seg" role="group" aria-label="Escopo"><button type="button" data-escopo="br" aria-pressed="true">Presidência</button><button type="button" data-escopo="uf" aria-pressed="false">Estados</button></div><button type="button" class="btn primary" id="b-prefs"><span class="glyph" aria-hidden="true">⚙</span>Personalizar</button></div>
+    <button type="button" class="btn" id="b-prefs" aria-label="Personalizar" title="Personalizar"><span class="glyph" aria-hidden="true">⚙</span><span class="lbl">Personalizar</span></button>
   </div>
-</header>
-<nav class="tabs" id="tabs" role="tablist" aria-label="Editorias do mural"></nav>
+</div></header>
+<div class="band nav-band" id="nav-band"><nav class="wrap tabs" id="tabs" aria-label="Editorias do mural">
+  <div class="scope" role="group" aria-label="Escopo"><button type="button" data-escopo="br" aria-pressed="true">Presidência</button><button type="button" data-escopo="uf" aria-pressed="false">Estados</button></div>
+  <span class="div" aria-hidden="true"></span>
+  <span class="tabs-ed" id="tabs-editorias" role="tablist"></span>
+</nav></div>
+<div class="band subnav" id="ufbar" hidden><div class="wrap ufb-top">
+  <span class="eyebrow">Estado</span>
+  <label class="sel"><select id="uf-sel" aria-label="Estado"></select></label>
+  <div class="seg" role="group" aria-label="Disputa"><button type="button" data-cargo="governador" aria-pressed="true">Governo</button><button type="button" data-cargo="senador" aria-pressed="false">Senado</button></div>
+  <span class="cap" id="ufb-cap">27 disputas de governo e 54 vagas no Senado, duas por estado</span>
+  <a class="ufb-mapa" href="#e-geral" id="ufb-mapa">Mapa do Brasil ↓</a>
+</div></div>
+<div class="wrap">
 <div class="focus" id="focus" hidden></div>
 
 <main>
@@ -585,11 +857,11 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <p class="sub">Cada ponto é uma rodada registrada (primeiro turno, estimulada); a linha é a média móvel de <span class="sig-dias">4</span> dias dos institutos selecionados, e a janela encurta um dia a cada dez dias até a eleição, para pesar as rodadas mais recentes.</p>
   <details class="howto"><summary>Como ler</summary><p>Metodologias diferentes convivem no mesmo gráfico de propósito: a AtlasIntel (digital) costuma medir Lula acima dos presenciais e telefônicos, por exemplo. Os filtros de instituto e de modo de coleta (presencial, telefônica, digital) isolam réguas comparáveis. A janela de tempo e os candidatos em foco vêm de "Personalizar".</p></details>
   <div class="panel">
-    <div class="chips" id="f-cands"></div>
-    <div class="chips" id="f-inst"></div>
-    <div class="chips" id="f-modos"></div>
+    <div class="ph"><h3>Intenção de voto no primeiro turno</h3></div>
     <div id="ch-corrida"></div>
+    <div class="chips legenda" id="f-cands"></div>
     <div class="legend" id="lg-corrida"></div>
+    <details class="filtros"><summary>Filtrar institutos e modos (<span id="f-n"></span>)</summary><div class="chips" id="f-inst"></div><div class="chips" id="f-modos"></div></details>
     <details class="rodadas"><summary id="rod-sum"></summary><div class="tablewrap" style="margin-top:10px"><table id="tb-rodadas"><thead><tr><th>Divulgação</th><th>Instituto</th><th>Campo</th><th>Metodologia</th><th>Registro TSE</th></tr></thead><tbody></tbody></table></div></details>
   </div>
   <div class="grid2">
@@ -662,7 +934,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Comparador</span><h2 class="t display">Lado a lado</h2></div>
   <p class="sub">Dois ou três candidatos nos mesmos critérios, com fonte e data debaixo de cada número. A barra compara só quem está na mesa; o vermelho marca o melhor valor da linha (o menor, na rejeição).</p>
   <div class="controls" id="lado-controls"></div>
-  <div id="lado"></div>
+  <div id="lado-mesa"></div>
 </section>
 
 <section class="view" id="v-partidos" role="tabpanel" data-title="Partidos">
@@ -689,31 +961,12 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e fontes</h2></div>
   <p class="sub">De onde vem cada número, como ele entra no mural e o que ainda falta.</p>
   <div class="panel"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia entram duas vezes por dia; as outras fontes, a cada coleta. Nenhum número entra sem data e fonte.</div><div class="pipe" id="pipe"></div></div>
-  <div class="grid2">
+  <div class="grid2 wide-left">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. Mede dado, não mérito.</div><div id="ch-cobertura"></div></div>
     <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta sai da ficha técnica registrada no TSE, por palavra-chave. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
   </div>
   <details class="fold"><summary><span class="btn">Ler as notas completas de método</span><span class="cap" style="margin:0">pesquisas, metodologias, redes, busca, partidos, TSE e eventos</span></summary><div class="panel"><div class="notes" id="notes"></div></div></details>
-  <p class="credit" style="margin-top:28px">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span><span class="cap" style="margin:0 0 0 6px">observatório do capital político digital</span></p>
 </section>
-<div class="ufbar" id="ufbar" hidden>
-  <div class="ufb-top">
-    <span class="eyebrow">Estado</span>
-    <label class="sel">Escolha <select id="uf-sel"></select></label>
-    <div class="seg" role="group" aria-label="Disputa"><button type="button" data-cargo="governador" aria-pressed="true">Governo</button><button type="button" data-cargo="senador" aria-pressed="false">Senado</button></div>
-    <span class="cap" id="ufb-cap" style="margin:0 0 0 auto">27 disputas de governo e 54 vagas no Senado, duas por estado</span>
-  </div>
-  <details class="mapa" id="mapa" open><summary><span class="btn">Mapa do Brasil</span><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span></summary>
-  <div class="mapa-grid">
-    <div class="mapa-svg" id="mapa-svg" role="group" aria-label="Mapa do Brasil com o líder de cada estado"></div>
-    <div class="mapa-side">
-      <div class="mapa-sel" id="mapa-sel"></div>
-      <div class="mapa-legend" id="mapa-legend"></div>
-    </div>
-  </div>
-  <div class="cap">A cor de cada estado é a do partido do candidato à frente na rodada mais recente registrada no observatório; hachura quer dizer diferença menor que o dobro da margem de erro daquela pesquisa, o que é empate técnico; cinza claro quer dizer que ainda não há pesquisa daquele estado para essa disputa. Passe o cursor para ver os números e clique para abrir o estado.</div></details>
-</div>
-
 <section class="view" id="v-e-geral" role="tabpanel" data-title="Visão geral do estado">
   <div class="hero">
     <div class="hero-t">
@@ -724,6 +977,15 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   </div>
   <div class="alerts" id="e-alerts"></div>
   <div class="placar" id="e-strip" role="list"></div>
+<details class="mapa panel" id="mapa" open><summary><div class="ph"><h3>O mapa da disputa</h3><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span><span class="tg" aria-hidden="true"></span></div></summary>
+  <div class="mapa-grid">
+    <div class="mapa-svg" id="mapa-svg" role="group" aria-label="Mapa do Brasil com o líder de cada estado"></div>
+    <div class="mapa-side">
+      <div class="mapa-sel" id="mapa-sel"></div>
+      <div class="mapa-legend" id="mapa-legend"></div>
+    </div>
+  </div>
+  <div class="cap">A cor de cada estado é a do partido do candidato à frente na rodada mais recente registrada no observatório; hachura quer dizer diferença menor que o dobro da margem de erro daquela pesquisa, o que é empate técnico; cinza claro quer dizer que ainda não há pesquisa daquele estado para essa disputa. <span id="mapa-como">Passe o cursor para ver os números e clique para abrir o estado.</span></div></details>
   <div class="grid2" style="margin-top:var(--gap)">
     <div class="panel" id="e-panel-gov"><div class="ph"><h3>Quem lidera o governo</h3><span class="cap" style="margin:0" id="e-cap-gov"></span></div><div id="e-ch-gov"></div></div>
     <div class="panel" id="e-panel-sen"><div class="ph"><h3>Quem lidera o Senado</h3><span class="cap" style="margin:0" id="e-cap-sen"></span></div><div id="e-ch-sen"></div></div>
@@ -735,8 +997,9 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <p class="sub" id="e-sub-pesq"></p>
   <details class="howto"><summary>Como ler</summary><p>Cada ponto é uma rodada de pesquisa; a linha é a média móvel dos pontos de cada candidato quando há três ou mais rodadas. Institutos diferentes não são somados nem ponderados: use os filtros para ver a corrida pela régua de um instituto só. Quando uma rodada testa vários cenários, o gráfico usa o cenário que mais coincide com as candidaturas registradas no TSE; os outros cenários ficam no seletor da rodada em destaque. No Senado cada eleitor vota em dois nomes, então as porcentagens somam mais de 100 e duas vagas estão em jogo: os dois primeiros aparecem sublinhados. Sublinhado pontilhado quer dizer empate no patamar da segunda vaga.</p></details>
   <div class="panel"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
-    <div class="controls"><div class="chips" id="e-f-inst" style="margin:0"></div><div class="chips" id="e-f-cands" style="margin:0"></div></div>
-    <div id="e-ch-corrida"></div></div>
+    <div id="e-ch-corrida"></div>
+    <div class="chips legenda" id="e-f-cands"></div>
+    <details class="filtros"><summary>Filtrar institutos (<span id="e-f-n"></span>)</summary><div class="chips" id="e-f-inst"></div></details></div>
   <div class="panel"><div class="ph"><h3 id="e-h-rod"></h3><div class="controls" style="margin:0"><label class="sel">Rodada <select id="e-sel-rod"></select></label><label class="sel" id="e-sel-cen-w" hidden>Cenário <select id="e-sel-cen"></select></label></div></div><div class="cap" id="e-cap-rod"></div><div id="e-ch-rodada"></div></div>
   <details class="fold" id="e-fold-2t" open><summary><span class="btn">Simulações de segundo turno</span><span class="cap" style="margin:0" id="e-cap-2t"></span></summary><div class="panel"><h3>Segundo turno, par a par</h3><div class="cap">Cada tabela é um confronto direto testado pelos institutos; rodadas em ordem cronológica inversa.</div><div id="e-ch-2t"></div></div></details>
   <details class="fold" id="e-fold-tb"><summary><span class="btn">Ver as rodadas registradas no estado</span><span class="cap" style="margin:0" id="e-cap-tb"></span></summary><div class="panel"><h3>Rodadas registradas no estado</h3><div class="tablewrap"><table id="e-tb-rodadas"><thead><tr><th>Campo</th><th>Instituto</th><th>Contratante</th><th class="num">Amostra</th><th class="num">Margem</th><th>Coleta</th><th>Registro</th><th class="num">Cenários</th><th>Fonte</th></tr></thead><tbody></tbody></table></div></div></details>
@@ -747,7 +1010,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Coleta própria</span><h2 class="t display" id="e-t-busca">Busca e redes</h2></div>
   <p class="sub" id="e-sub-busca"></p>
   <details class="howto"><summary>Como ler</summary><p>O Google Trends mede interesse de busca dentro do próprio estado (geografia BR-UF), em índice de 0 a 100 relativo ao pico da consulta; a linha é a média móvel de 7 dias e os pontos são o valor diário, que em disputas estaduais costuma ser esparso, com muitos zeros. Cada consulta compara até cinco nomes; os lotes de um mesmo estado são ancorados pelo líder da última pesquisa, o que torna as escalas comparáveis mas não idênticas. Nomes comuns ("Fábio", "Renan", "Marina") captam buscas por homônimos e vêm marcados. Os acessos à Wikipédia são diários e só existem para quem tem verbete; o verbete usado aparece no tooltip. Seguidores no Instagram são o número exato lido no perfil público informado ao TSE, na data indicada.</p></details>
-  <div class="panel"><div class="ph"><h3 id="e-h-trends">Buscas no Google dentro do estado</h3><span class="cap" style="margin:0" id="e-cap-trends"></span></div><div class="chips" id="e-f-trends" style="margin:0 0 8px"></div><div id="e-ch-trends"></div></div>
+  <div class="panel"><div class="ph"><h3 id="e-h-trends">Buscas no Google dentro do estado</h3><span class="cap" style="margin:0" id="e-cap-trends"></span></div><div id="e-ch-trends"></div><div class="chips legenda" id="e-f-trends"></div></div>
   <div class="grid2">
     <div class="panel"><div class="ph"><h3>Acessos ao verbete na Wikipédia</h3><span class="cap" style="margin:0" id="e-cap-wiki"></span></div><div id="e-ch-wiki"></div></div>
     <div class="panel"><div class="ph"><h3>Seguidores no Instagram</h3><span class="cap" style="margin:0" id="e-cap-ig"></span></div><div id="e-ch-ig"></div></div>
@@ -769,7 +1032,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Comparador</span><h2 class="t display">Lado a lado</h2></div>
   <p class="sub">Dois ou três candidatos do mesmo estado nos mesmos critérios, com a fonte de cada número.</p>
   <div class="controls" id="e-lado-controls"></div>
-  <div id="e-lado"></div>
+  <div id="e-lado-mesa"></div>
 </section>
 
 <section class="view" id="v-e-partidos" role="tabpanel" data-title="Partidos e coligações">
@@ -797,8 +1060,17 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 </main>
 
-<footer><span><b style="color:var(--ink)">MURAL dos Candidatos</b> · Observatório do capital político digital · dados em <code>observatorio-2026/dados</code></span><span class="credit">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></span><span>Nenhum número entra sem data e fonte.</span></footer>
 </div>
+
+<footer class="band foot-band"><div class="wrap foot">
+  <div class="foot-lead"><span class="foot-motto display">Nenhum número entra sem data e fonte.</span><span class="foot-ed" id="foot-ed"></span></div>
+  <div class="foot-cols">
+    <div class="fc fc-marca"><div class="brand-f" id="brand-f"></div><p class="slogan">Observatório do capital político digital</p><p>Pesquisas, busca, redes e ficha do TSE das disputas de 2026, com data e fonte em cada número.</p><p class="credit">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></p></div>
+    <div class="fc"><span class="fh">Editorias</span><ul id="foot-editorias"></ul></div>
+    <div class="fc fc-estados"><span class="fh">Estados</span><ul class="foot-ufs" id="foot-estados"></ul></div>
+    <div class="fc"><span class="fh">Método e fontes</span><p>Pesquisas e acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; Google Trends, seguidores e ficha do TSE entram a cada coleta do observatório.</p><p>Fontes: TSE DivulgaCandContas, fichas técnicas registradas das pesquisas, compilação pública da Wikipédia, Wikimedia REST API, Google Trends, perfis públicos no Instagram, imprensa e calendário oficial.</p><a class="go" href="#metodo" id="foot-metodo">Ler o método →</a></div>
+  </div>
+</div></footer>
 
 <dialog class="drawer" id="prefs" aria-labelledby="prefs-title"></dialog>
 <dialog class="dossie" id="dossie" aria-labelledby="dz-title"></dialog>
@@ -840,15 +1112,40 @@ function aplicarAparencia(){
   if(prefs.tema==="claro")h.dataset.theme="light";else if(prefs.tema==="escuro")h.dataset.theme="dark";else delete h.dataset.theme;
   h.dataset.dens=prefs.dens;h.dataset.textos=prefs.textos;
   atualizarBotaoTema();
+  if(INICIADO&&escopo==="uf")desenharUF();
 }
 const temaEscuroAgora=()=>{try{return (getComputedStyle(document.documentElement).colorScheme||"").includes("dark");}catch(e){return false;}};
-function atualizarBotaoTema(){const b=$("#b-tema");if(!b)return;const esc=temaEscuroAgora();b.dataset.modo=esc?"escuro":"claro";const t=esc?"Mudar para o tema claro":"Mudar para o tema escuro";b.title=t;b.setAttribute("aria-label",t);}
-try{new MutationObserver(atualizarBotaoTema).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});matchMedia("(prefers-color-scheme: dark)").addEventListener("change",atualizarBotaoTema);}catch(e){}
+let ESCURO=false;
+function atualizarBotaoTema(){ESCURO=temaEscuroAgora();const b=$("#b-tema");if(!b)return;const esc=ESCURO;b.dataset.modo=esc?"escuro":"claro";const t=esc?"Mudar para o tema claro":"Mudar para o tema escuro";b.title=t;b.setAttribute("aria-label",t);}
+try{new MutationObserver(()=>{atualizarBotaoTema();if(INICIADO&&escopo==="uf")desenharUF();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{atualizarBotaoTema();if(INICIADO&&escopo==="uf")desenharUF();});}catch(e){}
+// cores fixas (partidos no mapa, candidaturas estaduais) clareadas no tema escuro até 3:1 contra o papel #17181C
+const _lum=h=>{const n=parseInt(h.slice(1),16),f=c=>{c/=255;return c<=.03928?c/12.92:((c+.055)/1.055)**2.4;};return .2126*f(n>>16&255)+.7152*f(n>>8&255)+.0722*f(n&255);};
+const contraste=(a,b)=>{const x=_lum(a),y=_lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
+const _clar={};
+function clarear(hex,min=3.1){
+  if(!/^#[0-9a-f]{6}$/i.test(hex||""))return hex;
+  const k=hex+min;if(_clar[k])return _clar[k];
+  let out=hex;
+  if(contraste(hex,"#17181C")<min){
+    const n=parseInt(hex.slice(1),16);const r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,sat=0,l=(mx+mn)/2;
+    if(mx!==mn){const d=mx-mn;sat=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);h/=6;}
+    const h2r=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p;};
+    for(let i=0;i<40&&l<.9;i++){l+=.02;const q=l<.5?l*(1+sat):l+sat-l*sat,p=2*l-q;out="#"+[h2r(p,q,h+1/3),h2r(p,q,h),h2r(p,q,h-1/3)].map(v=>Math.round(v*255).toString(16).padStart(2,"0")).join("");if(contraste(out,"#17181C")>=min)break;}
+  }
+  return _clar[k]=out;
+}
+const corViva=hex=>ESCURO?clarear(hex):hex;
 const toast=$("#toast");let toastT;
 function alvoFlutuante(){const ab=$$("dialog[open]");return ab.length?ab[ab.length-1]:document.body;}
 function avisar(msg){const alvo=alvoFlutuante();if(toast.parentElement!==alvo)alvo.appendChild(toast);toast.textContent=msg;toast.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>toast.classList.remove("on"),1800);}
 const tip=$("#tip");
-function bindTips(root){root.querySelectorAll("[data-tip]").forEach(el=>{el.addEventListener("mousemove",e=>{const alvo=alvoFlutuante();if(tip.parentElement!==alvo)alvo.appendChild(tip);tip.innerHTML=el.dataset.tip;tip.classList.add("on");tip.style.left=Math.min(e.clientX+12,innerWidth-300)+"px";tip.style.top=(e.clientY+12)+"px";});el.addEventListener("mouseleave",()=>tip.classList.remove("on"));});}
+// toque e celular: decidem as dicas de mouse, os textos de ajuda e a largura em que cada gráfico é desenhado
+const TOQUE=matchMedia("(hover:none)").matches;
+let MOBILE=matchMedia("(max-width:760px)").matches;
+let INICIADO=false;
+function larguraDe(el){el=typeof el==="string"?$(el):el;const w=el?el.clientWidth:0;if(w>0)return w;const pad=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pad"))||20;return Math.max(240,innerWidth-28-2*pad-2);}
+function bindTips(root){if(TOQUE)return;root.querySelectorAll("[data-tip]").forEach(el=>{el.addEventListener("mousemove",e=>{const alvo=alvoFlutuante();if(tip.parentElement!==alvo)alvo.appendChild(tip);tip.innerHTML=el.dataset.tip;tip.classList.add("on");tip.style.left=Math.min(e.clientX+12,innerWidth-300)+"px";tip.style.top=(e.clientY+12)+"px";});el.addEventListener("mouseleave",()=>tip.classList.remove("on"));});}
 
 // ---- janela de tempo
 const HOJE=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -864,7 +1161,13 @@ function sigmaRegua(dia){const d=Math.floor((Date.parse(dia||HOJE)-Date.parse(RE
 const SIG=sigmaRegua(HOJE);
 document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
 function aplicarJanela(){T0=prefs.janela==="30"?T1-33*864e5:prefs.janela==="90"?T1-93*864e5:Date.parse("2026-01-01");}
-$("#stamp").textContent="Edição de "+DATA.atualizado;
+// data da edição: por extenso no desktop ("6 de setembro de 2026, 19h56 de Brasília"), curta no celular ("6/9 · 19h56")
+const EDICAO=(()=>{const m=/^(\d{1,2}) de (\p{L}+) de (\d{4}),\s*(\d{1,2})h(\d{2})/u.exec(DATA.atualizado||"");if(!m)return {curta:DATA.atualizado||"",hora:null};
+  const mes=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"].indexOf(m[2].toLowerCase())+1;
+  return {curta:`${+m[1]}/${mes||"?"} · ${+m[4]}h${m[5]}`,hora:+m[4]};})();
+$("#stamp").textContent=DATA.atualizado;
+$("#stamp-curto").textContent=EDICAO.curta;
+$("#foot-ed").textContent=`Edição de ${DATA.atualizado} · próxima às ${EDICAO.hora==null?"8h e às 20h":EDICAO.hora<8?"8h":EDICAO.hora<20?"20h":"8h"}`;
 
 // ---- helpers de série
 function mediaMovel(pts,sigma){const s2=2*(sigma*864e5)**2;return pts.map(p=>{let sw=0,sv=0;for(const q of pts){const w=Math.exp(-((q.t-p.t)**2)/s2);sw+=w;sv+=w*q.v;}return {t:p.t,v:sv/sw};});}
@@ -873,17 +1176,21 @@ function empilhar(labels,top,bottom,gap=14){labels.sort((a,b)=>a.y-b.y);for(let 
 function eixoTempo(X,Y0,Y1,t0=T0,t1=T1){
   const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];let out="";
   const dias=(t1-t0)/864e5;
-  if(dias>130){for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t<t0||t>t1)continue;const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/><text class="axis" x="${x+4}" y="${Y1+16}">${meses[m]}</text>`;}}
-  else{const passo=dias>50?7:dias>20?3:1;let t=t1-((t1-t0)%(passo*864e5));for(;t>=t0;t-=passo*864e5){const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/><text class="axis" x="${x}" y="${Y1+16}" text-anchor="middle">${dBR(dISO(t))}</text>`;}}
+  if(dias>130){const curto=X(t0+30*864e5)-X(t0)<34;for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t<t0||t>t1)continue;const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>${curto&&m%2?"":`<text class="axis" x="${x+4}" y="${Y1+16}">${meses[m]}</text>`}`;}}
+  else{const passo=dias>50?7:dias>20?3:1;
+    for(let t=t1-((t1-t0)%(passo*864e5));t>=t0;t-=passo*864e5){const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>`;}
+    // rótulos "dd/mm" só onde cabem (uns 40px cada: 30 de texto e 10 de respiro): na largura do celular isso vira um rótulo a cada 7 ou 14 dias, com a grade no passo fino
+    const pxDia=X(t0+864e5)-X(t0);const passoR=[passo,2,3,7,14,21,28].filter(p=>p>=passo).find(p=>p*pxDia>=40)||28;
+    for(let t=t1-((t1-t0)%(passoR*864e5));t>=t0;t-=passoR*864e5){const x=X(t);out+=`<text class="axis" x="${x}" y="${Y1+16}" text-anchor="middle">${dBR(dISO(t))}</text>`;}}
   return out;
 }
-function rotulosEmFila(items,yLabel,W,gapMin=10){
-  const est=t=>t.length*7.2+6;
+function rotulosEmFila(items,yLabel,W,gapMin=10,fs=0){
+  const est=t=>t.length*(fs?fs*0.58:7.2)+6;
   const L=items.map(it=>({...it,w:est(it.txt),lx:it.x-est(it.txt)/2})).sort((a,b)=>a.x-b.x);
   for(let i=0;i<L.length;i++){L[i].lx=Math.max(L[i].lx,6);if(i)L[i].lx=Math.max(L[i].lx,L[i-1].lx+L[i-1].w+gapMin);}
   for(let i=L.length-1;i>=0;i--){L[i].lx=Math.min(L[i].lx,W-6-L[i].w);if(i<L.length-1)L[i].lx=Math.min(L[i].lx,L[i+1].lx-L[i].w-gapMin);}
   let s="";
-  for(const it of L){const cx=it.lx+it.w/2;s+=`<g class="lbl${it.dim?" dim":""}"><path class="lead-line" d="M${it.x.toFixed(1)} ${it.y.toFixed(1)} L${it.x.toFixed(1)} ${(yLabel+(yLabel<it.y?12:-14)).toFixed(1)} L${cx.toFixed(1)} ${(yLabel+(yLabel<it.y?8:-10)).toFixed(1)}" fill="none"/><text class="cand-label" x="${cx.toFixed(1)}" y="${yLabel}" text-anchor="middle" style="fill:${it.cor}">${it.txt}</text></g>`;}
+  for(const it of L){const cx=it.lx+it.w/2;s+=`<g class="lbl${it.dim?" dim":""}"><path class="lead-line" d="M${it.x.toFixed(1)} ${it.y.toFixed(1)} L${it.x.toFixed(1)} ${(yLabel+(yLabel<it.y?12:-14)).toFixed(1)} L${cx.toFixed(1)} ${(yLabel+(yLabel<it.y?8:-10)).toFixed(1)}" fill="none"/><text class="cand-label" x="${cx.toFixed(1)}" y="${yLabel}" text-anchor="middle" style="fill:${it.cor}${fs?";font-size:"+fs+"px":""}">${it.txt}</text></g>`;}
   return s;
 }
 function rotulosDuasFilas(items,yTop,yBottom,W){const L=items.slice().sort((a,b)=>a.x-b.x);return rotulosEmFila(L.filter((_,i)=>i%2===0),yTop,W)+rotulosEmFila(L.filter((_,i)=>i%2===1).map(it=>({...it,y:it.y+18})),yBottom,W);}
@@ -892,13 +1199,21 @@ function rotulosDuasFilas(items,yTop,yBottom,W){const L=items.slice().sort((a,b)
 let cpN=0;const ZOOM={},DRAW={};
 // gráfico de tempo genérico e interativo: series [{nome,cor,dim,pts:[{t,v,tip}],sigma,linha,r,sq,rotulo,banda}]
 function chartTempo(o){
-  const {W=1180,H=360,ml=48,mr=112,mt=14,mb=30,ymin=0,ymax=100,log=false,ticks=[0,25,50,75,100],fmtY=v=>v,series=[],aria="",lw=2.2,pontos=true,marcos=[],id=null,cross=true}=o;
+  let {W=1180,H=360,ml=48,mr=112,mt=14,mb=30,ymin=0,ymax=100,log=false,ticks=[0,25,50,75,100],fmtY=v=>v,series=[],aria="",lw=2.2,pontos=true,marcos=[],id=null,cross=true,fs=null}=o;
+  // o gráfico é desenhado na largura do contêiner sempre que ele for mais estreito que o viewBox pedido (celular, tablet,
+  // coluna do dossiê): texto no tamanho nativo, sem encolher nem rolar
+  const W0=W,H0=H;let cw=0;
+  if(o.mobile!==false){const iw=o.cw||(id?larguraDe(id):0);if(iw>0&&(MOBILE||iw<W0-4))cw=iw;}
+  if(cw){W=cw;fs=MOBILE?(o.fsm||12):(fs||12);H=o.Hm||(MOBILE?Math.round(Math.min(340,Math.max(200,W*0.72))):Math.round(Math.min(H0,Math.max(200,W*0.55))));if(marcos.length)mt=Math.max(mt,20);
+    const lens=series.map(sr=>{if(sr.rotulo===false)return 0;const p=sr.pts&&sr.pts.length?sr.pts[sr.pts.length-1]:null;const t=sr.rotulo||(p?`${curto(sr.nome)} ${fmtY(p.v)}`:String(sr.nome||""));return String(t).replace(/<[^>]+>/g,"").replace(/&[a-z#0-9]+;/g,"x").length;});
+    const maxLen=Math.max(0,...lens);
+    mr=maxLen?Math.min(Math.round(W*0.42),Math.max(56,Math.round(maxLen*fs*0.56+16))):Math.min(mr,20);}
   const z=id&&ZOOM[id];const t0=o.t0??(z?z[0]:T0), t1=o.t1??(z?z[1]:T1);
   const iw=W-ml-mr,ih=H-mt-mb;
   const X=t=>ml+(t-t0)/(t1-t0)*iw;
   const Y=v=>{const a=log?Math.log10(Math.max(v,1)):v,lo=log?Math.log10(ymin):ymin,hi=log?Math.log10(ymax):ymax;return mt+ih-(a-lo)/(hi-lo)*ih;};
   const cpid="cp"+(++cpN);
-  let s=`<svg class="tempo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}" data-cp="${cpid}">`;
+  let s=`<svg class="tempo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}" data-cp="${cpid}" data-w="${W}" data-w0="${W0}">`;
   s+=`<g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmtY(v)}</text>`).join("")+eixoTempo(X,mt,mt+ih,t0,t1)+`</g>`;
   s+=`<clipPath id="${cpid}"><rect x="${ml-1}" y="${mt-8}" width="${iw+2}" height="${ih+8}"/></clipPath>`;
   s+=`<rect class="plotbg" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/>`;
@@ -926,7 +1241,7 @@ function chartTempo(o){
     if(sr.rotulo!==false)rot.push({y:Y(fim.v)+4,cor:sr.cor,dim:sr.dim,nome:nm,txt:sr.rotulo||`${esc(curto(sr.nome))} ${fmtY(fim.v)}`});
     meta.push({nome:sr.nome,cor:sr.cor,dim:!!sr.dim,linha:lv.length>1?lv:null,pts:vis,fmt:sr.fmtV||null});
   }
-  for(const l of empilhar(rot,mt+8,mt+ih))s+=`<text class="cand-label${l.dim?" dim":""}" data-nome="${l.nome}" x="${W-mr+8}" y="${l.y.toFixed(1)}" style="fill:${l.cor}${o.fs?";font-size:"+o.fs+"px":""}">${l.txt}</text>`;
+  for(const l of empilhar(rot,mt+8,mt+ih))s+=`<text class="cand-label${l.dim?" dim":""}" data-nome="${l.nome}" x="${W-mr+8}" y="${l.y.toFixed(1)}" style="fill:${l.cor}${fs?";font-size:"+fs+"px":""}">${l.txt}</text>`;
   if(cross)s+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 3" opacity="0" pointer-events="none"/><rect class="brush" x="0" y="${mt}" width="0" height="${ih}" fill="var(--ink)" opacity="0" pointer-events="none"/>`;
   s+=`</svg>`;
   chartTempo.last={W,H,ml,iw,mt,ih,t0,t1,fmtY,series:meta,id,marcos:M};
@@ -936,15 +1251,55 @@ function pinta(id,svg,o={}){
   const el=typeof id==="string"?$(id):id;
   const meta=svg.includes('class="tempo"')?chartTempo.last:null;
   const cid=meta&&meta.id;
-  const tools=cid&&o.zoom!==false?`<div class="ztools"><span class="cap" style="margin:0">arraste sobre o gráfico para ampliar · duplo clique volta</span>${[["30","30 dias"],["90","90 dias"],["all","tudo"]].map(([k,l])=>`<button type="button" class="zb${(k==="all"?!ZOOM[cid]:ZOOM[cid]&&ZOOM[cid][2]===k)?" on":""}" data-z="${k}">${l}</button>`).join("")}${o.marcos?`<button type="button" class="zb${prefs.marcos?" on":""}" data-marcos="1">marcos</button>`:""}</div>`:"";
-  el.innerHTML=tools+svg;bindTips(el);
-  if(meta)wire(el,meta);
+  // ferramentas de janela (30/90 dias, tudo, marcos) e o carimbo "até <data>" sobem para a linha do título do painel quando ele tem .ph
+  const panel=el.closest(".panel"),ph=panel&&panel.querySelector(":scope>.ph"),key=el.id||cid||"";
+  let tools="",hint="";
+  if(cid&&o.zoom!==false){
+    const tf=meta.series.reduce((m,s)=>Math.max(m,...s.pts.map(p=>p.t),...(s.linha||[]).map(p=>p.t)),0);
+    tools=`<span class="ztools" data-for="${esc(key)}">${tf?`<span class="stamp-dt">até ${dBR(dISO(tf))}</span>`:""}${[["30","30 dias"],["90","90 dias"],["all","tudo"]].map(([k,l])=>`<button type="button" class="zb${(k==="all"?!ZOOM[cid]:ZOOM[cid]&&ZOOM[cid][2]===k)?" on":""}" data-z="${k}">${l}</button>`).join("")}${o.marcos?`<button type="button" class="zb${prefs.marcos?" on":""}" data-marcos="1">marcos</button>`:""}</span>`;
+    hint=TOQUE?"":`<div class="cap zhint" data-for="${esc(key)}">arraste sobre o gráfico para ampliar · duplo clique volta</div>`;
+  }
+  let toolsEl=null;
+  if(ph){ph.querySelectorAll(`.ztools[data-for="${key}"]`).forEach(x=>x.remove());if(tools)ph.insertAdjacentHTML("beforeend",tools);toolsEl=ph.querySelector(`.ztools[data-for="${key}"]`);tools="";}
+  // a dica vai para o rodapé do painel (último filho), não entre o gráfico e a legenda
+  if(panel){panel.querySelectorAll(`:scope>.zhint[data-for="${key}"]`).forEach(x=>x.remove());if(hint)panel.insertAdjacentHTML("beforeend",hint);hint="";}
+  el.innerHTML=tools+svg+hint;bindTips(el);
+  if(!toolsEl)toolsEl=el.querySelector(".ztools");
+  if(meta)wire(el,meta,toolsEl);
   el._rolado=false;
+  ajustarRotulos(el);
+}
+// rótulos de série que passam da borda direita do svg (fonte mais larga que a prevista): abrevia o primeiro nome e, se ainda faltar, comprime
+function ajustarRotulos(root){
+  $$("svg",root||document).forEach(svg=>{
+    if(svg.dataset.aj)return;const r=svg.getBoundingClientRect();if(!r.width)return;
+    const vb=(svg.getAttribute("viewBox")||"").split(/\s+/).map(Number);const W=vb[2];if(!W)return;
+    svg.dataset.aj="1";
+    svg.querySelectorAll("text.cand-label").forEach(t=>{
+      const anc=t.getAttribute("text-anchor");if(anc&&anc!=="start")return;
+      let b;try{b=t.getBBox();}catch(e){return;}
+      const x=parseFloat(t.getAttribute("x"))||b.x;let over=x+b.width-(W-1);if(over<=0)return;
+      const m=/^([A-Za-zÀ-ú]{2,})\.? (\S.*\S) (\S+)$/.exec(t.textContent.trim());
+      if(m&&t.querySelector("*")==null){t.textContent=`${m[1][0]}. ${m[2]} ${m[3]}`;try{b=t.getBBox();}catch(e){return;}over=x+b.width-(W-1);if(over<=0)return;}
+      const disp=Math.max(0,W-1-x);if(disp>0&&b.width>0&&disp/b.width>=.82){t.setAttribute("textLength",disp.toFixed(1));t.setAttribute("lengthAdjust","spacingAndGlyphs");}
+      else t.setAttribute("x",(x-over).toFixed(1));
+    });
+  });
+}
+// gráficos desenhados com a editoria oculta usam uma largura estimada; ao mostrá-la, os que não batem com o contêiner são refeitos
+function reajustarGraficos(root){
+  const feitos=new Set();
+  $$('.panel>div[id^="ch-"],.panel>div[id^="e-ch-"]',root||document).forEach(d=>{
+    const svg=d.querySelector(":scope>svg[data-w]");const f=DRAW["#"+d.id];if(!svg||!f||feitos.has(f))return;
+    const cw=d.clientWidth,w=+svg.dataset.w,w0=+svg.dataset.w0;if(!cw||!w||!w0)return;
+    const quer=cw<w0-4?cw:w0;
+    if(Math.abs(quer-w)>6){feitos.add(f);f();}
+  });
 }
 // no celular os gráficos rolam de lado: ao mostrar uma editoria, cada gráfico começa pelo fim da série, que é o que interessa
-function rolarFim(root){$$('.panel>div[id^="ch-"],.panel>div[id^="e-ch-"],.dz .box',root||document).forEach(d=>{if(d._rolado)return;if(d.scrollWidth>d.clientWidth+4){d.scrollLeft=d.scrollWidth;d._rolado=true;}});}
-function wire(el,meta){
-  const svg=el.querySelector("svg.tempo");if(!svg)return;el._chart=meta;
+function rolarFim(root){$$('.panel>div[id^="ch-"],.panel>div[id^="e-ch-"],.dz .box .chart',root||document).forEach(d=>{if(d._rolado||!d.querySelector("svg.tempo"))return;if(d.scrollWidth>d.clientWidth+4){d.scrollLeft=d.scrollWidth;d._rolado=true;}});}
+function wire(el,meta,toolsEl){
+  const svg=el.querySelector("svg.tempo");if(!svg)return;el._chart=meta;const tools=toolsEl||el;
   const xh=svg.querySelector(".xh"),brush=svg.querySelector(".brush");
   const pxOf=e=>{const r=svg.getBoundingClientRect();return (e.clientX-r.left)/r.width*meta.W;};
   const tOf=px=>meta.t0+(px-meta.ml)/meta.iw*(meta.t1-meta.t0);
@@ -983,8 +1338,8 @@ function wire(el,meta){
     h.addEventListener("mouseleave",()=>{svg.classList.remove("hover");svg.querySelectorAll(".hot").forEach(g=>g.classList.remove("hot"));});
     if(byName[nome]){h.style.cursor="pointer";h.addEventListener("click",e=>{e.stopPropagation();toggleFoco(nome);avisar((prefs.foco.includes(nome)?"Em foco: ":"Saiu do foco: ")+nome);});}
   });
-  el.querySelectorAll(".ztools button[data-z]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.z;ZOOM[meta.id]=k==="all"?null:[T1-(+k+2)*864e5,T1,k];DRAW[meta.id]&&DRAW[meta.id]();}));
-  const mb=el.querySelector(".ztools button[data-marcos]");if(mb)mb.addEventListener("click",()=>{prefs.marcos=!prefs.marcos;salvar();DRAW[meta.id]&&DRAW[meta.id]();});
+  tools.querySelectorAll("button[data-z]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.z;ZOOM[meta.id]=k==="all"?null:[T1-(+k+2)*864e5,T1,k];DRAW[meta.id]&&DRAW[meta.id]();}));
+  const mb=tools.querySelector("button[data-marcos]");if(mb)mb.addEventListener("click",()=>{prefs.marcos=!prefs.marcos;salvar();DRAW[meta.id]&&DRAW[meta.id]();});
 }
 const tipP=(nome,p,un="%")=>`<b>${esc(nome)}</b> · ${fPct(p.v)}${un}<br>${esc(p.inst)}, ${dBR(p.d)}`;
 const serieDe=n=>DATA.polls.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1],modo:p[5]})).sort((a,b)=>a.t-b.t);
@@ -994,7 +1349,11 @@ let escopo = prefs.escopo==="uf"?"uf":"br";
 const ABAS_BR=[["geral","Visão geral"],["pesquisas","Pesquisas"],["busca","Busca e redes"],["candidatos","Candidatos"],["lado","Lado a lado"],["partidos","Partidos"],["tempo","Linha do tempo"],["metodo","Método"]];
 let ABAS=ABAS_BR;
 let abaAtual="geral";
-function pintarAbas(){$("#tabs").innerHTML=ABAS.map(([id,t])=>`<button type="button" role="tab" id="tab-${id}" aria-controls="v-${id}" aria-selected="${id===abaAtual}" data-aba="${id}">${t}</button>`).join("");}
+// as editorias vivem em #tabs-editorias (que é o que rola); o grupo de escopo fica antes e nunca é apagado
+function ajustarTabs(){const t=$("#tabs-editorias");t.classList.toggle("fim",t.scrollLeft+t.clientWidth>=t.scrollWidth-6);}
+function centrarAba(){const t=$("#tabs-editorias"),b=t.querySelector('[aria-selected="true"]');if(b)t.scrollLeft=Math.max(0,b.offsetLeft-(t.clientWidth-b.offsetWidth)/2);ajustarTabs();}
+$("#tabs-editorias").addEventListener("scroll",ajustarTabs,{passive:true});
+function pintarAbas(){$("#tabs-editorias").innerHTML=ABAS.map(([id,t])=>`<button type="button" role="tab" id="tab-${id}" aria-controls="v-${id}" aria-selected="${id===abaAtual}" data-aba="${id}">${t==="Visão geral"?`<span class="tl">Visão geral</span><span class="tc" aria-hidden="true">Geral</span>`:t}</button>`).join("");centrarAba();}
 function trocarEscopo(e,push=true){
   escopo=e==="uf"?"uf":"br"; prefs.escopo=escopo; salvar();
   ABAS = escopo==="uf"?ABAS_UF:ABAS_BR;
@@ -1009,14 +1368,30 @@ function irPara(id,push=true){
   if(!ABAS.some(a=>a[0]===id))id=ABAS[0][0];
   abaAtual=id;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+id));
-  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===id));
-  requestAnimationFrame(()=>rolarFim($("#v-"+id)));
+  $$("#tabs-editorias button").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===id));
+  centrarAba();
+  {const v=$("#v-"+id);document.title=(v&&v.dataset.title?v.dataset.title+" · ":"")+"Mural dos Candidatos";}
+  pintarSecfoot(id);
+  requestAnimationFrame(()=>{reajustarGraficos($("#v-"+id));rolarFim($("#v-"+id));ajustarRotulos($("#v-"+id));});
   if(push){if(escopo==="uf"&&typeof rotaUF==="function")rotaUF();else{try{history.replaceState(null,"","#"+id);}catch(e){}}}
-  window.scrollTo({top:Math.min(scrollY,$("#tabs").offsetTop),behavior:"instant"});
+  // sobe até o ponto em que a barra de navegação encosta no topo: a referência é o masthead (a barra é sticky e, presa, devolve offsetTop igual ao scrollY)
+  {const h=$("header.band-top");window.scrollTo({top:Math.min(scrollY,h?h.offsetTop+h.offsetHeight:0),behavior:"instant"});}
 }
-$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)irPara(b.dataset.aba);});
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-aba]");if(b)irPara(b.dataset.aba);});
+// link de uma editoria: nacional é o próprio id; estadual carrega o estado e a disputa atuais
+function hashDe(id){if(!id.startsWith("e-"))return "#"+id;const k=(typeof ufAtual==="string"?ufAtual:"SP").toLowerCase();return `#uf-${k}${(typeof ufCargo==="string"&&ufCargo==="senador")?"-senado":"-governo"}${id==="e-geral"?"":"-"+id.slice(2)}`;}
+// fecho de cada editoria: "Continua em" segue a ordem das abas do escopo; a última aponta para o outro escopo
+function pintarSecfoot(id){
+  const v=$("#v-"+id);if(!v)return;let f=v.querySelector(":scope>.secfoot");
+  if(!f){f=document.createElement("div");f.className="secfoot";v.appendChild(f);}
+  const i=ABAS.findIndex(a=>a[0]===id);const prox=i>=0&&i<ABAS.length-1?ABAS[i+1]:null;
+  const next=prox?[hashDe(prox[0]),prox[1]]:(escopo==="uf"?["#geral","Presidência"]:["#e-geral","Estados"]);
+  const met=escopo==="uf"?"e-metodo":"metodo";
+  f.innerHTML=`<a class="next" href="${next[0]}"><span>Continua em:</span>${esc(next[1])} →</a>${id===met||(prox&&prox[0]===met)?"":`<a href="${hashDe(met)}">Método e fontes →</a>`}`;
+}
 $$("[data-escopo]").forEach(b=>b.addEventListener("click",()=>trocarEscopo(b.dataset.escopo)));
 function rotear(){const h=decodeURIComponent(location.hash||"").slice(1);
+  {const d=document.querySelector("dialog.dossie[open]");if(d&&!h.startsWith("dossie-"))d.close();}
   if(h.startsWith("uf-")){const k=h.slice(3,5).toUpperCase();if(UF[k]){trocarEscopo("uf",false);const toks=h.slice(6).split("-").filter(Boolean);const cargo=toks.includes("senado")?"senador":toks.includes("governo")?"governador":ufCargo;const aba=toks.find(t=>t!=="senado"&&t!=="governo");if(cargo!==ufCargo)trocarCargoUF(cargo,false);trocarUF(k,false);irPara(aba?("e-"+aba):"e-geral",false);return;}}
   if(h.startsWith("dossie-")){trocarEscopo("br",false);irPara("candidatos",false);const c=C.find(x=>slug(x.nome)===h.slice(7));if(c)openDossie(c.nome);return;}
   if(h.startsWith("e-")){trocarEscopo("uf",false);irPara(h,false);return;}
@@ -1031,7 +1406,7 @@ $("#strip").innerHTML=[
  ["13","registrados no TSE",`${nDef} deferidos; os demais aguardam julgamento`],
  [String(DATA.meta.rodadas),"rodadas de pesquisa",`${DATA.meta.institutos} institutos, de ${dBR(DATA.meta.primeira)} a ${dBR(DATA.meta.ultima)}`],
  ["2","campanhas restritas","Renan Santos (31/8) e Pablo Marçal (20/8), por decisão do TSE"],
- (()=>{const a=posicao("Lula"),b=posicao("Flávio Bolsonaro");const d=a&&b?a.agora-b.agora:null;return [d==null?"":fPct(d)+"<small> pts</small>","vantagem do líder",d==null?"":`${d>=0?"Lula sobre Flávio":"Flávio sobre Lula"}, média móvel de 7 dias`];})(),
+ (()=>{const a=posicao("Lula"),b=posicao("Flávio Bolsonaro");const d=a&&b?a.agora-b.agora:null;return [d==null?"":fPct(d)+"<small> pts</small>","vantagem do líder",d==null?"":`${d>=0?"Lula sobre Flávio":"Flávio sobre Lula"}, média móvel de ${SIG} dias`];})(),
  [fBRL(fefcTot),"de fundo eleitoral","FEFC 2026 somado dos 13 partidos da disputa"],
  ["14/9","próximo debate","consórcio CNN, SBT e RedeTV!"],
 ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
@@ -1061,10 +1436,12 @@ function drawDestaques(){
   $("#hls").innerHTML=cards.map(c=>`<div class="hl"><span class="eyebrow">${c.k}</span>${c.big?`<span class="big display tnum">${c.big}</span>`:""}${c.line?`<span class="line">${c.line}</span>`:""}${c.list?`<ul>${c.list}</ul>`:""}<a class="go" href="#${c.go[0]}">${c.go[1]} →</a></div>`).join("");
 }
 function drawRegua(){
-  const W=1180,H=200,ml=24,mr=24,yAxis=136,max=50,iw=W-ml-mr;
-  const X=v=>ml+v/max*iw;
   const pos=OITO.map(posicao).filter(Boolean).filter(p=>!some(p.nome));
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato">`;
+  const lw=larguraDe("#ch-regua");
+  if(MOBILE||lw<900){pinta("#ch-regua",reguaVertical(pos));legendaRegua(pos);return;}
+  const W=Math.min(1180,lw),H=200,ml=24,mr=24,yAxis=136,max=50,iw=W-ml-mr;
+  const X=v=>ml+v/max*iw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato" data-w="${W}" data-w0="1180">`;
   s+=`<g class="tick">`+[0,10,20,30,40,50].map(v=>`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-6}" y2="${yAxis+6}" stroke="var(--ink-3)"/><text x="${X(v)}" y="${yAxis+24}" text-anchor="middle">${v}%</text>`).join("")+`</g>`;
   s+=`<line x1="${ml}" x2="${W-mr}" y1="${yAxis}" y2="${yAxis}" stroke="var(--ink)" stroke-width="2"/>`;
   for(let v=5;v<max;v+=10)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-3}" y2="${yAxis+3}" stroke="var(--ink-3)"/>`;
@@ -1074,11 +1451,34 @@ function drawRegua(){
     s+=`<g class="ser${dim?" dim":""}">`;
     if(p.antes!=null){const x0=X(p.antes);s+=`<line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${yAxis}" y2="${yAxis}" stroke="${cor}" stroke-width="3" opacity=".55"/><circle cx="${x0.toFixed(1)}" cy="${yAxis}" r="5" fill="var(--paper)" stroke="${cor}" stroke-width="2" data-tip="<b>${esc(p.nome)}</b> há 30 dias: ${fPct(p.antes)}%"/>`;}
     const seta=p.delta==null?"":p.delta>=1?" ▲":p.delta<=-1?" ▼":"";
-    s+=`<circle cx="${x1.toFixed(1)}" cy="${yAxis}" r="7.5" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(p.nome)}" data-tip="<b>${esc(p.nome)}</b> · ${fPct(p.agora)}% (média móvel de 7 dias)<br>última rodada: ${esc(p.ultima.inst)}, ${dBR(p.ultima.d)}${p.delta!=null?`<br>30 dias: ${p.delta>0?"+":""}${fPct(p.delta)} pontos`:""}<br>clique para abrir o dossiê"/></g>`;
+    s+=`<circle cx="${x1.toFixed(1)}" cy="${yAxis}" r="7.5" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(p.nome)}" data-tip="<b>${esc(p.nome)}</b> · ${fPct(p.agora)}% (média móvel de ${SIG} dias)<br>última rodada: ${esc(p.ultima.inst)}, ${dBR(p.ultima.d)}${p.delta!=null?`<br>30 dias: ${p.delta>0?"+":""}${fPct(p.delta)} pontos`:""}<br>clique para abrir o dossiê"/></g>`;
     rot.push({x:x1,y:yAxis-9,cor,dim,txt:`${curto(p.nome)} ${fPct(p.agora)}${seta}${p.delta!=null&&Math.abs(p.delta)>=1?" "+(p.delta>0?"+":"")+fPct(p.delta):""}`});
   }
   s+=rotulosEmFila(rot,52,W)+`</svg>`;
   pinta("#ch-regua",s);
+  legendaRegua(pos);
+}
+// versão vertical da régua (celular): eixo de 0 a 50% de cima para baixo, um rótulo por linha à direita
+function reguaVertical(pos){
+  const W=larguraDe("#ch-regua"),H=300,ml=40,mt=14,mb=14,ih=H-mt-mb,max=50,x=ml;
+  const Y=v=>mt+(max-Math.min(v,max))/max*ih;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato" data-w="${W}" data-w0="${W}">`;
+  s+=`<g class="tick">`+[0,10,20,30,40,50].map(v=>`<line x1="${x-6}" x2="${x+6}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--ink-3)"/><text x="${x-10}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${v}%</text>`).join("")+`</g>`;
+  s+=`<line x1="${x}" x2="${x}" y1="${mt}" y2="${H-mb}" stroke="var(--ink)" stroke-width="2"/>`;
+  for(let v=5;v<max;v+=10)s+=`<line x1="${x-3}" x2="${x+3}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--ink-3)"/>`;
+  const rot=[];
+  for(const p of pos){
+    const y1=Y(p.agora),cor=COR[p.nome],dim=dimDe(p.nome);
+    s+=`<g class="ser${dim?" dim":""}">`;
+    if(p.antes!=null){const y0=Y(p.antes);s+=`<line x1="${x}" x2="${x}" y1="${y0.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${cor}" stroke-width="3" opacity=".55"/><circle cx="${x}" cy="${y0.toFixed(1)}" r="5" fill="var(--paper)" stroke="${cor}" stroke-width="2" data-tip="<b>${esc(p.nome)}</b> há 30 dias: ${fPct(p.antes)}%"/>`;}
+    const seta=p.delta==null?"":p.delta>=1?" ▲":p.delta<=-1?" ▼":"";
+    s+=`<circle cx="${x}" cy="${y1.toFixed(1)}" r="7.5" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(p.nome)}" data-tip="<b>${esc(p.nome)}</b> · ${fPct(p.agora)}%<br>última rodada: ${esc(p.ultima.inst)}, ${dBR(p.ultima.d)}"/></g>`;
+    rot.push({y:y1+4,py:y1,cor,dim,txt:`${curto(p.nome)} ${fPct(p.agora)}%${seta}${p.delta!=null&&Math.abs(p.delta)>=1?" "+(p.delta>0?"+":"")+fPct(p.delta):""}`});
+  }
+  for(const l of empilhar(rot,mt+6,H-mb-2,16))s+=`<g class="lbl${l.dim?" dim":""}"><path class="lead-line" d="M${x+9} ${l.py.toFixed(1)} L${x+22} ${(l.y-4).toFixed(1)}" fill="none"/><text class="cand-label" x="${x+26}" y="${l.y.toFixed(1)}" style="fill:${l.cor}">${l.txt}</text></g>`;
+  return s+`</svg>`;
+}
+function legendaRegua(pos){
   const sobe=pos.filter(p=>p.delta>=1).map(p=>curto(p.nome)),desce=pos.filter(p=>p.delta<=-1).map(p=>curto(p.nome));
   $("#lg-regua").innerHTML=`<span><i style="width:10px;height:10px;border-radius:50%;background:var(--ink);display:inline-block"></i>agora</span><span><i style="width:9px;height:9px;border-radius:50%;border:2px solid var(--ink-3);display:inline-block"></i>há 30 dias</span><span>▲ subiu: ${sobe.length?sobe.join(", "):"ninguém"}</span><span>▼ caiu: ${desce.length?desce.join(", "):"ninguém"}</span><span>clique num ponto para abrir o dossiê</span>`;
 }
@@ -1110,7 +1510,7 @@ function drawAlertas(){
   for(const e of TL.filter(e=>e.categoria==="justiça eleitoral"&&e.data<=ref&&tRef-Date.parse(e.data)<=2*864e5).slice(0,2))A.push({s:"crit",k:"Justiça eleitoral",t:`<b>${esc(e.candidato)}</b>: ${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}`,src:dBR(e.data)+"/"+e.data.slice(0,4),go:"tempo"});
   for(const e of TL.filter(e=>e.data>ref&&Date.parse(e.data)-tRef<=4*864e5).sort((a,b)=>a.data.localeCompare(b.data)).slice(0,2))A.push({s:"info",k:"A seguir",t:`${esc(e.evento)} em <b>${dBR(e.data)}</b>`,src:esc(e.categoria),go:"tempo"});
   const ord={crit:0,warn:1,info:2};A.sort((a,b)=>ord[a.s]-ord[b.s]);
-  $("#alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas de ${dBR(ref)}</span><span class="n">${A.length?A.length+(A.length>1?" sinais":" sinal")+" fora do padrão nos dados desta edição":"nenhum sinal fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,8).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}${a.n?` · <a href="#dossie-${slug(a.n)}" data-dossie="${esc(a.n)}">dossiê</a>`:""} · <a href="#${a.go}">ver</a></span></span></div>`).join("")}</div>`:"");
+  $("#alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas de ${dBR(ref)}</span><span class="n">${A.length?A.length+(A.length>1?" sinais":" sinal")+" fora do padrão nos dados desta edição":"nenhum sinal fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,8).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}${a.n?` · <a href="#dossie-${slug(a.n)}" data-dossie="${esc(a.n)}">dossiê</a>`:""} · <a href="#${a.go}">ver</a></span></span></div>`).join("")}</div>${A.length>4?`<button type="button" class="btn al-more" data-al-more="1">Ver mais ${Math.min(A.length,8)-4} sinais</button>`:""}`:"");
 }
 
 // ---- pesquisas
@@ -1137,9 +1537,9 @@ function drawCorrida(){
   const [ymax,ticks]=escalaY(series,52);
   pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:400,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
   const M=chartTempo.last.marcos;
-  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel de 7 dias</span>`+(M.length?`<span>marcos: ${M.map((m,i)=>`<b>${i+1}</b> ${dBR(dISO(m.t))} ${esc(m.txt.length>38?m.txt.slice(0,36)+"…":m.txt)}`).join(" · ")}</span>`:"");
+  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel de ${SIG} dias</span>`+(M.length?`<ol class="marcos" style="flex-basis:100%">${M.map((m,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(m.t))} ${esc(m.txt)}</span></li>`).join("")}</ol>`:"");
 }
-DRAW["#ch-corrida"]=drawCorrida;
+DRAW["#ch-corrida"]=drawCorrida;DRAW["#ch-regua"]=()=>drawRegua();DRAW["#ch-bens"]=()=>drawBens();
 DRAW["#ch-2t"]=()=>draw2T();
 function draw2T(){
   const series=["Lula","Flávio Bolsonaro"].map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
@@ -1154,13 +1554,13 @@ function drawRej(){
 const MODOS=[["presencial","var(--m1)"],["telefônica","var(--m2)"],["digital","var(--m3)"],["não informada","var(--ink-3)"]];
 const CORM=Object.fromEntries(MODOS);
 let modoCand="Lula", modoSel="presencial", metaView="cand", modosOn=new Set(MODOS.map(m=>m[0])), metaCands=new Set(OITO);
-function svgModo(nome,W=560,H=300,mr=104,modos=null){
+function svgModo(nome,W=560,H=300,mr=104,modos=null,cw=0){
   const pts0=serieDe(nome).filter(p=>!modos||modos.has(p.modo));
   if(!pts0.length)return `<div class="empty"><b>Sem medição</b>Nenhum instituto testou este nome com esses modos de coleta.</div>`;
   const vmax=Math.max(10,Math.ceil(Math.max(...pts0.map(p=>p.v))/10)*10);const tks=[];for(let v=0;v<=vmax;v+=vmax<=20?5:10)tks.push(v);
   const series=MODOS.map(([modo,cor])=>{const pts=pts0.filter(p=>p.modo===modo).map(p=>({...p,tip:`<b>${esc(nome)}</b> · ${fPct(p.v)}% (${modo})<br>${esc(p.inst)}, ${dBR(p.d)}`}));return {nome:modo,cor,r:3,lw:2,sigma:pts.length>2?14:0,linha:pts.length>2?null:[],pts,rotulo:pts.length>2?null:false};}).filter(s=>s.pts.length);
   for(const s of series)if(s.sigma)s.rotulo=`${s.nome} ${fPct(mediaMovel(s.pts.slice().sort((a,b)=>a.t-b.t),14).pop().v)}`;
-  return chartTempo({id:W>600?"#ch-modo":null,W,H,ml:44,mr,ymax:vmax,ticks:tks,fmtY:v=>fPct(v)+"%",series,aria:"Intenção de voto de "+nome+" por modo de coleta",fs:12});
+  return chartTempo({id:W>600?"#ch-modo":null,W,H,ml:44,mr,ymax:vmax,ticks:tks,fmtY:v=>fPct(v)+"%",series,aria:"Intenção de voto de "+nome+" por modo de coleta",fs:12,cw,Hm:cw?200:undefined});
 }
 function svgPorModo(modo,W=560,H=300,mr=104){
   const series=OITO.filter(n=>metaCands.has(n)&&!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),r:3,lw:2,sigma:10,pts:serieDe(n).filter(p=>p.modo===modo).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fPct(p.v)}% (${modo})<br>${esc(p.inst)}, ${dBR(p.d)}`}))})).filter(s=>s.pts.length);
@@ -1198,7 +1598,7 @@ function drawTabelaReguas(){
     const lidos=MODOS.map(([m])=>por[m]).filter(Boolean);const tmax=Math.max(...lidos.map(p=>p.t),0);
     const vals=lidos.filter(p=>tmax-p.t<=14*864e5).map(p=>p.v);const top=vals.length>1?Math.max(...vals):null;
     const p=posicao(n);
-    return `<tr${dimDe(n)?' style="opacity:.4"':''}><td><b style="color:${COR[n]}">${esc(n)}</b></td>`+MODOS.map(([m])=>{const q=por[m];if(!q)return `<td class="num" style="color:var(--ink-3)">sem medição</td>`;const hi=top!=null&&q.v===top&&tmax-q.t<=14*864e5&&vals.filter(v=>v===top).length===1;return `<td class="num"><b class="tnum" style="${hi?"color:var(--accent-text)":""}">${fPct(q.v)}%</b><span class="desc" style="max-width:none">${esc(q.inst.split("/")[0].split(" (")[0])}, ${dBR(q.d)}</span></td>`;}).join("")+`<td class="num"><b class="tnum">${p?fPct(p.agora)+"%":""}</b><span class="desc" style="max-width:none">7 dias, ${pts.length} medições</span></td></tr>`;
+    return `<tr${dimDe(n)?' style="opacity:.4"':''}><td><b style="color:${COR[n]}">${esc(n)}</b></td>`+MODOS.map(([m])=>{const q=por[m];if(!q)return `<td class="num" style="color:var(--ink-3)">sem medição</td>`;const hi=top!=null&&q.v===top&&tmax-q.t<=14*864e5&&vals.filter(v=>v===top).length===1;return `<td class="num"><b class="tnum" style="${hi?"color:var(--accent-text)":""}">${fPct(q.v)}%</b><span class="desc" style="max-width:none">${esc(q.inst.split("/")[0].split(" (")[0])}, ${dBR(q.d)}</span></td>`;}).join("")+`<td class="num"><b class="tnum">${p?fPct(p.agora)+"%":""}</b><span class="desc" style="max-width:none">${SIG} dias, ${pts.length} medições</span></td></tr>`;
   }).join("");
   $("#tb-reguas tbody").innerHTML=rows;
 }
@@ -1212,8 +1612,8 @@ function multiplos(id,series,o){
   const {H=150,ymin=0,ymax=100,log=false,ticks,fmtY,auto=false}=o;
   const cs=series.filter(s=>!some(s.nome));
   $(id).innerHTML=`<div class="multi">`+cs.map(s=>{let hi=ymax,tk=ticks;if(auto){const m=Math.max(...s.pts.map(p=>p.v),1),e=10**Math.floor(Math.log10(m)),f=m/e;hi=(f<=1?1:f<=2?2:f<=5?5:10)*e;tk=[0,hi/2,hi];}
-    return `<div class="mini${s.dim?" ser dim":""}"><div class="nm"><i style="background:${s.cor}"></i>${esc(curto(s.nome))}</div><div>${chartTempo({W:320,H,ml:44,mr:14,mt:10,mb:24,ymin,ymax:hi,log,ticks:tk,fmtY,series:[{...s,dim:false,rotulo:false}],lw:1.7})}</div></div>`;}).join("")+`</div>`;
-  bindTips($(id));
+    return `<div class="mini${s.dim?" ser dim":""}"><div class="nm"><i style="background:${s.cor}"></i>${esc(curto(s.nome))}</div><div>${chartTempo({W:320,H,ml:44,mr:14,mt:10,mb:24,ymin,ymax:hi,log,ticks:tk,fmtY,series:[{...s,dim:false,rotulo:false}],lw:1.7,cw:MOBILE?larguraDe(id)-22:0,Hm:H})}</div></div>`;}).join("")+`</div>`;
+  bindTips($(id));ajustarRotulos($(id));
 }
 for(const k of ["#ch-trends","#ch-wiki","#ch-termos","#ch-ig","#ch-idx"])DRAW[k]=()=>drawBusca();
 function drawBusca(){
@@ -1271,7 +1671,7 @@ function sparkPolls(nome){
   const mm=mediaMovel(pts,14),W=150,H=46,pd=4,t0=Date.parse("2026-01-01");
   const vmax=Math.max(...pts.map(p=>p.v),5);
   const X=t=>pd+(t-t0)/(T1-t0)*(W-2*pd), Y=v=>H-pd-(v/vmax)*(H-2*pd);const last=mm[mm.length-1];
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true">${pts.map(p=>`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="1.6" fill="${COR[nome]}" opacity=".45"/>`).join("")}<path d="${mm.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")}" fill="none" stroke="${COR[nome]}" stroke-width="1.8"/><circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.v).toFixed(1)}" r="3" fill="${COR[nome]}" stroke="var(--surface)" stroke-width="1.5"/></svg>`;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${pts.map(p=>`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="1.6" fill="${COR[nome]}" opacity=".45"/>`).join("")}<path d="${mm.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")}" fill="none" stroke="${COR[nome]}" stroke-width="1.8"/><circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.v).toFixed(1)}" r="3" fill="${COR[nome]}" stroke="var(--surface)" stroke-width="1.5"/></svg>`;
 }
 function ultimas3(nome){
   const rows=DATA.polls.filter(p=>p[2]===nome).sort((a,b)=>b[1].localeCompare(a[1])).slice(0,3);
@@ -1308,9 +1708,11 @@ function renderWall(){
 $$("#v-candidatos .seg button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;$$("#v-candidatos .seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWall();}));
 $("#sort").addEventListener("change",e=>{sortBy=e.target.value;renderWall();});
 function drawBens(){
-  const W=1180,H=232,ml=24,mr=24,yAxis=120,iw=W-ml-mr,slot=96;
+  const lw=larguraDe("#ch-bens");
+  if(MOBILE||lw<900){pinta("#ch-bens",bensVertical());return;}
+  const W=Math.min(1180,lw),H=232,ml=24,mr=24,yAxis=120,iw=W-ml-mr,slot=96;
   const X=v=>ml+slot+(Math.log10(Math.max(v,1e4))-4)/5*(iw-slot);
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio declarado ao TSE por candidato, em escala logarítmica">`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio declarado ao TSE por candidato, em escala logarítmica" data-w="${W}" data-w0="1180">`;
   s+=`<line x1="${ml}" x2="${W-mr}" y1="${yAxis}" y2="${yAxis}" stroke="var(--ink)" stroke-width="2"/>`;
   for(let d=4;d<9;d++)for(let k=2;k<10;k++){const v=k*10**d;s+=`<line x1="${X(v).toFixed(1)}" x2="${X(v).toFixed(1)}" y1="${yAxis-3}" y2="${yAxis+3}" stroke="var(--ink-3)" opacity=".5"/>`;}
   s+=`<g class="tick">`+[1e4,1e5,1e6,1e7,1e8,1e9].map(v=>`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-7}" y2="${yAxis+7}" stroke="var(--ink-3)"/><text x="${X(v)}" y="${yAxis+22}" text-anchor="middle">${fBRL(v)}</text>`).join("")+`<text x="${ml+10}" y="${yAxis+22}" text-anchor="start">R$ 0</text></g>`;
@@ -1324,6 +1726,26 @@ function drawBens(){
   }
   s+=rotulosDuasFilas(rot,44,yAxis+58,W)+`</svg>`;
   pinta("#ch-bens",s);
+}
+// versão vertical do raio-x (celular): escala logarítmica de cima (R$ 1 bi) para baixo (R$ 10 mil), zeros embaixo
+function bensVertical(){
+  const W=larguraDe("#ch-bens"),H=340,ml=78,mt=16,mb=44,ih=H-mt-mb,x=ml;
+  const Y=v=>mt+(9-Math.log10(Math.max(v,1e4)))/5*ih;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio declarado ao TSE por candidato, em escala logarítmica" data-w="${W}" data-w0="${W}">`;
+  s+=`<line x1="${x}" x2="${x}" y1="${mt}" y2="${H-mb}" stroke="var(--ink)" stroke-width="2"/>`;
+  for(let d=4;d<9;d++)for(let k=2;k<10;k++){const v=k*10**d;s+=`<line x1="${x-3}" x2="${x+3}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--ink-3)" opacity=".5"/>`;}
+  const y0=H-mb+22;
+  s+=`<g class="tick">`+[1e4,1e5,1e6,1e7,1e8,1e9].map(v=>`<line x1="${x-7}" x2="${x+7}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--ink-3)"/><text x="${x-11}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fBRL(v)}</text>`).join("")+`<text x="${x-11}" y="${y0+4}" text-anchor="end">R$ 0</text></g>`;
+  const rot=[];let zeros=0;
+  for(const c of C.slice().sort((a,b)=>(b.bens||0)-(a.bens||0))){
+    if(c.bens==null||some(c.nome))continue;
+    const cor=COR[c.nome]||"var(--neutro)",dim=dimDe(c.nome);
+    const cy=c.bens>0?Y(c.bens):y0, cx=c.bens>0?x:x+zeros++*16;
+    s+=`<g class="ser${dim?" dim":""}"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${c.grupo==="principal"?7:5.5}" fill="${cor}" stroke="var(--paper)" stroke-width="2" style="cursor:pointer" data-dossie="${esc(c.nome)}" data-tip="<b>${esc(c.nome)}</b> · ${fBRL(c.bens)}<br>bens declarados ao TSE (${esc(c.partido)}) · toque para o dossiê"/></g>`;
+    rot.push({y:cy+4,py:cy,px:cx,cor,dim,txt:`${curto(c.nome)} ${c.bens>0?fBRL(c.bens).replace("R$ ",""):"0"}`});
+  }
+  for(const l of empilhar(rot,mt+6,H-6,15))s+=`<g class="lbl${l.dim?" dim":""}"><path class="lead-line" d="M${(l.px+8).toFixed(1)} ${l.py.toFixed(1)} L${x+30} ${(l.y-4).toFixed(1)}" fill="none"/><text class="cand-label" x="${x+34}" y="${l.y.toFixed(1)}" style="fill:${l.cor};font-size:12px">${l.txt}</text></g>`;
+  return s+`</svg>`;
 }
 
 // ---- lado a lado
@@ -1359,7 +1781,7 @@ function renderLadoControls(){
   const b=$("#lado-vig");if(b)b.addEventListener("click",()=>{lado=prefs.foco.slice(0,3);renderLadoControls();renderLado();});
 }
 function renderLado(){
-  const cs=lado.filter(Boolean).map(n=>byName[n]).filter(Boolean);const el=$("#lado");
+  const cs=lado.filter(Boolean).map(n=>byName[n]).filter(Boolean);const el=$("#lado-mesa");
   if(cs.length<2){el.innerHTML=`<div class="empty"><b>Falta gente na mesa</b>Escolha pelo menos dois candidatos.</div>`;return;}
   let h=`<div class="lado" style="--n:${cs.length}"><div class="h lbl">Critério</div>`+cs.map(c=>`<div class="h"><span><span class="n display tnum">${esc(c.numero)}</span></span><span class="who display">${esc(c.nome)}</span><span class="party">${esc(c.partido)} · <a href="#dossie-${slug(c.nome)}" data-dossie="${esc(c.nome)}">dossiê</a></span></div>`).join("");
   let grupo="";
@@ -1425,7 +1847,7 @@ function drawMetodo(){
     ["Mural",["Gerador monta a página a partir dos CSVs","Régua, alertas, médias e faixas são calculados na hora","Foco, janela e tema ficam no seu navegador"]],
   ].map(([k,itens],i)=>(i?`<div class="parrow" aria-hidden="true">→</div>`:"")+`<div class="pnode"><span class="eyebrow">${k}</span>${itens.map(x=>`<span>${x}</span>`).join("")}</div>`).join("");
   const ABR=["TSE","Bens","Chapa","Perfis","Seguid.","Pesq.","Rejeiç.","Google","Wiki","Eventos"];
-  $("#ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Candidato</th>${ABR.map(a=>`<th>${a}</th>`).join("")}<th>Total</th></tr></thead><tbody>${C.map(c=>{const ok=FONTES10.map(([n,f])=>!!f(c));return `<tr><td>${esc(c.nome)}</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(FONTES10[i][0])}"></i></td>`).join("")}<td class="tot">${ok.filter(Boolean).length}/10</td></tr>`;}).join("")}</tbody></table></div>`;
+  $("#ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Candidato</th><th>Total</th>${ABR.map(a=>`<th>${a}</th>`).join("")}</tr></thead><tbody>${C.map(c=>{const ok=FONTES10.map(([n,f])=>!!f(c));return `<tr><td>${esc(c.nome)}</td><td class="tot">${ok.filter(Boolean).length}/10</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(FONTES10[i][0])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
   const cont={};for(const f of DATA.fichas){const m=(DATA.polls.find(p=>p[0]===f.inst&&p[1]===f.dt)||[])[5]||"não informada";cont[m]=(cont[m]||0)+1;}
   const KW={"presencial":"presencial, domiciliar, face a face","telefônica":"telefone, telefônica, IVR","digital":"digital, online, eletrônica, web, formulário, internet","não informada":"ficha sem o modo"};
   const max=Math.max(...Object.values(cont),1);
@@ -1462,8 +1884,9 @@ function svgSerie(P,o={}){
   const X=t=>ml+(t-t0)/(T1-t0)*iw, Y=v=>{const a=log?Math.log10(Math.max(v,1)):v,l=log?Math.log10(lo):lo,h=log?Math.log10(hi):hi;return mt+ih-(a-l)/(h-l)*ih;};
   const ticks=log?Array.from({length:Math.log10(hi)+1},(_,i)=>10**i):[0,1,2,3,4].map(i=>lo+(hi-lo)*i/4);
   const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img"><g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`).join("");
-  for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t>T1)continue;s+=`<line class="subl" x1="${X(t)}" x2="${X(t)}" y1="${mt}" y2="${mt+ih}"/><text class="axis" x="${X(t)+4}" y="${mt+ih+16}">${meses[m]}</text>`;}
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-w="${W}"><g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`).join("");
+  const curto=X(t0+30*864e5)-X(t0)<34;
+  for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t>T1)continue;s+=`<line class="subl" x1="${X(t)}" x2="${X(t)}" y1="${mt}" y2="${mt+ih}"/>${curto&&m%2?"":`<text class="axis" x="${X(t)+4}" y="${mt+ih+16}">${meses[m]}</text>`}`;}
   s+=`</g><path d="${P.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")}" fill="none" stroke="${cor}" stroke-width="1.8" stroke-linejoin="round"/>`;
   let pico=P[0];for(const p of P)if(p.v>pico.v)pico=p;const fim=P[P.length-1];
   const picoEhFim=pico===fim||Math.abs(Y(pico.v)-Y(fim.v))<14&&X(fim.t)-X(pico.t)<60;
@@ -1474,7 +1897,14 @@ function svgSerie(P,o={}){
   return s+`</svg>`;
 }
 const stampDe=c=>c.restrito?`<span class="stamp crit">${esc(c.restrito.split(" (")[0])}</span>`:c.situacao==="Deferido"?`<span class="stamp good">Registro deferido</span>`:`<span class="stamp warn">Aguardando julgamento</span>`;
-function renderDossie(c){
+// depois de abrir um dossiê: se a coluna dos gráficos for mais estreita que o viewBox usado, refaz o conteúdo nessa largura
+function encaixarDossie(render){
+  const ch=$$(".row2 .box .chart",dz).find(x=>x.querySelector("svg"));if(!ch)return;
+  const svg=ch.querySelector("svg");const m=ch.clientWidth;if(!m)return;
+  const w=+(svg.dataset.w||(svg.getAttribute("viewBox")||"").split(/\s+/)[2]||0);if(!w||m>=w-4)return;
+  const top=dz.scrollTop;dz.innerHTML=render(m);bindTips(dz);dz.scrollTop=top;
+}
+function renderDossie(c,cwMed=0){
   const nome=c.nome,cor=COR[nome]||"var(--neutro)",cob=cobertura(c);
   const kv=[["Nome completo",c.nome_completo],["Nascimento",c.data_nascimento?`${dBR(c.data_nascimento)}/${c.data_nascimento.slice(0,4)} · ${c.idade} anos`:c.idade+" anos"],["Naturalidade",c.naturalidade],["Escolaridade",c.escolaridade||"não informada"],["Ocupação declarada",c.ocupacao],["Bens declarados",c.bens>0?fBRL(c.bens):"R$ 0"],["Urna",`${c.numero} · ${c.nome_urna}`],["Chapa",`${c.partido}${c.coligacao?" · "+c.coligacao:""} · vice ${c.vice} (${c.vice_partido})`],["Situação",c.situacao+(c.restrito?" · "+c.restrito:"")],["Ficha atualizada no TSE",c.atualizado_tse||""]];
   const kvh=kv.filter(([k,v])=>v).map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("");
@@ -1486,7 +1916,8 @@ function renderDossie(c){
   const redes=c.redes.map(r=>`<a class="chip" href="${esc(r.url)}" target="_blank" rel="noopener"><span class="p">${r.plat}</span><span>${esc(r.handle)}</span>${r.seg?`<span class="s tnum">${fM(r.seg.valor)}</span><span class="d">${dBR(r.seg.data)}</span>`:""}</a>`).join("");
   const wiki=c.wikipedia?`<a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(c.wikipedia.replace(/ \(.*$/,"").replace(/ /g,"_"))}" target="_blank" rel="noopener">Verbete na Wikipédia</a>`:"";
   const nPolls=DATA.polls.filter(p=>p[2]===nome).length;
-  const T0s=T0;T0=Date.parse("2026-01-01");const modoSvg=svgModo(nome,520,260,96);T0=T0s;
+  const cw=cwMed||(MOBILE?Math.max(240,innerWidth-62):0), so={W:cw||520,mr:cw?64:96};
+  const T0s=T0;T0=Date.parse("2026-01-01");const modoSvg=svgModo(nome,520,260,96,null,cw);T0=T0s;
   return `<div class="dz">
     <div class="top"><div class="n display tnum">${esc(c.numero)}</div>
       <div><span class="kick">Dossiê · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(nome)}</h2><div class="party">${esc(c.partido)}${c.coligacao?" · "+esc(c.coligacao):""} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div></div>
@@ -1499,21 +1930,22 @@ function renderDossie(c){
         <div class="box"><h4>Situação na disputa</h4><p class="sit">${esc(c.situacao_texto||"Sem leitura editorial nesta edição.")}</p>${c.grupo==="principal"?`<div class="cap">Últimas rodadas, com rejeição quando publicada.</div>${ultimas3(nome)}`:""}</div>
       </div>
       <div class="row2">
-        <div class="box"><h4>Pesquisas por modo de coleta</h4><div class="cap">${nPolls?`${nPolls} medições nominais em 2026; pontos por modo de coleta e média móvel de cada modo.`:"Nenhuma medição nominal em 2026."}</div>${modoSvg}${nPolls?`<div class="legend">${legendaModos()}</div>`:""}</div>
-        <div class="box"><h4>Redes</h4>${igs?`<div class="igrow"><span class="big display tnum">${fInt(igs.valor)}</span><span class="meta">seguidores no Instagram em ${dBR(igs.data)} · <a href="${esc(igs.url)}" target="_blank" rel="noopener">${esc(resumoFonte(igs.fonte))}</a></span></div>`:`<p class="sit">Nenhum número de seguidores publicado para este perfil.</p>`}${igP.length>1?`<div class="cap">Medianas diárias dos números publicados; o eixo não começa em zero.</div>${svgSerie(igP,{cor,fmt:v=>fM(v),fmtV:v=>fInt(v),zero:false,H:170})}`:""}${c.redes.length?`<div class="redes" style="margin-top:6px">${redes}</div>`:`<p class="sit">Nenhum perfil pessoal localizado.</p>`}${c.confianca?`<div class="miss">Confiança dos perfis: ${esc(c.confianca)}</div>`:""}</div>
+        <div class="box"><h4>Pesquisas por modo de coleta</h4><div class="cap">${nPolls?`${nPolls} medições nominais em 2026; pontos por modo de coleta e média móvel de cada modo.`:"Nenhuma medição nominal em 2026."}</div><div class="chart">${modoSvg}</div>${nPolls?`<div class="legend">${legendaModos()}</div>`:""}</div>
+        <div class="box"><h4>Redes</h4>${igs?`<div class="igrow"><span class="big display tnum">${fInt(igs.valor)}</span><span class="meta">seguidores no Instagram em ${dBR(igs.data)} · <a href="${esc(igs.url)}" target="_blank" rel="noopener">${esc(resumoFonte(igs.fonte))}</a></span></div>`:`<p class="sit">Nenhum número de seguidores publicado para este perfil.</p>`}${igP.length>1?`<div class="cap">Medianas diárias dos números publicados; o eixo não começa em zero.</div><div class="chart">${svgSerie(igP,{cor,fmt:v=>fM(v),fmtV:v=>fInt(v),zero:false,H:170,...so})}</div>`:""}${c.redes.length?`<div class="redes" style="margin-top:6px">${redes}</div>`:`<p class="sit">Nenhum perfil pessoal localizado.</p>`}${c.confianca?`<div class="miss">Confiança dos perfis: ${esc(c.confianca)}</div>`:""}</div>
       </div>
       <div class="row2">
-        <div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div>${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170})}</div>
-        <div class="box"><h4>Acessos ao verbete na Wikipédia</h4><div class="cap">Acessos diários, escala logarítmica.</div>${svgSerie(wikiP.filter(p=>p.v>0),{cor,log:true,fmt:v=>v>=1e6?fPct(v/1e6)+" mi":v>=1000?fInt(v/1000)+" mil":fInt(v),fmtV:v=>fInt(v),H:170})}</div>
+        <div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div><div class="chart">${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170,...so})}</div></div>
+        <div class="box"><h4>Acessos ao verbete na Wikipédia</h4><div class="cap">Acessos diários, escala logarítmica.</div><div class="chart">${svgSerie(wikiP.filter(p=>p.v>0),{cor,log:true,fmt:v=>v>=1e6?fPct(v/1e6)+" mi":v>=1000?fInt(v/1000)+" mil":fInt(v),fmtV:v=>fInt(v),H:170,...so})}</div></div>
       </div>
       <div class="box"><h4>Cronologia do candidato</h4><div class="cap">${evsC.length} eventos datados sobre ${esc(nome)}; os marcos gerais da eleição aparecem esmaecidos.</div><ul class="evs">${evsC.slice(0,40).map(e=>evLi(e,false)).join("")}${evsG.slice(0,6).map(e=>evLi(e,true)).join("")}</ul>${evsC.length>40||evsG.length>6?`<div><button type="button" class="btn" data-tl="${esc(nome)}">Ver tudo na linha do tempo</button></div>`:""}</div>
+      <div class="foot-acts">${starBtn(nome)}<button type="button" class="btn" data-copy="1">Copiar link</button></div>
       <div class="foot"><span>Fontes deste dossiê: TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 function openDossie(nome,opener){
   const c=byName[nome];if(!c)return;
   dz._opener=opener||document.activeElement;dz.dataset.nome=nome;dz.innerHTML=renderDossie(c);bindTips(dz);
-  if(!dz.open)dz.showModal();dz.scrollTop=0;
+  if(!dz.open)dz.showModal();dz.scrollTop=0;encaixarDossie(cw=>renderDossie(c,cw));ajustarRotulos(dz);
   try{history.replaceState(null,"","#dossie-"+slug(nome));}catch(e){}
 }
 dz.addEventListener("click",e=>{
@@ -1521,7 +1953,7 @@ dz.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.close)dz.close();
   else if(b.dataset.vig)toggleFoco(b.dataset.vig);
-  else if(b.dataset.copy){const url=location.href.split("#")[0]+"#dossie-"+slug(dz.dataset.nome);(navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>avisar("Link do dossiê copiado"),()=>avisar(url));}
+  else if(b.dataset.copy)copiarLink("#dossie-"+slug(dz.dataset.nome),"Link do dossiê copiado");
   else if(b.dataset.tl){dz.close();irPara("tempo");$("#f-cand").value=b.dataset.tl;fCand=b.dataset.tl;shown=40;renderTL();}
 });
 dz.addEventListener("close",()=>{try{if(location.hash.startsWith("#dossie-"))history.replaceState(null,"","#"+abaAtual);}catch(e){}if(dz._opener&&dz._opener.focus)dz._opener.focus();});
@@ -1592,20 +2024,24 @@ const ART={AC:1,AL:0,AP:1,AM:1,BA:2,CE:1,DF:1,ES:1,GO:0,MA:1,MT:0,MS:0,MG:0,PA:1
 const UF = DATA.estados || {};
 // expande a codificação compacta do gerador para o formato usado nas funções abaixo
 for(const k in UF){const u=UF[k];const por={};[...u.gov,...u.sen].forEach(c=>por[c.slug]=c);
-  const nm=i=>{const n=u.nomes[i]||["?","","",""];return (n[1]&&por[n[1]])?[por[n[1]].nome,n[1],n[2],n[3]]:n;};const corDe=n=>(n[1]&&por[n[1]])?por[n[1]].cor:(n[3]||"var(--ink-3)");
+  [...u.gov,...u.sen].forEach(c=>{c.cor0=c.cor;Object.defineProperty(c,"cor",{get(){return corViva(this.cor0);},enumerable:true,configurable:true});});
+  const nm=i=>{const n=u.nomes[i]||["?","","",""];return (n[1]&&por[n[1]])?[por[n[1]].nome,n[1],n[2],n[3]]:n;};const corDe=n=>(n[1]&&por[n[1]])?por[n[1]].cor0:(n[3]||"var(--ink-3)");
   u.polls=(u.polls||[]).map(([ri,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,n[0],v,n[1],corDe(n),n[2]||""];});
   u.cenarios=(u.cenarios||[]).map(([ri,cen,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,String(cen),n[0],v,n[1],n[2]||"",corDe(n)];});
   u.polls2=(u.polls2||[]).map(([ri,ni,v])=>{const r=u.rodadas2[ri],n=nm(ni);return [r.inst,r.data,r.par,n[0],v,n[1],n[2]||"",corDe(n)];});
   u.rodadas.forEach((r,i)=>{r.i=i;if(!r.url&&u.wiki_url)r.url=u.wiki_url;});
 }
 const FONTE_R={W:"compilação da Wikipédia",WG:"números pela Wikipédia; ficha pela Gazeta do Povo",G:"Gazeta do Povo, ficha registrada no TSE"};
+const FONTE_C={W:"Wikipédia",WG:"Wikipédia + Gazeta",G:"Gazeta do Povo"};
+const fonteTxt=f=>`<span class="fonte-l">${esc(FONTE_R[f]||f)}</span><span class="fonte-c">${esc(FONTE_C[f]||f)}</span>`;
 const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
 const emUF=k=>(["em ","no ","na "][ART[k]||0])+(UF[k]?UF[k].nome:k);
 const deUF=k=>(["de ","do ","da "][ART[k]||0])+(UF[k]?UF[k].nome:k);
 const UFLIST = Object.keys(UF).sort((a,b)=>UF[a].nome.localeCompare(UF[b].nome));
 // cores por partido para o mapa (identidade nacional: a mesma cor em todos os estados)
 const CORP={PT:"#C8102E",PL:"#1F3B8C",PSD:"#F2A900","UNIÃO":"#2BA7DF",REPUBLICANOS:"#6D4CBF",MDB:"#1B8A3B",PP:"#0A9396",PSDB:"#8B5E00",PSB:"#D95F02",NOVO:"#FF8C42",PDT:"#B5179E",PSOL:"#E5B80B",REDE:"#2A9D8F",AVANTE:"#FF9F1C",PODE:"#4CC9F0","MISSÃO":"#5A6B7B",CIDADANIA:"#E0218A",SOLIDARIEDADE:"#F26A2E",PV:"#3A9D23",PRD:"#7A7A7A",PRTB:"#8C6A5D",AGIR:"#9E9E9E",MOBILIZA:"#A1887F",DEMOCRATA:"#90A4AE",DC:"#78909C",UP:"#B71C1C",PSTU:"#C62828",PCO:"#AD1457",PCB:"#880E4F"};
-const corPartido=p=>CORP[String(p||"").toUpperCase()]||"#9AA4AE";
+const CORP_DARK=Object.fromEntries(Object.entries(CORP).map(([k,v])=>[k,clarear(v)]));
+const corPartido=p=>{const k=String(p||"").toUpperCase();return ESCURO?(CORP_DARK[k]||clarear("#9AA4AE")):(CORP[k]||"#9AA4AE");};
 // rótulos que saem do mapa (estados estreitos do litoral e o DF), em unidades do viewBox
 const LBL={RN:[1078,282],PB:[1078,326],PE:[1078,370],AL:[1078,414],SE:[1078,458],ES:[955,690],RJ:[880,790],DF:[600,470]};
 const ABAS_UF=[["e-geral","Visão geral"],["e-pesquisas","Pesquisas"],["e-busca","Busca e redes"],["e-candidatos","Candidatos"],["e-lado","Lado a lado"],["e-partidos","Partidos"],["e-tempo","Linha do tempo"],["e-metodo","Método"]];
@@ -1642,14 +2078,14 @@ function barrasRodada(u, cargo, o={}){
     const c = candPorSlug(p[5]), dim = foc.size&&!foc.has(p[5]);
     const naLinha = emp!=null && p[4]===emp;
     const elege = (cargo==="senador" ? i<vagas : i===0) && !naLinha;
-    return `<div class="hb${dim?" dim":""}${elege?" lead":""}${naLinha?" tie":""}"><span class="nm">${c?`<span class="k" style="background:${p[6]}">${esc(c.num)}</span>`:""}<b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,p[4]/max*100)}%;background:${p[6]}"></i></span><span class="val display tnum">${fPct(p[4])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
+    return `<div class="hb${dim?" dim":""}${elege?" lead":""}${naLinha?" tie":""}"><span class="nm">${c?`<span class="k" style="background:${corViva(p[6])}">${esc(c.num)}</span>`:""}${c?`<button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(p[3])}</b></button>`:`<b>${esc(p[3])}</b>`}<span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,p[4]/max*100)}%;background:${corViva(p[6])}"></i></span><span class="val display tnum">${fPct(p[4])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
   }).join("")+`</div>`+(corte!=null?`<div class="cap">Duas vagas em disputa: a linha de corte desta rodada está em ${fPct(corte)}%.${emp!=null?` ${nEmp} nomes aparecem empatados nesse patamar, então a segunda vaga está indefinida nesta rodada.`:""}</div>`:"");
 }
 // evolução entre rodadas (quando há 2+)
 function evolucaoUF(u,cargo){
   const rs = rodadasDe(u,cargo); if(rs.length<2) return null;
   const porCand = {};
-  for(const p of pollsDe(u,cargo)){(porCand[p[5]||p[3]] = porCand[p[5]||p[3]]||[]).push({t:Date.parse(p[2]),v:p[4],inst:p[1],nome:p[3],cor:p[6]});}
+  for(const p of pollsDe(u,cargo)){(porCand[p[5]||p[3]] = porCand[p[5]||p[3]]||[]).push({t:Date.parse(p[2]),v:p[4],inst:p[1],nome:p[3],cor:corViva(p[6])});}
   const series = Object.values(porCand).filter(a=>a.length>1).map(a=>({nome:a[0].nome,cor:a[0].cor,r:4,lw:2.2,pts:a.sort((x,y)=>x.t-y.t).map(p=>({t:p.t,v:p.v,tip:`<b>${esc(p.nome)}</b> · ${fPct(p.v)}%<br>${esc(p.inst)}, ${dBR(dISO(p.t))}`}))}));
   if(!series.length) return null;
   const ts = series.flatMap(s=>s.pts.map(p=>p.t));
@@ -1673,7 +2109,7 @@ function drawMapa(){
     paths+=`<path class="uf${k===ufAtual?" on":""}" d="${g.d}" fill="${cor}" data-uf="${k}" data-tip="${esc(tip)}" role="button" aria-label="${esc(UF[k].nome)}" tabindex="0"><title>${esc(UF[k].nome)}</title></path>`;
     if(tec)hatch+=`<path class="hatch" d="${g.d}" fill="url(#hatchp)"/>`;
     const o=LBL[k];
-    if(o){labels+=`<line class="ld" x1="${g.cx}" y1="${g.cy}" x2="${o[0]-(o[0]>g.cx?26:-26)}" y2="${o[1]-6}"/><circle class="dot" cx="${g.cx}" cy="${g.cy}" r="3.5"/><text class="sg out" x="${o[0]}" y="${o[1]}">${k}</text>`;}
+    if(o){labels+=`<line class="ld" x1="${g.cx}" y1="${g.cy}" x2="${o[0]-(o[0]>g.cx?26:-26)}" y2="${o[1]-6}"/><circle class="dot" cx="${g.cx}" cy="${g.cy}" r="3.5"/>${(k!=="DF"||TOQUE)?`<rect class="hit" data-uf="${k}" x="${o[0]-70}" y="${o[1]-60}" width="140" height="90" role="button" aria-label="${esc(UF[k].nome)}"/>`:""}${(k==="DF"&&TOQUE)?`<rect class="hit" data-uf="DF" x="${g.cx-70}" y="${g.cy-45}" width="140" height="90" role="button" aria-label="Distrito Federal"/>`:""}<text class="sg out" x="${o[0]}" y="${o[1]}">${k}</text>`;}
     else labels+=`<text class="sg" x="${g.cx}" y="${g.cy+9}">${k}</text>`;
   }
   $("#mapa-svg").innerHTML=`<svg viewBox="${vx-6} ${vy-6} ${vw+140} ${vh+12}" role="img" aria-label="Mapa do Brasil, ${cargoLabel(ufCargo)}"><defs><pattern id="hatchp" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="var(--paper)" stroke-width="4" opacity=".7"/></pattern></defs><g class="ufs">${paths}</g><g>${hatch}</g><g class="lbls">${labels}</g></svg>`;
@@ -1691,11 +2127,11 @@ function drawMapaSel(){
   const outro=ufCargo==="senador"?"governador":"senador", lo=liderPartido(k,outro);
   let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${l?` · ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}</div>`;
   if(l){
-    h+=l.pts.slice(0,4).map((p,i)=>{const c=[...u.gov,...u.sen].find(x=>x.slug===p[5]);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${p[6]}">${c?esc(c.num):""}</span><span><b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="v">${fPct(p[4])}%</span></div>`;}).join("");
+    h+=l.pts.slice(0,4).map((p,i)=>{const c=[...u.gov,...u.sen].find(x=>x.slug===p[5]);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p[6])}">${c?esc(c.num):""}</span><span><b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="v">${fPct(p[4])}%</span></div>`;}).join("");
     if(l.pts.length>4)h+=`<div class="src">mais ${l.pts.length-4} nomes testados nesta rodada</div>`;
   } else h+=`<div class="empty" style="margin:0"><b>Sem pesquisa</b>Nenhuma rodada de ${cargoLabel(ufCargo)} deste estado entrou no observatório ainda.</div>`;
   h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p[3])} (${esc(lo.partido)}) com ${fPct(lo.p[4])}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
-  h+=`<div class="go"><button type="button" class="btn" data-goto-aba="e-pesquisas">Pesquisas</button><button type="button" class="btn" data-goto-aba="e-candidatos">Candidatos</button><button type="button" class="btn" data-goto-aba="e-lado">Lado a lado</button></div>`;
+  h+=`<a class="go" href="#uf-${k.toLowerCase()}${ufCargo==="senador"?"-senado":"-governo"}-pesquisas" data-goto-aba="e-pesquisas">Abrir ${esc(u.nome)} →</a>`;
   $("#mapa-sel").innerHTML=h;
 }
 const curtoNome = n => {const w=String(n).split(" ");if(w.length<=2)return n;const part=/^(de|da|do|dos|das|e|di|del|von)$/i;let out=[w[0]];let i=1;while(i<w.length&&part.test(w[i])){out.push(w[i]);i++;}if(i<w.length)out.push(w[i]);return out.join(" ");};
@@ -1729,7 +2165,7 @@ function drawGeralUF(){
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
   for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${c.cargo==="senador"?"Senado":"governo"}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
   if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});
-  $("#e-alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas ${deUF(ufAtual)}</span><span class="n">${A.length?pl(A.length,"sinal","sinais")+" nos dados desta edição":"nada fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,6).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}</span></span></div>`).join("")}</div>`:"");
+  $("#e-alerts").innerHTML=`<div class="ah"><span class="eyebrow">Alertas ${deUF(ufAtual)}</span><span class="n">${A.length?pl(A.length,"sinal","sinais")+" nos dados desta edição":"nada fora do padrão nos dados desta edição"}</span></div>`+(A.length?`<div class="alist">${A.slice(0,6).map(a=>`<div class="al ${a.s}"><span class="k">${a.k}</span><span class="t">${a.t}<span class="src">${a.src}</span></span></div>`).join("")}</div>${A.length>4?`<button type="button" class="btn al-more" data-al-more="1">Ver mais ${Math.min(A.length,6)-4} sinais</button>`:""}`:"");
   const lg=liderDe(ufAtual,"governador"), ls=liderDe(ufAtual,"senador");
   $("#e-strip").innerHTML=[
     [String(nGov),"candidatos ao governo",`${u.gov.filter(c=>c.sit==="Deferido").length} com registro deferido`],
@@ -1749,7 +2185,7 @@ function drawCorridaUF(){
   const u=UF[ufAtual]; if(!u)return;
   const cargo=ufCargo, rs=rodadasDe(ufAtual,cargo).filter(r=>!ufInstOff.has(r.inst));
   const porCand={};
-  for(const r of rs){for(const p of pontosRodada(ufAtual,r)){const k=nomeChave(p);(porCand[k]=porCand[k]||{nome:p[3],cor:p[6],slug:p[5],partido:p[7],pts:[]}).pts.push({t:Date.parse(r.data),v:p[4],inst:r.inst,d:r.data,modo:r.modo});}}
+  for(const r of rs){for(const p of pontosRodada(ufAtual,r)){const k=nomeChave(p);(porCand[k]=porCand[k]||{nome:p[3],cor:corViva(p[6]),slug:p[5],partido:p[7],pts:[]}).pts.push({t:Date.parse(r.data),v:p[4],inst:r.inst,d:r.data,modo:r.modo});}}
   const tUlt=rs.length?Math.max(...rs.map(r=>Date.parse(r.data))):0;
   for(const c of Object.values(porCand)){c.pts.sort((x,y)=>x.t-y.t);c.ult=c.pts[c.pts.length-1];c.recente=tUlt-c.ult.t<=45*864e5;}
   const cands=Object.entries(porCand).sort((a,b)=>(b[1].recente-a[1].recente)||(b[1].ult.v-a[1].ult.v));
@@ -1763,7 +2199,7 @@ function drawCorridaUF(){
     return {nome:c.nome,cor:c.cor,dim,r:3.4,lw:muitos?2:1.4,sigma:muitos?14:0,linha:muitos?null:pts,pts,op:.9,rotulo:`${esc(curtoNome(c.nome))} ${fPct(c.ult.v)}%${c.recente?"":" (até "+MESES_L[new Date(c.ult.t).getUTCMonth()].slice(0,3).toLowerCase()+")"}`};
   });
   const el=$("#e-f-cands");
-  el.innerHTML=cands.slice(0,18).map(([k,c])=>`<button type="button" class="chipbtn" data-k="${esc(k)}" aria-pressed="${ufCandVis.has(k)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${c.slug?"":" (não registrado no TSE)"}${c.recente?"":" · fora das rodadas recentes"}"><i></i>${esc(curtoNome(c.nome))}${c.recente?"":" ·"}</button>`).join("")+(cands.length>18?`<span class="cap" style="margin:0;align-self:center">+${cands.length-18} nomes com menos menções</span>`:"");
+  el.innerHTML=cands.slice(0,18).map(([k,c])=>`<button type="button" class="chipbtn" data-k="${esc(k)}" aria-pressed="${ufCandVis.has(k)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${c.slug?"":" (não registrado no TSE)"}${c.recente?"":" · fora das rodadas recentes"}"><i></i>${esc(curtoNome(c.nome))}${c.recente?"":" (até "+MESES_L[new Date(c.ult.t).getUTCMonth()].slice(0,3)+")"}</button>`).join("")+(cands.length>18?`<span class="cap" style="margin:0;align-self:center">+${cands.length-18} nomes com menos menções</span>`:"");
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufCandVis.has(k)?ufCandVis.delete(k):ufCandVis.add(k);b.setAttribute("aria-pressed",ufCandVis.has(k));drawCorridaUF();}));
   if(!series.length){$("#e-ch-corrida").innerHTML=`<div class="empty"><b>Sem pontos</b>Nenhuma rodada de ${cargoLabel(cargo)} com os filtros atuais.</div>`;return;}
   const [ymax,ticks]=escalaY(series,52);
@@ -1798,7 +2234,9 @@ function draw2TUF(){
     const rod={};for(const p of ps){(rod[p[0]+"|"+p[1]]=rod[p[0]+"|"+p[1]]||{inst:p[0],data:p[1],pts:[]}).pts.push(p);}
     const rs=Object.values(rod).sort((a,b)=>b.data.localeCompare(a.data));
     const nomes=[...new Set(ps.map(p=>p[3]))];
-    return `<div class="panel" style="margin:0"><div class="ph"><h3 style="font-size:15px">${esc(par)}</h3><span class="cap" style="margin:0">${pl(rs.length,"rodada")}</span></div><div class="tablewrap" style="border:0"><table><thead><tr><th>Instituto</th><th>Campo até</th>${nomes.map(n=>`<th class="num">${esc(curtoNome(n))}</th>`).join("")}</tr></thead><tbody>${rs.map(r=>`<tr><td>${esc(r.inst)}</td><td class="dt">${dBR(r.data)}</td>${nomes.map(n=>{const p=r.pts.find(x=>x[3]===n);const mx=Math.max(...r.pts.map(x=>x[4]));const top=p&&p[4]===mx&&r.pts.filter(x=>x[4]===mx).length===1;return `<td class="num" style="${top?"font-weight:700":""}">${p?fPct(p[4])+"%":"n/d"}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+    const partes=String(par).split(/\s+[×x]\s+/i);
+    const cab=n=>{const ws=String(n).toLowerCase().split(" ");return partes.find(q=>ws.includes(q.toLowerCase()))||curtoNome(n);};
+    return `<div class="panel" style="margin:0"><div class="ph"><h3 style="font-size:15px">${esc(par)}</h3><span class="cap" style="margin:0">${pl(rs.length,"rodada")}</span></div><div class="tablewrap" style="border:0"><table><thead><tr><th>Instituto</th><th>Campo até</th>${nomes.map(n=>`<th class="num" title="${esc(n)}">${esc(cab(n))}</th>`).join("")}</tr></thead><tbody>${rs.map(r=>`<tr><td>${esc(r.inst)}</td><td class="dt">${dBR(r.data)}</td>${nomes.map(n=>{const p=r.pts.find(x=>x[3]===n);const mx=Math.max(...r.pts.map(x=>x[4]));const top=p&&p[4]===mx&&r.pts.filter(x=>x[4]===mx).length===1;return `<td class="num" style="${top?"font-weight:700":""}">${p?fPct(p[4])+"%":"n/d"}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div></div>`;
   }).join("")+`</div>`;
 }
 $("#e-fold-2t summary").addEventListener("click",()=>{$("#e-fold-2t")._manual=true;});
@@ -1811,19 +2249,20 @@ function drawPesquisasUF(){
   const comReg=rs.filter(r=>r.reg).length, prim=rs.length?rs[rs.length-1].data:null;
   $("#e-sub-pesq").innerHTML=rs.length?`${pl(rs.length,"rodada")} de ${pl(insts.length,"instituto")} desde ${dBR(prim)}, ${comReg?`${comReg} com número de registro no TSE na ficha`:"nenhuma ainda com número de registro na ficha"}. As séries vêm da compilação pública da Wikipédia, rodada a rodada, com a página e a versão citadas; a ficha técnica registrada vem da Gazeta do Povo quando existe.`:"Nenhuma rodada deste estado entrou no observatório ainda.";
   $("#e-cap-corrida").textContent=rs.length?`${pl(rs.length,"rodada")} · primeiro turno · cenário principal de cada rodada`:"";
-  const el=$("#e-f-inst");
+  const el=$("#e-f-inst");$("#e-f-n").textContent=insts.length;
   el.innerHTML=insts.map(i=>`<button type="button" class="chipbtn" data-k="${esc(i)}" aria-pressed="${!ufInstOff.has(i)}" title="Instituto">${esc(i)}</button>`).join("");
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufInstOff.has(k)?ufInstOff.delete(k):ufInstOff.add(k);b.setAttribute("aria-pressed",!ufInstOff.has(k));drawCorridaUF();}));
   drawCorridaUF(); drawRodadaUF(); draw2TUF();
   $("#e-cap-tb").textContent=`${pl(rs.length,"rodada")} de primeiro turno; a coluna fonte diz de onde vêm os números e a ficha`;
   const fmtCampo=c=>esc(String(c||"").replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"));
-  $("#e-tb-rodadas tbody").innerHTML=rs.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${esc(x.margem||"")}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(FONTE_R[x.fonte]||x.fonte)}</a>`:esc(FONTE_R[x.fonte]||x.fonte)}</td></tr>`).join("")||`<tr><td colspan="9" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
+  $("#e-tb-rodadas tbody").innerHTML=rs.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${esc(x.margem||"")}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${fonteTxt(x.fonte)}</a>`:fonteTxt(x.fonte)}</td></tr>`).join("")||`<tr><td colspan="9" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
+  {const tb=$("#e-tb-rodadas");tb.classList.toggle("sem-contratante",!rs.some(x=>x.contratante));tb.classList.toggle("sem-cenarios",!rs.some(x=>(x.ncen||1)>1));}
   const rm=rs.filter(r=>r.modo&&r.modo!=="não informada");
   const porModo={};for(const x of rm){(porModo[x.modo]=porModo[x.modo]||[]).push(x);}
   const modos=Object.keys(porModo);
   $("#e-cap-modo").textContent=modos.length>1?`${pl(rm.length,"rodada")} com modo de coleta declarado, em ${modos.length} modos: ${modos.join(", ")}. Abaixo, o mesmo candidato em cada régua.`:rm.length?`As rodadas com modo declarado são todas de coleta ${modos[0]}, então não há comparação entre modos ainda.`:"Nenhuma rodada com modo de coleta declarado na ficha ainda.";
   const nomes={};
-  for(const x of rm){for(const p of pontosRodada(ufAtual,x)){(nomes[p[3]]=nomes[p[3]]||[]).push({modo:x.modo,v:p[4],inst:x.inst,data:x.data,cor:p[6]});}}
+  for(const x of rm){for(const p of pontosRodada(ufAtual,x)){(nomes[p[3]]=nomes[p[3]]||[]).push({modo:x.modo,v:p[4],inst:x.inst,data:x.data,cor:corViva(p[6])});}}
   const comp=Object.entries(nomes).filter(([n,a])=>new Set(a.map(x=>x.modo)).size>1).slice(0,8);
   $("#e-ch-modo").innerHTML=comp.length?`<div class="hbars">`+comp.map(([n,a])=>{const byM={};for(const x of a){(byM[x.modo]=byM[x.modo]||[]).push(x.v);}const mx=Math.max(...a.map(y=>y.v));return Object.entries(byM).map(([m,vs])=>{const med=vs.reduce((s,v)=>s+v,0)/vs.length;return `<div class="hb"><span class="nm"><b>${esc(n)}</b><span class="pt">${esc(m)} · ${pl(vs.length,"rodada")}</span></span><span class="bar"><i style="width:${Math.max(1.5,med/mx*100)}%;background:${a[0].cor}"></i></span><span class="val display tnum">${fPct(med)}<small>%</small></span></div>`;}).join("");}).join("")+`</div><div class="cap">Média simples das rodadas de cada modo, por candidato.</div>`:`<div class="empty"><b>Sem comparação possível</b>É preciso ao menos duas rodadas com modos de coleta diferentes no mesmo estado, com o modo declarado na ficha.</div>`;
 }
@@ -1900,7 +2339,7 @@ function drawCandidatosUF(){
   $("#e-wall").innerHTML=lista.map(cardUF).join("");
 }
 // dossiê estadual
-function renderDossieUF(c){
+function renderDossieUF(c,cwMed=0){
   const u=UF[ufAtual], l=liderDe(ufAtual,c.cargo);
   const linhas=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).sort((a,b)=>b[2].localeCompare(a[2]));
   const rodada=r=>u.rodadas.find(x=>x.cargo===r[0]&&x.inst===r[1]&&x.data===r[2]);
@@ -1945,17 +2384,18 @@ function renderDossieUF(c){
           const ult=linhas[0], prim=linhas[linhas.length-1];
           const mm=pts.length>=3?mediaMovel(pts,14):null; const tend=mm&&mm.length>1?mm[mm.length-1].v-smoothAt(pts,14,mm[mm.length-1].t-30*864e5):null;
           const ymax=Math.max(10,Math.ceil(Math.max(...pts.map(p=>p.v))/10)*10+5);
-          const svg=pts.length>1?chartTempo({W:1000,H:230,ml:44,mr:80,ymax,ticks:[0,Math.round(ymax/2),ymax].filter((v,i,a)=>a.indexOf(v)===i),fmtY:v=>fPct(v)+"%",series:[{nome:c.nome,cor:c.cor,r:3.4,lw:2,sigma:pts.length>=3?14:0,linha:pts.length>=3?null:pts,pts,op:.9,rotulo:`${fPct(ult[4])}%`}],t0:Math.min(...pts.map(p=>p.t))-6*864e5,t1:T1,aria:`Série de ${c.nome} nas pesquisas`,cross:false}):"";
-          return `<div class="cap">${pl(linhas.length,"rodada")} de ${pl(new Set(linhas.map(p=>p[1])).size,"instituto")} entre ${dBR(prim[2])} e ${dBR(ult[2])}${tend!=null?`; tendência de 30 dias ${tend>=1?"▲ +"+fPct(tend):tend<=-1?"▼ "+fPct(tend):"estável"} na média móvel`:""}.</div>${svg}<div class="polls3">${linhas.slice(0,6).map(p=>{const r=rodada(p);return `<div class="pm"><div class="inst">${esc(p[1])} · ${dBR(p[2])}</div><div class="pct display tnum">${fPct(p[4])}<small>%</small></div>${r?`<div class="rej">${r.modo&&r.modo!=="não informada"?esc(r.modo)+" · ":""}${r.amostra?esc(r.amostra)+" entrev.":""}</div>`:""}</div>`;}).join("")}</div>${l&&l.pts.some(p=>p[5]===c.slug)?`<div class="cap" style="margin-top:8px">Na rodada mais recente aparece em ${l.pts.findIndex(p=>p[5]===c.slug)+1}º lugar entre ${l.pts.length} nomes testados${c.cargo==="senador"?", com duas vagas em disputa":""}.</div>`:""}`;})():`<p class="sit">Nenhuma rodada do observatório testou este nome até agora. Isso é comum em candidaturas de partidos pequenos e não diz nada sobre a candidatura em si: diz que o instituto não a incluiu no questionário.</p>`}</div>
+          const svg=pts.length>1?chartTempo({W:1000,H:230,ml:44,mr:80,ymax,ticks:[0,Math.round(ymax/2),ymax].filter((v,i,a)=>a.indexOf(v)===i),fmtY:v=>fPct(v)+"%",series:[{nome:c.nome,cor:c.cor,r:3.4,lw:2,sigma:pts.length>=3?14:0,linha:pts.length>=3?null:pts,pts,op:.9,rotulo:`${fPct(ult[4])}%`}],t0:Math.min(...pts.map(p=>p.t))-6*864e5,t1:T1,aria:`Série de ${c.nome} nas pesquisas`,cross:false,cw:cwMed||(MOBILE?Math.max(240,innerWidth-62):0),Hm:200}):"";
+          return `<div class="cap">${pl(linhas.length,"rodada")} de ${pl(new Set(linhas.map(p=>p[1])).size,"instituto")} entre ${dBR(prim[2])} e ${dBR(ult[2])}${tend!=null?`; tendência de 30 dias ${tend>=1?"▲ +"+fPct(tend):tend<=-1?"▼ "+fPct(tend):"estável"} na média móvel`:""}.</div><div class="chart">${svg}</div><div class="polls3">${linhas.slice(0,6).map(p=>{const r=rodada(p);return `<div class="pm"><div class="inst">${esc(p[1])} · ${dBR(p[2])}</div><div class="pct display tnum">${fPct(p[4])}<small>%</small></div>${r?`<div class="rej">${r.modo&&r.modo!=="não informada"?esc(r.modo)+" · ":""}${r.amostra?esc(r.amostra)+" entrev.":""}</div>`:""}</div>`;}).join("")}</div>${l&&l.pts.some(p=>p[5]===c.slug)?`<div class="cap" style="margin-top:8px">Na rodada mais recente aparece em ${l.pts.findIndex(p=>p[5]===c.slug)+1}º lugar entre ${l.pts.length} nomes testados${c.cargo==="senador"?", com duas vagas em disputa":""}.</div>`:""}`;})():`<p class="sit">Nenhuma rodada do observatório testou este nome até agora. Isso é comum em candidaturas de partidos pequenos e não diz nada sobre a candidatura em si: diz que o instituto não a incluiu no questionário.</p>`}</div>
       </div>
       <div class="box"><h4>A disputa ${emUF(ufAtual)}</h4><div class="cap">Rodada mais recente de ${c.cargo==="senador"?"Senado":"governo"}${l?`: ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}.</div>${barrasRodada(ufAtual,c.cargo)}</div>
+      <div class="foot-acts"><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button></div>
       <div class="foot"><span>Fontes: TSE DivulgaCandContas (registro, partido, coligação e situação, consulta de 2/9/2026)${linhas.length?`; pesquisas pela compilação pública da Wikipédia conferida com as divulgações, ficha técnica registrada pela Gazeta do Povo quando existe`:""}.</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 function openDossieUF(slug,opener){
   const c=candPorSlug(slug); if(!c)return;
   dz._opener=opener||document.activeElement; dz.dataset.nome=""; dz.innerHTML=renderDossieUF(c); bindTips(dz);
-  if(!dz.open)dz.showModal(); dz.scrollTop=0;
+  if(!dz.open)dz.showModal(); dz.scrollTop=0;encaixarDossie(cw=>renderDossieUF(c,cw));ajustarRotulos(dz);
 }
 // lado a lado estadual
 const CRIT_UF=[
@@ -1986,7 +2426,7 @@ function renderLadoUFControls(){
 }
 function renderLadoUF(){
   const cs=ufLado.filter(Boolean).map(candPorSlug).filter(Boolean);
-  const el=$("#e-lado");
+  const el=$("#e-lado-mesa");
   if(cs.length<2){el.innerHTML=`<div class="empty"><b>Falta gente na mesa</b>Escolha pelo menos dois candidatos deste estado.</div>`;return;}
   let h=`<div class="lado" style="--n:${cs.length}"><div class="h lbl">Critério</div>`+cs.map(c=>`<div class="h"><span><span class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</span></span><span class="who display">${esc(c.nome)}</span><span class="party">${esc(c.partido)} · <a href="#" data-edossie="${esc(c.slug)}">dossiê</a></span></div>`).join("");
   let g="";
@@ -2009,7 +2449,7 @@ function drawPartidosUF(){
   const rows=Object.entries(porPart).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
   const max=Math.max(...rows.map(r=>r[1].length),1);
   $("#e-sub-part").innerHTML=`${pl(rows.length,"partido lança","partidos lançam")} candidatura própria ${emUF(ufAtual)}: ${u.gov.length} ao governo e ${u.sen.length} ao Senado, distribuídos em ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}.`;
-  $("#e-ch-part").innerHTML=`<div class="bars">`+rows.map(([p,cs])=>`<div class="brow"><span class="lab"><b>${esc(p)}</b></span><span class="bar"><i style="width:${Math.round(cs.length/max*100)}%;--bc:${cs[0].cor}"></i></span><span class="val">${cs.length}</span></div><div class="cap" style="margin:-2px 0 6px 132px">${cs.map(c=>`<span class="tag">${esc(c.nome)} · ${c.cargo==="senador"?"Senado":"Gov"} ${esc(c.num)}</span>`).join(" ")}</div>`).join("")+`</div>`;
+  $("#e-ch-part").innerHTML=`<div class="bars">`+rows.map(([p,cs])=>`<div class="brow"><span class="lab"><b>${esc(p)}</b></span><span class="bar"><i style="width:${Math.round(cs.length/max*100)}%;--bc:${cs[0].cor}"></i></span><span class="val">${cs.length}</span></div><div class="cap brow-cands">${cs.map(c=>`<span class="tag">${esc(c.nome)} · ${c.cargo==="senador"?"Senado":"Gov"} ${esc(c.num)}</span>`).join(" ")}</div>`).join("")+`</div>`;
   const cols=Object.entries(u.colig);
   $("#e-ch-colig").innerHTML=cols.length?`<div class="bars">`+cols.sort((a,b)=>b[1].length-a[1].length).map(([nome,parts])=>{
     const cands=todos.filter(c=>c.colig===nome);
@@ -2036,11 +2476,11 @@ function drawTempoUF(){
 }
 function drawMetodoUF(){
   const ABR=["Gov.","Senado","Coligações","Pesq. gov.","Pesq. senado","Registro TSE","2º turno","Perfil TSE","Busca no Google","Wikipédia","Instagram"];
-  $("#e-ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Estado</th>${ABR.map(a=>`<th>${a}</th>`).join("")}<th>Total</th></tr></thead><tbody>${UFLIST.map(k=>{
+  $("#e-ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Estado</th><th>Total</th>${ABR.map(a=>`<th>${a}</th>`).join("")}</tr></thead><tbody>${UFLIST.map(k=>{
     const u=UF[k], rg=rodadasDe(k,"governador"), rs=rodadasDe(k,"senador");
     const Bq=u.busca||{}, todos=[...u.gov,...u.sen];
     const ok=[u.gov.length>0,u.sen.length>0,Object.keys(u.colig).length>0,rg.length>0,rs.length>0,u.rodadas.some(r=>r.reg),(u.rodadas2||[]).length>0,todos.some(c=>c.ext),!!(Bq.tr&&Object.keys(Bq.tr).length),!!(Bq.wk&&Object.keys(Bq.wk).length),!!(Bq.ig&&Object.values(Bq.ig).some(x=>x.n!=null))];
-    return `<tr${k===ufAtual?' style="font-weight:600"':''}><td><a href="#" data-goto-uf="${k}">${esc(u.nome)}</a></td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(ABR[i])}"></i></td>`).join("")}<td class="tot">${ok.filter(Boolean).length}/${ok.length}</td></tr>`;}).join("")}</tbody></table></div>`;
+    return `<tr${k===ufAtual?' style="font-weight:600"':''}><td><a href="#" data-goto-uf="${k}">${esc(u.nome)}</a></td><td class="tot">${ok.filter(Boolean).length}/${ok.length}</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(ABR[i])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
   const nR=Object.values(UF).reduce((s,u)=>s+u.rodadas.length,0), nI=new Set(Object.values(UF).flatMap(u=>u.rodadas.map(r=>r.inst))).size, nReg=Object.values(UF).reduce((s,u)=>s+u.rodadas.filter(r=>r.reg).length,0), n2=Object.values(UF).reduce((s,u)=>s+(u.rodadas2||[]).length,0);
   $("#e-notes").innerHTML=`<p><b>Candidaturas.</b> Todas as 510 candidaturas a governo e Senado dos 27 estados vêm da API pública do TSE DivulgaCandContas (eleição 20322002026), consultada em 2 de setembro de 2026: nome de urna, nome completo, número, partido, coligação e situação do registro. A situação muda enquanto os tribunais julgam, então ela é relida a cada rodada de coleta.</p>
 <p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, mais ${n2} confrontos de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base; ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o que mais coincide com as candidaturas registradas; os demais ficam no seletor de cenário. Rodadas de institutos diferentes nunca são somadas nem ponderadas; a média móvel de cada candidato é só um guia de leitura.</p>
@@ -2051,6 +2491,7 @@ function drawMetodoUF(){
 function desenharUF(){
   if(!UF[ufAtual])return;
   drawMapa();drawGeralUF();drawPesquisasUF();drawBuscaUF();drawCandidatosUF();drawPartidosUF();drawTempoUF();drawMetodoUF();
+  if(INICIADO)atualizarCarimbos();
   requestAnimationFrame(()=>rolarFim());
   document.querySelectorAll(".btn.star[data-efoco]").forEach(b=>{const on=(prefs.focoUF||[]).includes(b.dataset.efoco);b.setAttribute("aria-pressed",on);b.innerHTML=`<span class="glyph" aria-hidden="true">${on?"★":"☆"}</span>${on?"Em foco":"Pôr em foco"}`;});
 }
@@ -2072,14 +2513,18 @@ function trocarCargoUF(c,push=true){
   ufCargoCards=ufCargo; $$("#v-e-candidatos .seg button[data-ecargo]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.ecargo===ufCargo));
   ufRodada=null; ufCen=null; ufInstOff=new Set(); ufCandVis=null; ufTrVis=null; ufLado=ladoPadraoUF(ufAtual);
   renderLadoUFControls(); renderLadoUF(); desenharUF();
+  if(INICIADO)atualizarCarimbos();
   if(push)rotaUF();
 }
 function rotaUF(){try{history.replaceState(null,"",`#uf-${ufAtual}${ufCargo==="senador"?"-senado":""}${abaAtual&&abaAtual!=="e-geral"?"-"+abaAtual.replace(/^e-/,""):""}`);}catch(e){}}
 // eventos do módulo
 $("#uf-sel").addEventListener("change",e=>trocarUF(e.target.value));
-$("#mapa-svg").addEventListener("click",e=>{const b=e.target.closest("[data-uf]");if(b)trocarUF(b.dataset.uf);});
+$("#mapa-svg").addEventListener("click",e=>{tip.classList.remove("on");const b=e.target.closest("[data-uf]");if(b)trocarUF(b.dataset.uf);});
 $("#mapa-svg").addEventListener("keydown",e=>{const b=e.target.closest("[data-uf]");if(b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();trocarUF(b.dataset.uf);}});
-$("#mapa-sel").addEventListener("click",e=>{const b=e.target.closest("[data-goto-aba]");if(b)irPara(b.dataset.gotoAba);});
+$("#mapa-sel").addEventListener("click",e=>{const b=e.target.closest("[data-goto-aba]");if(b){e.preventDefault();irPara(b.dataset.gotoAba);}});
+// "Mapa do Brasil" no subnível: abre a Visão geral do estado e rola até o mapa, abrindo a dobra se estiver fechada
+$("#ufb-mapa").addEventListener("click",e=>{e.preventDefault();if(abaAtual!=="e-geral")irPara("e-geral");const m=$("#mapa");if(!m.open)m.open=true;
+  const y=m.getBoundingClientRect().top+scrollY-$("#nav-band").offsetHeight-12;window.scrollTo({top:Math.max(0,y),behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});});
 $$("#ufbar .seg button[data-cargo]").forEach(b=>b.addEventListener("click",()=>trocarCargoUF(b.dataset.cargo)));
 $$("#v-e-candidatos .seg button[data-ecargo]").forEach(b=>b.addEventListener("click",()=>{ufCargoCards=b.dataset.ecargo;$$("#v-e-candidatos .seg button[data-ecargo]").forEach(x=>x.setAttribute("aria-pressed",x===b));drawCandidatosUF();}));
 $("#e-sort").addEventListener("change",drawCandidatosUF);
@@ -2091,21 +2536,70 @@ document.addEventListener("click",e=>{
   const g=e.target.closest("[data-goto-uf]");if(g){e.preventDefault();trocarUF(g.dataset.gotoUf);irPara("e-geral");}
 });
 
+// ---- link copiável (dossiê e cabeçalhos de seção): origem + caminho + hash; em file:// fica o href sem o hash
+function copiarLink(hash,msg){const base=(location.origin&&location.origin!=="null")?location.origin+location.pathname:location.href.split("#")[0];const url=base+hash;(navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>avisar(msg||"Link copiado"),()=>avisar(url));}
+// ---- rodapé: marca em --band-ink (clone do masthead), editorias nacionais e os 27 estados
+function montarRodape(){
+  const bf=$("#brand-f");if(bf){const svg=$(".brand svg.mark").cloneNode(true);svg.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));svg.removeAttribute("role");svg.setAttribute("aria-hidden","true");bf.innerHTML="";bf.appendChild(svg);bf.insertAdjacentHTML("beforeend",`<span class="m2f">dos Candidatos</span>`);}
+  $("#foot-editorias").innerHTML=ABAS_BR.map(([id,t])=>`<li><a href="#${id}">${esc(t)}</a></li>`).join("");
+  $("#foot-estados").innerHTML=UFLIST.map(k=>`<li><a href="#uf-${k.toLowerCase()}-governo" title="${esc(UF[k].nome)}">${k}</a></li>`).join("");
+}
+// ---- cabeçalhos de seção: carimbo dos dados e "Copiar link" à direita; fecho gerado em irPara
+function carimboDe(id){
+  const M=DATA.meta;
+  if(id.startsWith("e-")){const u=UF[ufAtual];if(!u)return "";const rs=u.rodadas,insts=new Set(rs.map(r=>r.inst)).size,B=u.busca||{};
+    switch(id){
+      case "e-pesquisas":{const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;return rc.length?`${pl(rc.length,"rodada")} · ${pl(ic,"instituto")} · até ${dBR(rc[0].data)}`:"sem rodada no observatório";}
+      case "e-busca":return B.data?`coleta própria em ${dBR(B.data)}`:"coleta própria";
+      case "e-candidatos":return `${pl(u.gov.length+u.sen.length,"candidatura")} · TSE`;
+      case "e-lado":return `${CRIT_UF.length} critérios · ${pl(u.gov.length+u.sen.length,"nome")}`;
+      case "e-partidos":return `${pl(new Set([...u.gov,...u.sen].map(c=>c.partido)).size,"partido")} · ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`;
+      case "e-tempo":return `${pl(rs.length,"rodada")} · calendário do TSE`;
+      case "e-metodo":return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}`;
+    }return "";}
+  switch(id){
+    case "pesquisas":return `${M.rodadas} rodadas · ${M.institutos} institutos · até ${dBR(M.ultima)}`;
+    case "busca":{const t=sMMDD(DATA.trends["Lula"]).pop(),w=sMMDD(DATA.wiki["Lula"]).pop(),ig=Object.values(DATA.ig).flat().map(p=>p.d).filter(d=>d<=HOJE).sort().pop();return [t?`Trends até ${dBR(dISO(t.t))}`:"",w?`Wikipédia até ${dBR(dISO(w.t))}`:"",ig?`Instagram ${dBR(ig)}`:""].filter(Boolean).join(" · ");}
+    case "candidatos":return `${C.length} registrados · ${nDef} deferidos · TSE`;
+    case "lado":return `${CRIT.length} critérios · até ${dBR(ULT)}`;
+    case "partidos":return `${DATA.partidos.length} partidos · FEFC ${fBRL(fefcTot)}`;
+    case "tempo":{const u=TL.filter(e=>e.data<=HOJE).map(e=>e.data).sort().pop();return `${TL.length} eventos${u?` · último em ${dBR(u)}`:""}`;}
+    case "metodo":return `${M.institutos} institutos · 10 fontes por candidato`;
+  }return "";
+}
+function montarSecoes(){
+  $$(".view").forEach(v=>{const id=v.id.slice(2);const bh=v.querySelector(":scope>.blkhead");if(!bh)return;
+    let r=bh.querySelector(":scope>.right");if(!r){r=document.createElement("div");r.className="right";bh.appendChild(r);}
+    r.insertAdjacentHTML("beforeend",`<span class="stamp-dt" data-carimbo="${id}"></span><button type="button" class="copy" data-copy-sec="${id}">Copiar link</button>`);});
+  document.addEventListener("click",e=>{const b=e.target.closest("[data-copy-sec]");if(b)copiarLink(hashDe(b.dataset.copySec),"Link da editoria copiado");});
+}
+function atualizarCarimbos(){$$("[data-carimbo]").forEach(el=>{el.textContent=carimboDe(el.dataset.carimbo);});}
 // ---- desenho geral
-function redraw(){aplicarJanela();drawRegua();drawDestaques();drawAlertas();drawRedesHoje();drawPartidosBarras();drawCorrida();draw2T();drawRej();drawModo();drawBusca();renderWall();drawBens();renderLadoControls();renderLado();renderTL();requestAnimationFrame(()=>rolarFim());}
+function redraw(){aplicarJanela();drawRegua();drawDestaques();drawAlertas();drawRedesHoje();drawPartidosBarras();drawCorrida();draw2T();drawRej();drawModo();drawBusca();renderWall();drawBens();renderLadoControls();renderLado();renderTL();atualizarCarimbos();requestAnimationFrame(()=>rolarFim());}
 function aplicarTudo(){aplicarAparencia();aplicarJanela();}
 aplicarTudo();
+// todo painel com título solto ganha a linha .ph, que recebe o carimbo de data e as ferramentas de janela
+$$(".panel>h3").forEach(h=>{const ph=document.createElement("div");ph.className="ph";h.replaceWith(ph);ph.appendChild(h);});
 chipRow($("#f-cands"),OITO,candOn,drawCorrida,true);
-chipRow($("#f-inst"),DATA.institutos,instOn,drawCorrida,false);
+chipRow($("#f-inst"),DATA.institutos,instOn,drawCorrida,false);$("#f-n").textContent=DATA.institutos.length+MODOS.length;
 (()=>{const el=$("#f-modos");el.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="true" style="--chipc:${c}" title="Modo de coleta"><i></i>${esc(m)}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modoOn.has(k)?modoOn.delete(k):modoOn.add(k);b.setAttribute("aria-pressed",modoOn.has(k));drawCorrida();}));})();
 chipsModo();drawVies();drawPartidos();drawMetodo();renderCal();
 lado=ladoPadrao();
 atualizarFoco();
-drawUFSel();trocarUF(ufAtual);
-// no celular o mapa começa fechado: a barra de estado não pode ocupar a tela inteira
-if(matchMedia("(max-width:760px)").matches && prefs.mapa!==true)$("#mapa").open=false;
-$("#mapa").addEventListener("toggle",()=>{prefs.mapa=$("#mapa").open;salvar();});
+drawUFSel();trocarUF(ufAtual,false);
+// no celular o mapa começa fechado e a escolha não é guardada; no desktop vale o que foi guardado
+if(matchMedia("(max-width:760px)").matches)$("#mapa").open=false;else if(prefs.mapa===false)$("#mapa").open=false;
+$("#mapa").addEventListener("toggle",()=>{if(!MOBILE){prefs.mapa=$("#mapa").open;salvar();}});
+montarRodape();montarSecoes();
 rotear();
+INICIADO=true;
+atualizarCarimbos();
+if(TOQUE){const mc=$("#mapa-como");if(mc)mc.textContent="Toque num estado para ver os números e abrir a disputa.";}
+ajustarTabs();
+document.addEventListener("click",e=>{const m=e.target.closest("[data-al-more]");if(m){const l=m.previousElementSibling;if(l)l.classList.add("todos");m.remove();}});
+// ao mudar de largura (celular gira, janela muda de faixa) os gráficos são redesenhados, com 150 ms de espera
+let _rsT,_rsW=innerWidth;
+addEventListener("resize",()=>{clearTimeout(_rsT);_rsT=setTimeout(()=>{if(innerWidth===_rsW)return;_rsW=innerWidth;MOBILE=matchMedia("(max-width:760px)").matches;redraw();if(escopo==="uf")desenharUF();centrarAba();},150);});
 </script>
 </body>
 </html>
