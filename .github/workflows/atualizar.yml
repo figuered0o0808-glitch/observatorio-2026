@@ -1,0 +1,294 @@
+# Atualização automática do Mural dos Candidatos, duas vezes por dia.
+#
+# De um runner hospedado do GitHub só a Wikipédia responde (a sonda de rede
+# provou que TSE, Google Trends e Instagram devolvem 403, 429 e 401), então
+# cada rodada faz o seguinte: acrescenta as rodadas presidenciais novas que a
+# Wikipédia compila, relê as páginas estaduais de pesquisas cuja revisão
+# mudou, acrescenta os acessos diários aos verbetes, regenera o mural, confere
+# as regras de dado e roda os dois testes Playwright. Só então commita, e só
+# se algum dado mudou: quando a única diferença seria a hora do mural e o
+# carimbo de coleta do dump estadual, a rodada encerra sem commitar. Um
+# coletor que falha derruba o job antes do commit, para dado parcial nunca ir
+# ao ar.
+#
+# A publicação no Pages repete os passos de publicar.yml, porque um push
+# feito com o GITHUB_TOKEN não dispara aquele workflow. Trends, Instagram e
+# TSE continuam na rotina manual do Mac; por isso _integrar_busca.py não roda
+# aqui (regravaria esses arquivos a partir de dumps velhos).
+name: Atualizar o mural
+
+on:
+  schedule:
+    # 8h e 20h de Brasília (UTC-3); a Wikimedia fecha a véspera por volta das 6h UTC
+    - cron: '0 11,23 * * *'
+  workflow_dispatch:
+    inputs:
+      desde:
+        description: 'Primeiro dia da janela de acessos aos verbetes (AAAA-MM-DD). Vazio usa a janela padrão dos últimos quatro dias.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  PLAYWRIGHT_VERSION: '1.55.0'
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Hora de Brasília desta rodada
+        id: hora
+        run: |
+          python3 - <<'EOF' | tee -a "$GITHUB_OUTPUT"
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          t = datetime.now(ZoneInfo("America/Sao_Paulo"))
+          meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+                   "agosto", "setembro", "outubro", "novembro", "dezembro"]
+          print(f"atualizado={t.day} de {meses[t.month - 1]} de {t.year}, {t.hour}h{t.minute:02d} de Brasília")
+          EOF
+
+      - name: Restaurar o Chromium do Playwright do cache
+        id: cache-chromium
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Instalar o Playwright e o Chromium
+        run: |
+          python3 -m pip install --quiet "playwright==${PLAYWRIGHT_VERSION}"
+          python3 -m playwright install --with-deps chromium
+
+      - name: Guardar o Chromium no cache
+        if: steps.cache-chromium.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+
+      # A curadoria manual de pesquisas-registradas.csv vai até 1/9/2026; a
+      # automação assume dali em diante. Rodadas anteriores que a Wikipédia
+      # tenha e o arquivo não (Palver 3-7/8, Veritá 16-20/8, Vox Brasil 25-27/8)
+      # ficam para decisão editorial, não entram sozinhas.
+      - name: Pesquisas presidenciais novas na Wikipédia
+        run: |
+          mkdir -p "$RUNNER_TEMP/coleta"
+          python3 coleta/wikipedia_pesquisas_nacional.py --desde 2026-09-01 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-nacional.log"
+
+      - name: Páginas estaduais de pesquisas cuja revisão mudou
+        run: python3 coleta/wikipedia_pesquisas_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-estados.log"
+
+      - name: Reprocessar e consolidar as pesquisas estaduais
+        run: |
+          python3 dados/estados/_parse_wiki.py 2>&1 | tee "$RUNNER_TEMP/coleta/parse-wiki.log"
+          python3 dados/estados/_consolidar_pesquisas.py 2>&1 | tee "$RUNNER_TEMP/coleta/consolidar.log"
+
+      - name: Acessos diários aos verbetes
+        env:
+          DESDE: ${{ inputs.desde }}
+        run: |
+          args=()
+          if [ -n "$DESDE" ]; then
+            args+=(--desde "$DESDE")
+          fi
+          python3 coleta/wikipedia_pageviews.py "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/coleta/pageviews.log"
+
+      - name: Regenerar o mural
+        env:
+          MURAL_ATUALIZADO: ${{ steps.hora.outputs.atualizado }}
+        run: python3 mural/_gerar_mural.py 2>&1 | tee "$RUNNER_TEMP/coleta/gerar-mural.log"
+
+      - name: Conferir as regras de dado
+        run: python3 testes/guarda_dados.py
+
+      # Os dois testes rodam sempre, mesmo que o primeiro falhe, para o log de
+      # cada rodada trazer o diagnóstico completo; o passo seguinte consolida.
+      - name: Regressão de bugs já corrigidos
+        id: regressao
+        continue-on-error: true
+        run: python3 testes/regressao_bugs_conhecidos.py 2>&1 | tee "$RUNNER_TEMP/coleta/regressao.log"
+
+      - name: Varredura geral do mural
+        id: varredura
+        continue-on-error: true
+        run: python3 testes/varredura_geral.py 2>&1 | tee "$RUNNER_TEMP/coleta/varredura.log"
+
+      - name: Resultado consolidado dos testes
+        env:
+          REGRESSAO: ${{ steps.regressao.outcome }}
+          VARREDURA: ${{ steps.varredura.outcome }}
+        run: |
+          echo "regressão: $REGRESSAO; varredura: $VARREDURA"
+          if [ "$REGRESSAO" != "success" ] || [ "$VARREDURA" != "success" ]; then
+            echo "::error::Algum teste do mural falhou; nada será commitado nem publicado."
+            exit 1
+          fi
+
+      - name: Commitar dados e mural
+        id: commit
+        env:
+          ATUALIZADO: ${{ steps.hora.outputs.atualizado }}
+          LOGS: ${{ runner.temp }}/coleta
+        run: |
+          # O coletor estadual regrava o dump a cada rodada com um 'coletado' novo,
+          # mesmo quando nenhuma página mudou de revisão. Carimbo não é dado: se o
+          # resto do arquivo é igual ao de HEAD, ele volta ao que era e não conta.
+          python3 - <<'EOF'
+          import json, subprocess
+          dump = "dados/estados/_wiki-pesquisas-estados.json"
+          em_head = subprocess.run(["git", "show", "HEAD:" + dump], capture_output=True)
+          if em_head.returncode == 0 and subprocess.run(["git", "diff", "--quiet", "HEAD", "--", dump]).returncode != 0:
+              antes = json.loads(em_head.stdout.decode("utf-8"))
+              with open(dump, encoding="utf-8") as f:
+                  depois = json.load(f)
+              sem_carimbo = lambda d: {k: v for k, v in d.items() if k != "coletado"}
+              if sem_carimbo(antes) == sem_carimbo(depois):
+                  subprocess.run(["git", "checkout", "--", dump], check=True)
+                  print("%s: só o carimbo 'coletado' mudou (%s -> %s); o arquivo volta ao de HEAD."
+                        % (dump, antes.get("coletado"), depois.get("coletado")))
+          EOF
+          if [ -z "$(git status --porcelain -- dados/)" ]; then
+            echo "Nenhum dado mudou nesta rodada; só a hora do mural mudaria. Nada a commitar."
+            echo "Rodada de $ATUALIZADO: nenhum dado novo, nada commitado." >> "$GITHUB_STEP_SUMMARY"
+            echo "commitou=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dados/ index.html mural/mural.html
+          python3 - <<'EOF' > "$RUNNER_TEMP/mensagem.txt"
+          import os, re, subprocess, textwrap
+
+          logs = os.environ["LOGS"]
+          atualizado = os.environ["ATUALIZADO"]
+
+          def linhas(nome):
+              caminho = os.path.join(logs, nome + ".log")
+              if not os.path.exists(caminho):
+                  return []
+              with open(caminho, encoding="utf-8", errors="replace") as f:
+                  return f.read().splitlines()
+
+          def acha(ls, padrao):
+              for l in ls:
+                  m = re.search(padrao, l)
+                  if m:
+                      return m
+              return None
+
+          def plural(n, um, varios):
+              return "%d %s" % (n, um if n == 1 else varios)
+
+          # o que cada coletor imprimiu no fim: entra no assunto como contagem e no corpo como está
+          partes, detalhes = [], []
+          nac = linhas("pesquisas-nacional")
+          m = acha(nac, r"(\d+) rodadas? \(\d+ linhas?\) acrescentad")
+          if m and int(m.group(1)):
+              partes.append(plural(int(m.group(1)), "rodada presidencial nova", "rodadas presidenciais novas"))
+          detalhes += [l for l in nac if re.search(r"acrescentad|nada a acrescentar", l)]
+
+          est = linhas("pesquisas-estados")
+          m = acha(est, r"reparseada (\d+)")
+          if m and int(m.group(1)):
+              partes.append(plural(int(m.group(1)), "página estadual relida", "páginas estaduais relidas"))
+          detalhes += [l for l in est if l.startswith(("resumo:", "gravado "))]
+          detalhes += [re.sub(r"\s*->\s*\S+$", "", l) for l in linhas("consolidar") if " rodadas | " in l]
+
+          pv = linhas("pageviews")
+          acessos = 0
+          for padrao in (r"wikipedia-pageviews\.csv: (\d+) linhas? acrescentad",
+                         r"wikipedia-estados\.csv: (\d+) linhas? acrescentad"):
+              m = acha(pv, padrao)
+              if m:
+                  acessos += int(m.group(1))
+          if acessos:
+              partes.append(plural(acessos, "linha de acessos aos verbetes", "linhas de acessos aos verbetes"))
+          detalhes += [l for l in pv if "acrescentad" in l]
+          # os coletores imprimem caminhos absolutos do runner; no histórico basta o relativo
+          raiz = os.environ.get("GITHUB_WORKSPACE") or os.getcwd()
+          detalhes = [l.replace(raiz.rstrip("/") + "/", "") for l in detalhes]
+
+          # o que de fato mudou em dados/, pelo git, serve de conferência e de reserva
+          numstat = subprocess.run(["git", "diff", "--cached", "--numstat", "--", "dados/"],
+                                   capture_output=True, text=True, check=True).stdout
+          arquivos = []
+          for l in numstat.splitlines():
+              mais, menos, caminho = l.split("\t", 2)
+              arquivos.append("%s: +%s/-%s linhas" % (caminho, mais, menos))
+          if not partes:
+              partes.append(plural(len(arquivos), "arquivo de dados alterado", "arquivos de dados alterados"))
+
+          testes = []
+          for nome, rotulo in (("regressao", "regressão"), ("varredura", "varredura")):
+              m = acha(linhas(nome), r"^(\d+) OK, (\d+) FAIL$")
+              if m:
+                  testes.append("%s %s OK, %s FAIL" % (rotulo, m.group(1), m.group(2)))
+
+          print("Atualização automática de %s: %s" % (atualizado, ", ".join(partes)))
+          print()
+          print(textwrap.fill("Coleta pela Wikipédia num runner do GitHub Actions (pesquisas presidenciais "
+                              "compiladas, páginas estaduais de pesquisas e acessos aos verbetes), mural "
+                              "regenerado, regras de dado conferidas e testes verdes antes do commit"
+                              + (" (%s)." % "; ".join(testes) if testes else "."), width=72))
+          if detalhes:
+              print()
+              print("\n".join(detalhes))
+          if arquivos:
+              print()
+              print("\n".join(arquivos))
+          EOF
+          cat "$RUNNER_TEMP/mensagem.txt"
+          git commit -F "$RUNNER_TEMP/mensagem.txt"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+          { echo '```'; cat "$RUNNER_TEMP/mensagem.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          echo "commitou=true" >> "$GITHUB_OUTPUT"
+
+      # Publicação no Pages, igual a publicar.yml: só quando houve commit nesta
+      # rodada ou quando alguém disparou o workflow à mão.
+      - name: Separar o que o site serve
+        if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          mkdir -p site/mural/logo
+          cp index.html site/index.html
+          cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          touch site/.nojekyll
+
+      - name: Preparar o Pages
+        if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/configure-pages@v5
+
+      - name: Enviar o site como artefato
+        if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicar no Pages
+        id: publicacao
+        if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/deploy-pages@v4

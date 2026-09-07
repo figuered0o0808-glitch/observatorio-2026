@@ -9,8 +9,9 @@ divulgação) fica em branco. A data de referência é o último dia de campo.
 """
 import json, re, csv, sys, os, unicodedata
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "/home/claude/observatorio-2026/dados/estados/_wiki-pesquisas-estados.json"
-OUT = "/home/claude/observatorio-2026/dados/estados/pesquisas-estados-wiki.csv"
+AQUI = os.path.dirname(os.path.abspath(__file__))
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(AQUI, "_wiki-pesquisas-estados.json")
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(AQUI, "pesquisas-estados-wiki.csv")
 
 UF_DE_TITULO = {
     "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA", "Ceará": "CE", "Distrito Federal": "DF",
