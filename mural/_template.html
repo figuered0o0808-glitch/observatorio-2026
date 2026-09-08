@@ -117,14 +117,16 @@ button{font:inherit}
 .tema-btn .sol,.tema-btn .lua{display:none}
 .tema-btn[data-modo="claro"] .lua{display:block}
 .tema-btn[data-modo="escuro"] .sol{display:block}
-#b-prefs{height:34px;padding:0 12px}
+#b-prefs,#b-share{height:34px;padding:0 12px}
+/* o rótulo "Compartilhar" só cabe no masthead largo; abaixo disso o botão vira ícone */
+@media (max-width:1180px){#b-share{width:34px;padding:0;justify-content:center}#b-share .lbl{display:none}#b-share .glyph{font-size:16px}}
 /* tablet (761 a 1000px): edição curta e Personalizar como ícone, como no celular, para o masthead de 64px caber sem transbordar */
 @media (min-width:761px) and (max-width:1000px){
   .ed .ed-l,.ed b{display:none}
   .ed .ed-s{display:inline;color:var(--ink);font-weight:600}
-  #b-prefs{width:34px;padding:0;justify-content:center}
-  #b-prefs .lbl{display:none}
-  #b-prefs .glyph{font-size:16px}
+  #b-prefs,#b-share{width:34px;padding:0;justify-content:center}
+  #b-prefs .lbl,#b-share .lbl{display:none}
+  #b-prefs .glyph,#b-share .glyph{font-size:16px}
 }
 /* navegação: faixa fixa de 48px com o escopo como primeiro nível e as oito editorias ao lado */
 .nav-band{position:sticky;top:0;z-index:6;background:var(--paper);border-bottom:2px solid var(--ink)}
@@ -405,6 +407,26 @@ td .desc{display:block;color:var(--ink-2);font-size:12.5px;margin-top:3px;max-wi
 /* dossiê */
 dialog.dossie{width:min(1080px,calc(100vw - 24px));max-height:calc(100dvh - 24px);border:0;overscroll-behavior:contain;border-radius:4px;padding:0;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
 dialog::backdrop{background:rgba(15,16,19,.7)}
+/* ---- compartilhar: as mensagens já saem prontas com o número do dia */
+dialog.share{width:min(660px,calc(100vw - 24px));max-height:calc(100dvh - 24px);border:0;border-radius:4px;padding:0;background:var(--paper);color:var(--ink);box-shadow:0 24px 60px rgba(15,16,19,.28);overscroll-behavior:contain}
+dialog.share .sh{display:flex;flex-direction:column;max-height:calc(100dvh - 24px)}
+dialog.share .shead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 14px;border-bottom:1px solid var(--line)}
+dialog.share .shead h2{margin:0;font-size:24px;line-height:1.1}
+dialog.share .shead .cap{margin:4px 0 0}
+dialog.share .sbody{padding:16px 22px 8px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+dialog.share .sfoot{padding:12px 22px 18px;border-top:1px solid var(--line);color:var(--ink-2);font-size:13px}
+dialog.share .msg{border:1px solid var(--line);border-radius:3px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;background:var(--ground)}
+dialog.share .msg .rot{font-family:Archivo,"Arial Narrow",sans-serif;font-variation-settings:"wdth" 82,"wght" 700;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+dialog.share .msg p{margin:0;font-size:15px;line-height:1.5;white-space:pre-line;word-break:break-word}
+dialog.share .msg .acts{display:flex;flex-wrap:wrap;gap:8px}
+dialog.share .msg .acts .btn{min-height:36px}
+dialog.share .esc{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:0 22px 6px}
+dialog.share .esc .lbl{font-size:13px;color:var(--ink-2)}
+@media (max-width:760px){
+  dialog.share{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding-bottom:env(safe-area-inset-bottom)}
+  dialog.share .sh{height:100dvh;max-height:100dvh}
+  dialog.share .shead{position:sticky;top:0;background:var(--paper);z-index:2}
+}
 .dz{display:flex;flex-direction:column}
 .dz .top{position:sticky;top:0;z-index:2;background:var(--band);color:var(--band-ink);border-top:4px solid var(--red-deep);padding:16px 22px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
 .dz .top .n{background:var(--band-ink);color:var(--band);font-size:30px;line-height:1;padding:12px 10px;min-width:58px;text-align:center;border-radius:4px}
@@ -766,10 +788,10 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   .ed .ed-l,.ed b{display:none}
   .ed .ed-s{display:inline;color:var(--ink);font-weight:600}
   .tema-btn{width:36px;height:36px;position:relative}
-  #b-prefs{width:36px;height:36px;min-height:0;padding:0;justify-content:center;position:relative}
-  .tema-btn::before,#b-prefs::before{content:"";position:absolute;inset:-3px} /* área de toque de 42px */
-  #b-prefs .lbl{display:none}
-  #b-prefs .glyph{font-size:17px}
+  #b-prefs,#b-share{width:36px;height:36px;min-height:0;padding:0;justify-content:center;position:relative}
+  .tema-btn::before,#b-prefs::before,#b-share::before{content:"";position:absolute;inset:-3px} /* área de toque de 42px */
+  #b-prefs .lbl,#b-share .lbl{display:none}
+  #b-prefs .glyph,#b-share .glyph{font-size:17px}
   /* navegação em duas linhas: o escopo como segmentado (36px) e as editorias rolando (44px) */
   .tabs{flex-wrap:wrap;height:auto;gap:0}
   .tabs .scope{flex:1 1 100%;height:36px;align-items:center;gap:0}
@@ -878,7 +900,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="mast-r">
     <span class="ed"><span class="ed-l">Edição de </span><b id="stamp"></b><span class="ed-s" id="stamp-curto"></span></span>
     <button type="button" class="tema-btn" id="b-tema" data-modo="claro" aria-label="Mudar para o tema escuro" title="Mudar para o tema escuro"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><g class="lua"><path d="M9.6 1.6a6.4 6.4 0 1 0 4.8 8.6 5.2 5.2 0 0 1-4.8-8.6z" fill="currentColor"/></g><g class="sol" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.9" fill="currentColor" stroke="none"/><path d="M8 1.2v1.9M8 12.9v1.9M1.2 8h1.9M12.9 8h1.9M3.2 3.2l1.35 1.35M11.45 11.45l1.35 1.35M12.8 3.2l-1.35 1.35M4.55 11.45L3.2 12.8"/></g></svg></button>
-    <button type="button" class="btn" id="b-prefs" aria-label="Personalizar" title="Personalizar"><span class="glyph" aria-hidden="true">⚙</span><span class="lbl">Personalizar</span></button>
+    <button type="button" class="btn" id="b-share" aria-label="Compartilhar" title="Compartilhar o mural"><span class="glyph" aria-hidden="true">↗</span><span class="lbl">Compartilhar</span></button><button type="button" class="btn" id="b-prefs" aria-label="Personalizar" title="Personalizar"><span class="glyph" aria-hidden="true">⚙</span><span class="lbl">Personalizar</span></button>
   </div>
 </div></header>
 <div class="band nav-band" id="nav-band"><nav class="wrap tabs" id="tabs" aria-label="Editorias do mural">
@@ -1154,6 +1176,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   </div>
 </div></footer>
 
+<dialog class="share" id="share" aria-labelledby="share-title"></dialog>
 <dialog class="drawer" id="prefs" aria-labelledby="prefs-title"></dialog>
 <dialog class="dossie" id="dossie" aria-labelledby="dz-title"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2297,6 +2320,79 @@ function renderPrefs(){
   <div class="dfoot"><span>Guardado só neste navegador.</span><button type="button" class="btn" data-reset="1">Restaurar padrão</button></div></div>`;
 }
 $("#b-prefs").addEventListener("click",()=>{renderPrefs();pr.showModal();});
+
+// ---- compartilhar
+// A mensagem sai pronta com o número do dia: quem compartilha não precisa escrever nada, e quem
+// recebe já lê o dado, não um convite vazio. Todas terminam com a fonte e o link, como manda a
+// regra do observatório: nenhum número sem data e fonte.
+const sh=$("#share");
+let shEscopo="mural";
+function urlBase(){
+  const c=document.querySelector('link[rel="canonical"]');
+  if(c&&c.href)return c.href.split("#")[0];
+  return (location.origin&&location.origin!=="null")?location.origin+location.pathname:location.href.split("#")[0];
+}
+function urlAtual(){return urlBase()+(shEscopo==="pagina"?hashDe(abaAtual):"");}
+function ondeEstou(){
+  if(escopo!=="uf")return ABAS.reduce((a,[id,t])=>id===abaAtual?t:a,"esta editoria");
+  const u=UF[ufAtual];return `${u?u.nome:ufAtual}, ${ufCargo==="senador"?"Senado":"governo"}`;
+}
+const dExt=d=>d?(+d.slice(8,10))+" de "+MESES_L[+d.slice(5,7)-1]:"";
+function msgsShare(){
+  const url=urlAtual(),M=DATA.meta,dia=dExt(M.ultima),out=[];
+  if(shEscopo==="pagina"&&escopo==="uf"){
+    const u=UF[ufAtual],l=liderDe(ufAtual,ufCargo),disp=ufCargo==="senador"?"Senado":"governo";
+    const rs=rodadasDe(ufAtual,ufCargo),ins=new Set(rs.map(r=>r.inst)).size;
+    if(l)out.push(["A disputa",`${u.nome}, ${disp}: ${l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(", ")}. Rodada mais recente: ${l.r.inst}, ${dBR(l.r.data)}.\n\n${pl(rs.length,"rodada")} de ${pl(ins,"instituto")} no observatório, cada uma com ficha técnica:\n${url}`]);
+    out.push(["O painel do estado",`Todas as pesquisas de ${u.nome} para ${disp} em 2026, com data, instituto e ficha técnica de cada rodada, mais busca no Google, redes e a ficha do TSE de cada candidatura:\n${url}`]);
+    return out;
+  }
+  const o=ORDEM().filter(p=>p&&p.agora!=null),t=Date.parse(M.ultima),n2=["Lula","Flávio Bolsonaro"];
+  if(o.length>=3)out.push(["A corrida hoje",`Mural dos Candidatos, ${dia}: ${o.slice(0,3).map(p=>`${curto(p.nome)} ${fPct(p.agora)}%`).join(", ")} na média de ${pl(M.rodadas,"rodada")} de ${pl(M.institutos,"instituto")}.\n\nCada número com data e fonte, atualizado às 8h e às 20h:\n${url}`]);
+  const m2=agregarEm(rodadas2T(),n2,SIG,t);
+  if(m2["Lula"]!=null&&m2["Flávio Bolsonaro"]!=null){
+    const emp=empatam(rodadas2T(),n2,SIG,t,"Lula","Flávio Bolsonaro"),d=m2["Lula"]-m2["Flávio Bolsonaro"];
+    const frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
+    out.push(["O segundo turno",emp
+      ? `Segundo turno em empate técnico, ${dia}: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média.\n\nA conta de como a média é feita está no mural:\n${url}`
+      : `Segundo turno, ${dia}: ${curto(frente)} ${fPct(Math.max(m2["Lula"],m2["Flávio Bolsonaro"]))}% contra ${fPct(Math.min(m2["Lula"],m2["Flávio Bolsonaro"]))}% de ${curto(atras)}, ${fPct(Math.abs(d))} pontos de diferença na média das rodadas mais recentes.\n\nA conta está aberta no mural:\n${url}`]);
+  }
+  const sobe=o.filter(p=>p.delta!=null).sort((a,b)=>b.delta-a.delta)[0];
+  if(sobe&&sobe.delta>=1&&sobe.antes!=null)
+    out.push(["Quem mais se moveu",`${sobe.nome} saiu de ${fPct(sobe.antes)}% para ${fPct(sobe.agora)}% em 30 dias, a maior variação do painel.\n\nA série inteira, rodada por rodada, com o instituto e a data de cada ponto:\n${url}`]);
+  out.push(["O que é o mural",`O Mural dos Candidatos acompanha os 13 presidenciáveis e as 510 candidaturas a governador e senador: pesquisas, busca no Google, redes e ficha do TSE.\n\nNenhum número entra sem data e fonte. Atualiza sozinho às 8h e às 20h:\n${url}`]);
+  return out;
+}
+function renderShare(){
+  const msgs=msgsShare(),podeNativo=!!navigator.share;
+  sh.innerHTML=`<div class="sh">
+    <div class="shead"><div><h2 id="share-title" class="display">Compartilhar</h2><p class="cap">A mensagem já vai pronta, com o número de hoje. Escolha uma e mande.</p></div>
+      <button type="button" class="btn" data-close="1" aria-label="Fechar">Fechar ✕</button></div>
+    <div class="esc"><div class="seg" role="group" aria-label="O que compartilhar">
+      <button type="button" data-esc="mural" aria-pressed="${shEscopo==="mural"}">O mural</button>
+      <button type="button" data-esc="pagina" aria-pressed="${shEscopo==="pagina"}">Esta página</button></div><span class="lbl">${esc(ondeEstou())}</span></div>
+    <div class="sbody">${msgs.map((m,i)=>`<div class="msg"><span class="rot">${esc(m[0])}</span><p>${esc(m[1])}</p>
+      <div class="acts">${podeNativo?`<button type="button" class="btn" data-share="${i}">Compartilhar</button>`:""}
+        <button type="button" class="btn" data-wa="${i}">WhatsApp</button>
+        <button type="button" class="btn" data-cop="${i}">Copiar</button></div></div>`).join("")}</div>
+    <div class="sfoot">O link abre o mural no ponto que você está vendo. Os números são os da última atualização, ${esc(DATA.atualizado)}.</div></div>`;
+  sh._msgs=msgs.map(m=>m[1]);
+}
+function copiarTexto(txt,msg){
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>avisar(msg||"Mensagem copiada"),()=>avisar("Não consegui copiar; selecione o texto e copie à mão"));
+}
+$("#b-share").addEventListener("click",()=>{shEscopo="mural";renderShare();sh.showModal();});
+sh.addEventListener("click",e=>{
+  if(e.target===sh){sh.close();return;}
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.close){sh.close();return;}
+  if(b.dataset.esc){shEscopo=b.dataset.esc;renderShare();return;}
+  const txt=sh._msgs&&sh._msgs[+(b.dataset.share??b.dataset.wa??b.dataset.cop)];
+  if(txt==null)return;
+  if(b.dataset.share!=null){navigator.share({text:txt}).catch(()=>{});return;}
+  if(b.dataset.wa!=null){window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener");return;}
+  copiarTexto(txt);
+});
 $("#b-tema").addEventListener("click",()=>{prefs.tema=temaEscuroAgora()?"claro":"escuro";salvar();aplicarAparencia();$$('#prefs button[data-k="tema"]').forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===prefs.tema));});
 pr.addEventListener("click",e=>{
   if(e.target===pr){pr.close();return;}

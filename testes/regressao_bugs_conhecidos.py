@@ -774,6 +774,51 @@ with sync_playwright() as p:
     check("editoria de método sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- botão de compartilhar: a mensagem sai pronta, com o número do dia e o link (8/9/2026)
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    check("o masthead tem o botão de compartilhar", page.locator("#b-share").count() == 1)
+    page.click("#b-share")
+    page.wait_for_timeout(300)
+    sh = page.evaluate("""() => {
+        const d = document.getElementById('share');
+        return {aberto: d.open,
+                msgs: [...d.querySelectorAll('.msg')].map(e => ({rot: e.querySelector('.rot').textContent,
+                    txt: e.querySelector('p').textContent,
+                    wa: !!e.querySelector('[data-wa]'), cop: !!e.querySelector('[data-cop]')})),
+                canon: (document.querySelector('link[rel=canonical]') || {}).href}; }""")
+    txts = [m["txt"] for m in sh["msgs"]]
+    check("o botão abre o diálogo de compartilhar", sh["aberto"])
+    check("o diálogo traz pelo menos três mensagens prontas", len(txts) >= 3, len(txts))
+    check("nenhuma mensagem sai com buraco de dado (undefined, NaN, null)",
+          not [t for t in txts if "undefined" in t or "NaN" in t or "null" in t],
+          [t[:80] for t in txts if "undefined" in t or "NaN" in t or "null" in t])
+    check("toda mensagem termina com o endereço público do mural",
+          all(t.rstrip().endswith(sh["canon"]) for t in txts),
+          [t[-60:] for t in txts if not t.rstrip().endswith(sh["canon"])])
+    check("toda mensagem tem WhatsApp e Copiar", all(m["wa"] and m["cop"] for m in sh["msgs"]))
+    # a mensagem do segundo turno não pode anunciar um líder que o próprio painel chama de empate
+    m2t = [t for t in txts if t.startswith("Segundo turno")]
+    cap2t = page.evaluate("() => document.querySelector('#cap-2t').textContent")
+    check("a mensagem do segundo turno existe e diz o mesmo que o painel",
+          len(m2t) == 1 and (("Empate técnico" in cap2t) == ("empate técnico" in m2t[0])),
+          {"msg": m2t[0][:90] if m2t else None, "cap": cap2t[:60]})
+    # o link do escopo "esta página" leva ao ponto que a pessoa está vendo, inclusive num estado
+    page.click("#share [data-close]")
+    page.click('.scope button[data-escopo="uf"]')
+    page.wait_for_timeout(900)
+    page.click("#b-share")
+    page.wait_for_timeout(250)
+    page.click('#share button[data-esc="pagina"]')
+    page.wait_for_timeout(250)
+    uf = page.evaluate("""() => [...document.querySelectorAll('#share .msg p')].map(e => e.textContent)""")
+    check("no estado, a mensagem cita o estado e o link cai na página do estado",
+          uf and all("#uf-" in t for t in uf) and any("São Paulo" in t for t in uf),
+          [t[:70] for t in uf])
+    check("compartilhar sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:
