@@ -1489,12 +1489,27 @@ function pesosEm(rods,nomes,sigma,t){
     let dif=0;for(let i=0;i<novo.length;i++)dif=Math.max(dif,Math.abs(novo[i]-peso[i]));
     peso=novo;if(dif<1e-9)break;
   }
-  for(let volta=0;volta<30;volta++){
-    const tot=peso.reduce((a,b)=>a+b,0);if(!tot)break;
-    let j=0;for(let i=1;i<peso.length;i++)if(peso[i]>peso[j])j=i;
-    if(peso[j]/tot<=AG.teto+1e-9)break;
-    peso[j]=AG.teto*(tot-peso[j])/(1-AG.teto);
+  // Teto por rodada, resolvido de uma vez em vez de cortar o maior repetidas vezes: cortar um peso
+  // encolhe o total e faz o seguinte estourar de novo, e o laço parava perto, mas acima do teto
+  // (0,1503 em 7/9/2026, o que reprovou a rodada da noite inteira). Aqui procuramos quantas rodadas
+  // ficam no teto: se são m, cada uma vale teto*S e as outras ficam como estão, com
+  // S = (soma das outras)/(1 - m*teto). Com m grande o bastante para 1-m*teto não ser positivo,
+  // não há teto possível e todas ficam iguais.
+  const ordem=peso.map((w,i)=>[w,i]).sort((a,b)=>b[0]-a[0]);
+  const resto=[];let acc=0;
+  for(let i=ordem.length-1;i>=0;i--){acc+=ordem[i][0];resto[i]=acc;}
+  let m=0,S=0;
+  for(let k=0;k<=ordem.length;k++){
+    const denom=1-k*AG.teto;
+    if(denom<=1e-12){m=ordem.length;S=0;break;}
+    const soma=(k<ordem.length?resto[k]:0)/denom;
+    const limite=AG.teto*soma;
+    const acimaOk=k===0||ordem[k-1][0]>=limite-1e-12;
+    const abaixoOk=k===ordem.length||ordem[k][0]<=limite+1e-12;
+    if(acimaOk&&abaixoOk){m=k;S=soma;break;}
   }
+  if(m===ordem.length){const w=peso.reduce((a,b)=>a+b,0)/(peso.length||1);peso=peso.map(()=>w);}
+  else for(let k=0;k<m;k++)peso[ordem[k][1]]=AG.teto*S;
   return {dentro,peso,janela:s};
 }
 // rodadas nacionais de primeiro e segundo turno, montadas uma vez

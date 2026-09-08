@@ -800,10 +800,14 @@ def acrescentar(caminho, linhas):
 
 # ------------------------------------------------------------------ rede e arquivos
 def _dormir(retry_after, padrao):
+    """Espera o que a API pedir, nunca menos que o próprio recuo. O Retry-After da Wikimedia vem
+    fixo em 5 segundos mesmo quando a réplica está minutos atrasada; obedecer só a ele significa
+    bater na porta a cada 5 segundos e desistir (foi o que derrubou a rodada de 8/9/2026, com a
+    réplica 197 segundos atrás)."""
     segundos = padrao
     if retry_after:
         try:
-            segundos = int(retry_after)
+            segundos = max(padrao, int(retry_after))
         except ValueError:
             try:
                 alvo = email.utils.parsedate_to_datetime(retry_after)
@@ -813,14 +817,16 @@ def _dormir(retry_after, padrao):
     time.sleep(min(max(segundos, 1), 120))
 
 
-def baixar_pagina(titulo=TITULO_PAGINA, tentativas=5):
+def baixar_pagina(titulo=TITULO_PAGINA, tentativas=7):
     """HTML renderizado e revid da página, pela MediaWiki API, uma requisição por vez, com
     maxlag=5 e espera em 429/503 e em erro maxlag respeitando Retry-After.
     Devolve (html, revid, corpo bruto da resposta)."""
     params = {"action": "parse", "page": titulo, "prop": "text|revid", "format": "json",
               "formatversion": "2", "maxlag": "5", "redirects": "1"}
     url = API + "?" + urllib.parse.urlencode(params)
-    espera = 5
+    # começa em 15s e dobra até 240: sete tentativas cobrem uma réplica alguns minutos atrasada,
+    # que é o caso comum de maxlag, sem martelar a API
+    espera = 15
     for tentativa in range(tentativas):
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         try:
@@ -831,7 +837,7 @@ def baixar_pagina(titulo=TITULO_PAGINA, tentativas=5):
             if e.code in (429, 503) and tentativa < tentativas - 1:
                 print("HTTP %d; esperando para tentar de novo" % e.code, file=sys.stderr)
                 _dormir(e.headers.get("Retry-After"), espera)
-                espera = min(espera * 2, 120)
+                espera = min(espera * 2, 240)
                 continue
             raise
         try:
@@ -841,14 +847,14 @@ def baixar_pagina(titulo=TITULO_PAGINA, tentativas=5):
             if tentativa < tentativas - 1:
                 print("a API não respondeu JSON; esperando para tentar de novo", file=sys.stderr)
                 _dormir(retry_after, espera)
-                espera = min(espera * 2, 120)
+                espera = min(espera * 2, 240)
                 continue
             raise RuntimeError("a API não respondeu JSON: %s" % corpo[:200].strip())
         if "error" in dados:
             if dados["error"].get("code") == "maxlag" and tentativa < tentativas - 1:
                 print("API em maxlag; esperando para tentar de novo", file=sys.stderr)
                 _dormir(retry_after, espera)
-                espera = min(espera * 2, 120)
+                espera = min(espera * 2, 240)
                 continue
             raise RuntimeError("a API respondeu erro: %s" % dados["error"].get("info", dados["error"]))
         return dados["parse"]["text"], int(dados["parse"]["revid"]), corpo

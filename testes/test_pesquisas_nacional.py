@@ -326,7 +326,7 @@ class Estrutura(unittest.TestCase):
         try:
             with contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(wpn.baixar_pagina(tentativas=3)[:2], ("<p>oi</p>", 5))
-                self.assertEqual(esperas, [5])
+                self.assertEqual(esperas, [15])   # recuo próprio, maior que o Retry-After fixo da API
                 seq[:] = ["<html>Access Denied</html>"] * 3
                 with self.assertRaises(RuntimeError) as cm:
                     wpn.baixar_pagina(tentativas=3)

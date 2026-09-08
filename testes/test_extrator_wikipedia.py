@@ -400,7 +400,9 @@ class CaminhoOnline(Base):
             return sim(params)
         with mock.patch.object(self.mod.Api, "get", get):
             paginas, revisoes, resumo = self.mod.coletar_online(anterior, tudo=True, pausa=0, log=lambda *a: None)
-        self.assertEqual(esperas, [5, 5, 5, 5])
+        # recuo próprio de 15s dobrando até 240: o Retry-After da Wikimedia vem fixo em 5 mesmo com
+        # a réplica minutos atrasada, e obedecer só a ele não dá tempo de o lag passar (8/9/2026)
+        self.assertEqual(esperas, [15, 30, 60, 120, 240, 240])
         self.assertEqual(api_real.requisicoes, self.mod.TENTATIVAS)
         self.assertEqual(paginas[alvo], anterior["paginas"][alvo], "texto anterior mantido, não 'ERRO maxlag'")
         self.assertEqual(revisoes[alvo]["revid"], self.indice[alvo]["revid_dump"])
@@ -485,7 +487,8 @@ class Cliente(Base):
         with mock.patch.object(self.mod.urllib.request, "urlopen", urlopen), mock.patch.object(self.mod.time, "sleep") as sl:
             j = api.get({"action": "query"})
         self.assertEqual(j, {"query": {}})
-        self.assertEqual([c.args[0] for c in sl.call_args_list], [7, 3])
+        # o Retry-After pedido (7 e 3) é menor que o recuo, então vale o recuo
+        self.assertEqual([c.args[0] for c in sl.call_args_list], [15, 30])
         self.assertEqual(api.requisicoes, 3)
 
     def test_maxlag_em_todas_as_tentativas_levanta_ErroApi(self):
@@ -495,7 +498,7 @@ class Cliente(Base):
             with self.assertRaises(self.mod.ErroApi) as cm:
                 api.get({"action": "parse", "page": "x"})
         self.assertIn("maxlag persistente", str(cm.exception))
-        self.assertEqual([c.args[0] for c in sl.call_args_list], [2, 2, 2, 2])
+        self.assertEqual([c.args[0] for c in sl.call_args_list], [15, 30, 60, 120, 240, 240])
         self.assertEqual(api.requisicoes, self.mod.TENTATIVAS)
 
     def test_erro_interno_e_readonly_sao_transitorios_e_missingtitle_nao(self):
@@ -529,7 +532,7 @@ class Cliente(Base):
         with mock.patch.object(self.mod.urllib.request, "urlopen", urlopen), mock.patch.object(self.mod.time, "sleep") as sl:
             j = api.get({"action": "query"})
         self.assertEqual(j, {"query": {}})
-        self.assertEqual([c.args[0] for c in sl.call_args_list], [5])
+        self.assertEqual([c.args[0] for c in sl.call_args_list], [15])
 
     def test_http_404_nao_e_repetido(self):
         api = self.mod.Api(log=lambda *a: None)

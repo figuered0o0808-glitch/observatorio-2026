@@ -70,7 +70,10 @@ UA = "observatorio-2026/0.3 (coleta automática; contato: figuered0o0808@gmail.c
 FONTE = "pt.wikipedia.org, action=parse"
 PREFIXO = "Pesquisas eleitorais para a eleição estadual de 2026"
 TITULO_DF = "Pesquisas eleitorais para a eleição distrital de 2026 no Distrito Federal"
-TENTATIVAS = 5
+# sete tentativas com recuo de 15s dobrando (15, 30, 60, 120, 240) cobrem uma réplica alguns
+# minutos atrasada, que é o caso comum de maxlag
+TENTATIVAS = 7
+RECUO = 15
 HTTP_REPETE = (429, 500, 502, 503, 504)
 CSS_VAZADO = ".mw-parser-output"  # marca do CSS que o navegador deixava dentro das células
 
@@ -278,11 +281,13 @@ def erro_transitorio(j):
 
 
 def _retry_after(cabecalhos, padrao):
+    """Nunca menos que o próprio recuo: o Retry-After da Wikimedia vem fixo em 5 segundos mesmo com
+    a réplica minutos atrasada, e obedecer só a ele vira martelada inútil (8/9/2026)."""
     v = cabecalhos.get("Retry-After") if cabecalhos is not None else None
     if v is None:
         return padrao
     try:
-        return max(1, int(v.strip()))
+        return max(padrao, int(v.strip()))
     except ValueError:
         return padrao
 
@@ -308,14 +313,14 @@ class Api:
                     cabecalhos = h.headers
             except urllib.error.HTTPError as e:
                 if e.code in HTTP_REPETE and tentativa < TENTATIVAS:
-                    espera = _retry_after(e.headers, 5 * tentativa)
+                    espera = _retry_after(e.headers, min(RECUO * 2 ** (tentativa - 1), 240))
                     self.log("  HTTP %d, esperando %d s (tentativa %d)" % (e.code, espera, tentativa))
                     time.sleep(espera)
                     continue
                 raise ErroApi("HTTP %d em %s" % (e.code, params.get("action")))
             except (urllib.error.URLError, socket.timeout, ConnectionError, OSError) as e:
                 if tentativa < TENTATIVAS:
-                    espera = 5 * tentativa
+                    espera = min(RECUO * 2 ** (tentativa - 1), 240)
                     self.log("  falha de rede (%s), esperando %d s (tentativa %d)" % (e, espera, tentativa))
                     time.sleep(espera)
                     continue
@@ -328,7 +333,7 @@ class Api:
             if code is None:
                 return j
             if tentativa < TENTATIVAS:
-                espera = _retry_after(cabecalhos, 5 * tentativa)
+                espera = _retry_after(cabecalhos, min(RECUO * 2 ** (tentativa - 1), 240))
                 self.log("  %s, esperando %d s (tentativa %d)" % (code, espera, tentativa))
                 time.sleep(espera)
                 continue

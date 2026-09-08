@@ -101,20 +101,34 @@ jobs:
       # trazidas em 7/9/2026 por decisão do Francisco: quanto mais base, melhor
       # a média). O coletor nunca altera linha existente e deduplica por
       # instituto e data de campo, então rodar desde janeiro é idempotente.
+      # Cada coletor é tolerado sozinho: uma fonte fora do ar não pode custar a rodada inteira.
+      # Em 8/9/2026 a réplica da Wikipédia estava 197 segundos atrasada, o coletor de pesquisas
+      # morreu e o mural ficou sem publicar nada, inclusive o que as outras fontes já tinham. Quem
+      # falha deixa o arquivo como estava, e o resumo do commit diz o que não veio.
       - name: Pesquisas presidenciais novas na Wikipédia
+        id: nacional
+        continue-on-error: true
         run: |
           mkdir -p "$RUNNER_TEMP/coleta"
           python3 coleta/wikipedia_pesquisas_nacional.py --desde 2026-01-01 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-nacional.log"
 
       - name: Páginas estaduais de pesquisas cuja revisão mudou
+        id: estaduais
+        continue-on-error: true
         run: python3 coleta/wikipedia_pesquisas_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/pesquisas-estados.log"
 
+      # Só reprocessa se a coleta estadual foi bem: com o dump antigo isso reescreveria os CSVs
+      # com o mesmo conteúdo, e sem ela o dump pode estar pela metade
       - name: Reprocessar e consolidar as pesquisas estaduais
+        if: steps.estaduais.outcome == 'success'
+        continue-on-error: true
         run: |
           python3 dados/estados/_parse_wiki.py 2>&1 | tee "$RUNNER_TEMP/coleta/parse-wiki.log"
           python3 dados/estados/_consolidar_pesquisas.py 2>&1 | tee "$RUNNER_TEMP/coleta/consolidar.log"
 
       - name: Acessos diários aos verbetes
+        id: acessos
+        continue-on-error: true
         env:
           DESDE: ${{ inputs.desde }}
         run: |
@@ -139,6 +153,19 @@ jobs:
         run: |
           python3 coleta/google_trends_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/trends-estados.log"
           python3 dados/estados/_integrar_busca.py --so-trends 2>&1 | tee -a "$RUNNER_TEMP/coleta/trends-estados.log"
+
+      # Uma fonte que não veio entra no corpo do commit, para o histórico dizer o que faltou
+      - name: Registrar as fontes que falharam
+        env:
+          NACIONAL: ${{ steps.nacional.outcome }}
+          ESTADUAIS: ${{ steps.estaduais.outcome }}
+          ACESSOS: ${{ steps.acessos.outcome }}
+        run: |
+          : > "$RUNNER_TEMP/coleta/falhas.log"
+          [ "$NACIONAL" = success ] || echo "pesquisas presidenciais: a coleta falhou; o arquivo fica como estava" >> "$RUNNER_TEMP/coleta/falhas.log"
+          [ "$ESTADUAIS" = success ] || echo "páginas estaduais: a coleta falhou; o dump e os CSVs ficam como estavam" >> "$RUNNER_TEMP/coleta/falhas.log"
+          [ "$ACESSOS" = success ] || echo "acessos aos verbetes: a coleta falhou; as séries ficam como estavam" >> "$RUNNER_TEMP/coleta/falhas.log"
+          cat "$RUNNER_TEMP/coleta/falhas.log"
 
       - name: Regenerar o mural
         env:
@@ -259,6 +286,8 @@ jobs:
               detalhes.append("Google Trends: %s linhas, %s termos, até %s" % (m.group(1), m.group(2), m.group(4)))
           elif any("nada gravado" in l for l in tr):
               detalhes.append("Google Trends: nenhum lote respondeu; a série anterior fica como está")
+
+          detalhes += [l for l in linhas("falhas") if l.strip()]
 
           tre = linhas("trends-estados")
           m = acha(tre, r"gravado .*_trends-estados\.json \((\d+) lotes atualizados de (\d+)\)")
