@@ -917,6 +917,27 @@ with sync_playwright() as p:
               barra["bt"] == ["Governo", "Senado", "Dep. federal", "Dep. estadual"]
               and barra["h"] == 44 and barra["sw"] <= barra["win"], barra)
     page.set_viewport_size({"width": 1400, "height": 900})
+    # busca e verbete dos deputados: a metodologia das majoritárias aplicada ao grupo curado
+    page.goto(URL + "#uf-rj-federal-busca")
+    page.wait_for_timeout(1200)
+    busca = page.evaluate("""() => {
+        const out = {};
+        for (const [uf, cargo] of [['RJ','depfed'],['RJ','depest'],['SP','depfed'],['SP','depest']]) {
+            const B = UF[uf].busca || {}, c = candsDe(uf, cargo);
+            out[uf + '-' + cargo] = {n: c.length,
+                tr: c.filter(x => B.tr && B.tr[x.slug]).length,
+                wk: c.filter(x => B.wk && B.wk[x.slug]).length};
+        }
+        return {por: out, cap: document.querySelector('#e-cap-trends').textContent,
+                sub: document.querySelector('#e-sub-busca').textContent}; }""")
+    magros = {k: v for k, v in busca["por"].items() if v["tr"] < 0.7 * v["n"] or v["wk"] < 0.7 * v["n"]}
+    check("as quatro disputas de deputado têm busca e verbete para a maioria dos nomes",
+          not magros, magros or busca["por"])
+    check("a editoria de busca do deputado deixou de ser um vazio",
+          "ainda não entrou" not in busca["sub"], busca["sub"][:90])
+    # a âncora do gráfico é a real, a que reescala os lotes, não o primeiro da lista
+    check("o gráfico de busca nomeia a âncora que a reescala usou",
+          "Chico Alencar" in busca["cap"], busca["cap"][:110])
     check("deputados sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 

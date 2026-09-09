@@ -287,14 +287,17 @@ class FluxoOffline(Base):
                          sum(1 for l in self._linhas(self.est_depois) if l[2] == "pe-gov-renan"))
 
     def test_saida_relata_contagens(self):
+        n_est = len(self.mod.verbetes_estaduais(RAIZ))
         self.assertIn("(8 verbetes pedidos)", self.saida)
-        self.assertIn("(239 verbetes aceitos pedidos)", self.saida)
+        self.assertIn("(%d verbetes aceitos pedidos)" % n_est, self.saida)
         self.assertIn("candidatos sem wikipedia_titulo em candidatos.csv, fora da coleta: "
                       "Clariana Barão; Edmilson Costa; Hertz Dias; Rui Costa Pimenta; Wilson Grassi", self.saida)
         # 8 títulos nacionais + 239 estaduais, sem repetição entre as listas: 247 chamadas, uma por título;
-        # seis trouxeram dados (Cury, Samara, Pablo, Lula, Alan Rick, Renan Filho) e 241 caíram em 404
-        self.assertIn("chamadas à API: 247; verbetes com dados na janela: 6", self.saida)
-        self.assertIn("verbetes sem resposta: 241 (sem dados no período: 241; erro: 0)", self.saida)
+        # seis trouxeram dados (Cury, Samara, Pablo, Lula, Alan Rick, Renan Filho); o resto cai em 404
+        chamadas = 8 + n_est
+        self.assertIn("chamadas à API: %d; verbetes com dados na janela: 6" % chamadas, self.saida)
+        self.assertIn("verbetes sem resposta: %d (sem dados no período: %d; erro: 0)"
+                      % (chamadas - 6, chamadas - 6), self.saida)
         self.assertIn("sem dados: Renan Santos (404, sem dados no período)", self.saida)
         # nenhuma linha de erro (a linha-resumo traz "erro: 0", que não conta)
         self.assertNotIn("\nerro:", self.saida)
@@ -414,7 +417,13 @@ class Titulos(Base):
         self.assertEqual(sem, ["Clariana Barão", "Edmilson Costa", "Hertz Dias", "Rui Costa Pimenta", "Wilson Grassi"])
         est = self.mod.verbetes_estaduais(RAIZ)
         slugs = [s for _, s, _ in est]
-        self.assertEqual(len(est), 239)
+        # o número sai do próprio arquivo conferido, não de um literal que envelhece a cada leva
+        import csv as _csv
+        aceitos = sum(1 for r in _csv.DictReader(
+            open(os.path.join(RAIZ, "dados", "estados", "wikipedia-verbetes-estados.csv"),
+                 encoding="utf-8-sig")) if r["status"] == "aceito")
+        self.assertEqual(len(est), aceitos)
+        self.assertGreaterEqual(len(est), 239)
         self.assertIn("al-gov-renan-filho", slugs)
         self.assertNotIn("pe-gov-renan", slugs, "pe-gov-renan aponta para o Renan Filho de AL e está rejeitado")
         self.assertEqual(len(set(slugs)), len(slugs))
