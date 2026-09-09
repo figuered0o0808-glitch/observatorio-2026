@@ -59,6 +59,10 @@ import sys
 
 BOM = b"\xef\xbb\xbf"
 PASTAS = ("dados", "dados/estados", "dados/rjsp")
+# CSV que começa com "_" é arquivo de trabalho de coletor (proposta para conferência, dump
+# intermediário) e não entra no mural: fica fora da classificação, como os .json e .txt da pasta
+def de_trabalho(nome):
+    return os.path.basename(nome).startswith("_")
 QUEDA_MAXIMA = 0.02
 TOLERANCIA_DIAS = 1
 EXEMPLOS = 5

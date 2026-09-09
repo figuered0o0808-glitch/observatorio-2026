@@ -31,6 +31,20 @@ por_slug = {c["slug"]: c for c in cands}
 por_nome = {}
 for c in cands:
     por_nome[(c["uf"], c["nome_urna"])] = c["slug"]
+
+# deputado federal e estadual de RJ e SP: grupo curado, com o mesmo tratamento de busca das
+# disputas majoritárias. O casamento é por (uf, cargo, termo do plano), nunca por nome solto:
+# proporcional tem milhares de candidatos por disputa e homônimo é regra.
+CARGO3_DEP = {"deputado federal": "depfed", "deputado estadual": "depest"}
+DEP_CSV = os.path.join(os.path.dirname(AQUI), "rjsp", "candidatos-deputados.csv")
+deps = list(csv.DictReader(io.open(DEP_CSV, encoding="utf-8-sig"))) if os.path.exists(DEP_CSV) else []
+por_termo_dep = {}
+if deps:
+    sys.path.insert(0, os.path.join(os.path.dirname(AQUI), "rjsp"))
+    from _plano_trends_deputados import termo_de   # a mesma função que montou o plano
+    for c in deps:
+        por_termo_dep[(c["uf"], CARGO3_DEP[c["cargo"]], termo_de(c))] = c["slug"]
+        por_slug[c["slug"]] = c
 HOJE = dt.date.today().isoformat()
 
 # ---------- TSE detalhe
@@ -86,13 +100,18 @@ if tr:
     por_disp = {}
     for key, lote in tr["lotes"].items():
         disp, idx = key.split("#"); por_disp.setdefault(disp, []).append((int(idx), lote))
+    CARGO_DE = {"gov": "governador", "sen": "senador", "depfed": "depfed", "depest": "depest"}
     for disp, lotes in por_disp.items():
-        uf, cargo3 = disp.split("-"); cargo = "governador" if cargo3 == "gov" else "senador"
+        uf, cargo3 = disp.split("-"); cargo = CARGO_DE.get(cargo3, "senador")
         lotes.sort(key=lambda x: x[0])
         series = {}   # termo -> {ts: v}
         anchor_sum0 = None; anchor = None
         for idx, lote in lotes:
-            kws = lote["kws"]; pts = [p.split(";") for p in lote["csv"].split("|")]
+            kws = lote["kws"]
+            # lote planejado mas ainda não coletado (entra vazio no plano e a coleta preenche):
+            # sem pontos não há série, e série ausente é indisponível, nunca zero
+            if not (lote.get("csv") or "").strip(): continue
+            pts = [p.split(";") for p in lote["csv"].split("|")]
             vals = {k: [] for k in kws}
             for ts, vs in pts:
                 for k, v in zip(kws, vs.split(",")):
@@ -107,8 +126,8 @@ if tr:
                 nota_l = "" if sa > 0 else "lote sem sinal da âncora; escala própria"
             for k in kws:
                 if idx > 0 and k == anchor: continue
-                slug = por_nome.get((uf, k))
-                if not slug:
+                slug = por_termo_dep.get((uf, cargo3, k)) if cargo3.startswith("dep") else por_nome.get((uf, k))
+                if not slug and not cargo3.startswith("dep"):
                     # tenta por nome normalizado
                     for (u2, n2), s2 in por_nome.items():
                         if u2 == uf and norm(n2) == norm(k): slug = s2; break

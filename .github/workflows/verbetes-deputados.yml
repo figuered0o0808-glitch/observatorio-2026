@@ -1,0 +1,58 @@
+# Busca do verbete da Wikipédia dos deputados curados de RJ e SP.
+#
+# Roda só quando alguém pede (workflow_dispatch): o contêiner do Claude não alcança a
+# Wikipédia (403 no proxy de saída), e do runner do GitHub ela responde, que é a mesma
+# razão de a coleta diária morar aqui.
+#
+# O resultado é uma PROPOSTA, não dado publicado: sai em dados/rjsp/_verbetes-deputados.csv
+# com a pontuação e o trecho de cada aceite, para conferência humana antes de qualquer nome
+# entrar em dados/estados/wikipedia-verbetes-estados.csv, que é a lista congelada que o
+# coletor de acessos lê. Proporcional é onde mais aparece homônimo, então nada entra sem
+# alguém olhar.
+name: Verbetes dos deputados
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verbetes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Procurar o verbete de cada deputado curado
+        run: python3 coleta/wikipedia_verbetes_deputados.py
+
+      - name: Commitar a proposta
+        run: |
+          if git diff --quiet -- dados/rjsp/_verbetes-deputados.csv; then
+            echo "nada mudou na proposta de verbetes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dados/rjsp/_verbetes-deputados.csv
+          aceitos=$(python3 - <<'EOF'
+          import csv, io
+          linhas = list(csv.DictReader(io.open("dados/rjsp/_verbetes-deputados.csv", encoding="utf-8-sig")))
+          print(sum(1 for l in linhas if l["status"] == "aceito"), len(linhas))
+          EOF
+          )
+          git commit -m "Proposta de verbetes da Wikipédia para os deputados curados: ${aceitos% *} aceitos de ${aceitos#* }
+
+          Busca automática pela API da Wikipédia, com a pontuação e o trecho de cada aceite.
+          Nenhum nome entra na lista congelada de verbetes antes da conferência."
+          git push

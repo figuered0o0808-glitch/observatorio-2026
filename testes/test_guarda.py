@@ -552,7 +552,7 @@ class Unidades(unittest.TestCase):
         existentes = set()
         for pasta in self.mod.PASTAS:
             for nome in os.listdir(os.path.join(RAIZ, pasta)):
-                if nome.endswith(".csv"):
+                if nome.endswith(".csv") and not self.mod.de_trabalho(nome):
                     existentes.add(pasta + "/" + nome)
         self.assertEqual(existentes - conhecidos, set(), "CSV sem regra no guarda")
         self.assertEqual(conhecidos - existentes, set(), "regra para CSV que não existe")
