@@ -825,6 +825,67 @@ with sync_playwright() as p:
     check("compartilhar sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- deputado estadual e federal em RJ e SP: ficha do TSE, sem inventar pesquisa (9/9/2026)
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#uf-rj-federal-candidatos")
+    page.wait_for_timeout(1200)
+    dep = page.evaluate("""() => ({
+        uf: ufAtual, cargo: ufCargo, aba: abaAtual,
+        cargos: cargosDe('RJ'), cargosAC: cargosDe('AC'),
+        botoes: [...document.querySelectorAll('#ufb-cargos button')].map(b => b.textContent),
+        cards: document.querySelectorAll('#e-wall .card').length,
+        lista: candsDe('RJ','depfed').length,
+        cat: [...document.querySelectorAll('#e-cat button')].map(b => b.dataset.cat),
+        sub: document.querySelector('#e-sub-cand').textContent,
+        rodadas: rodadasDe('RJ','depfed').length,
+        lider: liderDe('RJ','depfed'),
+        vazio: (document.querySelector('#e-ch-corrida') || {}).textContent || '',
+    })""")
+    check("a URL de deputado federal abre o Rio na disputa certa",
+          dep["uf"] == "RJ" and dep["cargo"] == "depfed" and dep["aba"] == "e-candidatos", dep["uf"] + "/" + dep["cargo"])
+    check("RJ tem quatro disputas e um estado sem deputado continua com duas",
+          dep["cargos"] == ["governador", "senador", "depfed", "depest"] and dep["cargosAC"] == ["governador", "senador"],
+          {"RJ": dep["cargos"], "AC": dep["cargosAC"]})
+    check("o seletor de disputa mostra os quatro botões do Rio", dep["botoes"] == ["Governo", "Senado", "Câmara", "Assembleia"], dep["botoes"])
+    check("a editoria Candidatos lista as candidaturas curadas do cargo",
+          dep["cards"] == dep["lista"] and dep["cards"] > 0, {"cards": dep["cards"], "lista": dep["lista"]})
+    check("o filtro de perfil aparece na lista curada", dep["cat"] == ["todas", "A", "B"], dep["cat"])
+    check("o texto da lista diz que o grupo é curado, não o registro inteiro",
+          "não é o registro inteiro" in dep["sub"].lower(), dep["sub"][:100])
+    # proporcional não tem pesquisa nominal: nada de rodada, nada de líder, e o vazio explica por quê
+    check("deputado não tem rodada nem líder de pesquisa", dep["rodadas"] == 0 and dep["lider"] is None,
+          {"rodadas": dep["rodadas"], "lider": dep["lider"]})
+    check("o lugar da pesquisa explica que a disputa é proporcional",
+          "proporcional" in dep["vazio"], dep["vazio"][:100])
+    # o dossiê de um deputado abre com a ficha certa e sem linha de vice
+    page.click("#e-cat button[data-cat='A']")
+    page.wait_for_timeout(250)
+    slug = page.evaluate("candsDe('RJ','depfed').filter(c=>c.cat==='A')[0].slug")
+    page.click(f"[data-edossie='{slug}']")
+    page.wait_for_timeout(500)
+    dz = page.evaluate("""() => { const d = document.querySelector('#dossie .dz'); if (!d) return null;
+        const kv = {}; for (const e of d.querySelectorAll('.kv > div')) kv[e.querySelector('span').textContent] = e.querySelector('b').textContent;
+        return {kv, txt: d.textContent}; }""")
+    check("o dossiê do deputado abre", dz is not None)
+    check("a linha Disputa diz o cargo do deputado, não governo",
+          dz and dz["kv"].get("Disputa") == "Câmara dos Deputados", dz["kv"].get("Disputa") if dz else None)
+    check("o dossiê de deputado não traz linha de vice nem de suplentes",
+          dz and "Vice" not in dz["kv"] and "Suplentes" not in dz["kv"], list(dz["kv"]) if dz else None)
+    check("o dossiê de deputado cita a consulta de 7/9 e a curadoria",
+          dz and "7/9/2026" in dz["txt"] and "curadoria" in dz["txt"], None)
+    # a curadoria não pode contaminar as contagens que falam do registro inteiro
+    cont = page.evaluate("""() => ({
+        gov: UF.RJ.gov.length, sen: UF.RJ.sen.length,
+        depfed: (UF.RJ.depfed||[]).length, depest: (UF.RJ.depest||[]).length,
+        partidos: (() => { const t = [...UF.RJ.gov, ...UF.RJ.sen]; return new Set(t.map(c => c.partido)).size; })(),
+        todos: todosUF(UF.RJ).length,
+    })""")
+    check("os 75 curados entram nas listas de deputado, não nas de governo e Senado",
+          cont["depfed"] + cont["depest"] > 0 and cont["todos"] == cont["gov"] + cont["sen"] + cont["depfed"] + cont["depest"],
+          cont)
+    check("deputados sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

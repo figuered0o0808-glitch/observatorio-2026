@@ -58,7 +58,7 @@ import subprocess
 import sys
 
 BOM = b"\xef\xbb\xbf"
-PASTAS = ("dados", "dados/estados")
+PASTAS = ("dados", "dados/estados", "dados/rjsp")
 QUEDA_MAXIMA = 0.02
 TOLERANCIA_DIAS = 1
 EXEMPLOS = 5
@@ -116,6 +116,10 @@ INTOCAVEIS = (
     "dados/seguidores-historico-fontes.csv",
     "dados/tse-presidenciaveis.csv",
     "dados/estados/wikipedia-verbetes-estados.csv",
+    # RJ e SP, deputado federal e estadual: coleta manual pelo navegador, curadoria de imprensa;
+    # nenhuma rotina automática reescreve esses dois
+    "dados/rjsp/candidatos-rjsp.csv",
+    "dados/rjsp/candidatos-deputados.csv",
 )
 
 COLUNAS_DATA = ("data", "data_ref", "data_divulgacao", "campo_fim")

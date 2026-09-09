@@ -213,6 +213,10 @@ def ler_est(nome):
     with io.open(caminho, encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
 
+def _num(v):
+    try: return float(str(v).replace(",", "."))
+    except: return None
+
 cand_uf = ler_est("candidatos-estados.csv")
 pesq_uf = ler_est("pesquisas-estados.csv")
 PAL = ["#D62828", "#1F5FBF", "#1baf7a", "#eda100", "#7B4BC9", "#0A9396", "#e87ba4", "#EB6834", "#5A6B7B", "#8B5E00",
@@ -227,19 +231,87 @@ for c in cand_uf:
     u["gov" if c["cargo"] == "governador" else "sen"].append(ficha)
     if c["coligacao"]:
         u["colig"].setdefault(c["coligacao"], set()).add(c["partido"])
+
+# ---- deputado estadual e federal: grupo curado, por enquanto só RJ e SP.
+# Proporcional não tem pesquisa nominal registrada (é prática do mercado), então esses
+# dois cargos entram só com a ficha do TSE: nenhuma rodada, nenhum ponto, nenhuma vaga
+# cortada. E a lista é curada, não o registro inteiro, então esses nomes nunca entram
+# nas contagens que dizem "todas as candidaturas registradas" (partidos, coligações,
+# lede do estado): eles só aparecem onde o cargo escolhido é o deles.
+DEP_DIR = os.path.join(DADOS, "rjsp")
+DEP_COLS = ("uf", "cargo", "id_tse", "nome_urna", "nome_completo", "numero", "partido",
+            "situacao_tse", "slug", "url_tse")
+
+def cargo_dep(v):
+    t = (v or "").strip().lower()
+    if "federal" in t: return "depfed"
+    if "estadual" in t or "distrital" in t: return "depest"
+    return None
+
+def ler_dep():
+    caminho = os.path.join(DEP_DIR, "candidatos-deputados.csv")
+    if not os.path.exists(caminho): return []
+    with io.open(caminho, encoding="utf-8-sig") as f:
+        linhas = list(csv.DictReader(f))
+    if not linhas: return []
+    falta = [c for c in DEP_COLS if c not in linhas[0]]
+    if falta:
+        raise SystemExit("candidatos-deputados.csv sem as colunas: " + ", ".join(falta))
+    return linhas
+
+for c in ler_dep():
+    u = ufs.get(c["uf"])
+    if u is None:                      # estado sem ficha estadual: não se inventa um
+        print("aviso: deputados de", c["uf"], "sem estado correspondente, linha ignorada")
+        continue
+    cargo = cargo_dep(c["cargo"])
+    if cargo is None:
+        raise SystemExit("cargo de deputado não reconhecido em candidatos-deputados.csv: " + repr(c["cargo"]))
+    ficha = {"nome": c["nome_urna"], "completo": c["nome_completo"], "num": c["numero"],
+             "partido": c["partido"], "colig": c.get("coligacao", ""), "sit": c["situacao_tse"],
+             "slug": c["slug"], "url": c["url_tse"], "cargo": cargo, "id_tse": c["id_tse"]}
+    cat = (c.get("categoria") or "").strip().upper()
+    if cat: ficha["cat"] = cat
+    u.setdefault(cargo, []).append(ficha)
+
+# o detalhe de cada deputado curado vem do arquivo completo do TSE, casado por id_tse (nunca por
+# nome: proporcional tem milhares de candidatos e homônimo é regra, não exceção)
+def enriquecer_deputados():
+    caminho = os.path.join(DEP_DIR, "candidatos-rjsp.csv")
+    if not os.path.exists(caminho): return {}
+    with io.open(caminho, encoding="utf-8-sig") as f:
+        return {r["id_tse"]: r for r in csv.DictReader(f)}
+
+det_dep = enriquecer_deputados()
 for u in ufs.values():
-    for k in ("gov", "sen"):
+    for k in ("depfed", "depest"):
+        for c in u.get(k, []):
+            d = det_dep.get(c.get("id_tse"))
+            if not d: continue
+            anos = [a for a in (d.get("anos_anteriores") or "").split() if a]
+            c["ext"] = {"bens": _num(d["bens_total"]) if d["bens_total"] != "" else None,
+                        "nbens": int(d["bens_qtd"] or 0), "instr": d["escolaridade"], "ocup": d["ocupacao"],
+                        "nasc": d["nascimento"], "vice": "", "comp": d["composicao_coligacao"],
+                        "nascUF": d["uf_nascimento"], "nascMun": d["municipio_nascimento"],
+                        "ig": d["instagram"], "tt": d["tiktok"], "fb": d["facebook"], "yt": d["youtube"],
+                        "x": d["x"], "site": d["site"],
+                        "foto": "https://divulgacandcontas.tse.jus.br/divulga/rest/arquivo/img/20322002026/%s/%s" % (d["id_tse"], d["uf"]),
+                        "ant": "; ".join(anos)}
+
+for u in ufs.values():
+    for k in ("gov", "sen", "depfed", "depest"):
+        if k not in u: continue
         u[k].sort(key=lambda c: (len(c["num"]), c["num"]))
         for i, c in enumerate(u[k]):
             c["cor"] = PAL[i % len(PAL)]
+    # a ordem dos botões do seletor de disputa sai daqui: só os cargos que o estado tem
+    u["cargos"] = [k for k in ("governador", "senador", "depfed", "depest")
+                   if u.get({"governador": "gov", "senador": "sen", "depfed": "depfed", "depest": "depest"}[k])]
     u["colig"] = {k: sorted(v) for k, v in sorted(u["colig"].items())}
 
 # ---- pesquisas estaduais: consolidado (Wikipédia + Gazeta) quando existir; senão, só as rodadas da Gazeta
 cons_uf = ler_est("pesquisas-estados-consolidado.csv")
 MUTED = ["#8E9AAF", "#A98467", "#6C757D", "#B08968", "#7F8C8D", "#95A5A6", "#A0A0A0", "#8D99AE", "#9C6644", "#adb5bd"]
-def _num(v):
-    try: return float(str(v).replace(",", "."))
-    except: return None
 if cons_uf:
     rod_idx = {}
     for r in cons_uf:
@@ -423,11 +495,18 @@ def compactar(v):
         polls2.append([r2idx[k], n_id(p[3], p[5], p[6], p[7]), p[4]])
     return {"nomes": nomes, "polls": polls, "cenarios": cens, "rodadas2": r2, "polls2": polls2}
 
+for u in ufs.values():
+    for k in ("depfed", "depest"):
+        for c in u.get(k, []): c.pop("id_tse", None)
+
 estados = {}
 for k, v in sorted(ufs.items()):
     c = compactar(v)
     estados[k] = {"sigla": v["sigla"], "nome": v["nome"], "regiao": v["regiao"], "gov": v["gov"], "sen": v["sen"],
-                  "rodadas": v["rodadas"], "colig": v["colig"], "wiki_url": v.get("wiki_url", ""), "busca": v.get("busca"), **c}
+                  "cargos": v["cargos"], "rodadas": v["rodadas"], "colig": v["colig"],
+                  "wiki_url": v.get("wiki_url", ""), "busca": v.get("busca"), **c}
+    for dep in ("depfed", "depest"):
+        if v.get(dep): estados[k][dep] = v[dep]
 
 GEO_PATH = os.path.join(DADOS, "geo", "br-uf-paths.json")
 geo = json.load(io.open(GEO_PATH, encoding="utf-8")) if os.path.exists(GEO_PATH) else None
@@ -445,6 +524,7 @@ io.open(os.path.join(AQUI, "mural.html"), "w", encoding="utf-8").write(html)
 # site, e não /mural/mural.html. Os dois arquivos são idênticos e ambos são
 # gerados; mural.html continua sendo o canônico.
 io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
-print("mural.html", len(html), "bytes |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
+ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.values())
+print("mural.html", len(html), "bytes |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
       len(rej), "pontos rejeição |", len(polls_2t), "pontos 2T |", sum(len(v) for v in ig_serie.values()), "pontos IG |",
       len(timeline), "eventos |", meta)

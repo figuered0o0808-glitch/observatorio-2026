@@ -25,7 +25,7 @@ fi
 echo "== regressão de bugs já corrigidos =="
 python3 testes/regressao_bugs_conhecidos.py
 echo
-echo "== varredura geral (27 estados x 2 cargos, mobile, tema escuro) =="
+echo "== varredura geral (27 estados e suas disputas, mobile, tema escuro) =="
 python3 testes/varredura_geral.py
 echo
 echo "tudo verificado."

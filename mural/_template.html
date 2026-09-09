@@ -909,7 +909,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <div class="band subnav" id="ufbar" hidden><div class="wrap ufb-top">
   <span class="eyebrow">Estado</span>
   <label class="sel"><select id="uf-sel" aria-label="Estado"></select></label>
-  <div class="seg" role="group" aria-label="Disputa"><button type="button" data-cargo="governador" aria-pressed="true">Governo</button><button type="button" data-cargo="senador" aria-pressed="false">Senado</button></div>
+  <div class="seg" id="ufb-cargos" role="group" aria-label="Disputa"></div>
   <span class="cap" id="ufb-cap">27 disputas de governo e 54 vagas no Senado, duas por estado</span>
   <a class="ufb-mapa" href="#e-geral" id="ufb-mapa">Mapa do Brasil ↓</a>
 </div></div>
@@ -1124,7 +1124,8 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="blkhead"><span class="eyebrow">Fichas</span><h2 class="t display">Os candidatos</h2></div>
   <p class="sub" id="e-sub-cand"></p>
   <div class="controls">
-    <div class="seg" role="group" aria-label="Cargo"><button type="button" data-ecargo="governador" aria-pressed="true">Governo</button><button type="button" data-ecargo="senador" aria-pressed="false">Senado</button><button type="button" data-ecargo="todos" aria-pressed="false">Os dois</button></div>
+    <div class="seg" id="e-cargos" role="group" aria-label="Cargo"></div>
+    <div class="seg" id="e-cat" role="group" aria-label="Perfil da candidatura" hidden></div>
     <label class="sel">Ordenar por <select id="e-sort"><option value="pesquisa">Intenção de voto</option><option value="numero">Número de urna</option><option value="nome">Nome</option><option value="partido">Partido</option></select></label>
   </div>
   <div class="wall" id="e-wall"></div>
@@ -1628,7 +1629,7 @@ function irPara(id,push=true){
 }
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-aba]");if(b)irPara(b.dataset.aba);});
 // link de uma editoria: nacional é o próprio id; estadual carrega o estado e a disputa atuais
-function hashDe(id){if(!id.startsWith("e-"))return "#"+id;const k=(typeof ufAtual==="string"?ufAtual:"SP").toLowerCase();return `#uf-${k}${(typeof ufCargo==="string"&&ufCargo==="senador")?"-senado":"-governo"}${id==="e-geral"?"":"-"+id.slice(2)}`;}
+function hashDe(id){if(!id.startsWith("e-"))return "#"+id;const k=(typeof ufAtual==="string"?ufAtual:"SP").toLowerCase();const h=(typeof CARGOS==="object"&&CARGOS[ufCargo])?CARGOS[ufCargo].hash:"governo";return `#uf-${k}-${h}${id==="e-geral"?"":"-"+id.slice(2)}`;}
 // fecho de cada editoria: "Continua em" segue a ordem das abas do escopo; a última aponta para o outro escopo
 function pintarSecfoot(id){
   const v=$("#v-"+id);if(!v)return;let f=v.querySelector(":scope>.secfoot");
@@ -1641,7 +1642,10 @@ function pintarSecfoot(id){
 $$("[data-escopo]").forEach(b=>b.addEventListener("click",()=>trocarEscopo(b.dataset.escopo)));
 function rotear(){const h=decodeURIComponent(location.hash||"").slice(1);
   {const d=document.querySelector("dialog.dossie[open]");if(d&&!h.startsWith("dossie-"))d.close();}
-  if(h.startsWith("uf-")){const k=h.slice(3,5).toUpperCase();if(UF[k]){trocarEscopo("uf",false);const toks=h.slice(6).split("-").filter(Boolean);const cargo=toks.includes("senado")?"senador":toks.includes("governo")?"governador":ufCargo;const aba=toks.find(t=>t!=="senado"&&t!=="governo");if(cargo!==ufCargo)trocarCargoUF(cargo,false);trocarUF(k,false);irPara(aba?("e-"+aba):"e-geral",false);return;}}
+  if(h.startsWith("uf-")){const k=h.slice(3,5).toUpperCase();if(UF[k]){trocarEscopo("uf",false);const toks=h.slice(6).split("-").filter(Boolean);
+    const PORHASH={};for(const c in CARGOS)PORHASH[CARGOS[c].hash]=c;
+    const tokC=toks.find(t=>PORHASH[t]),cargo=tokC?PORHASH[tokC]:ufCargo;const aba=toks.find(t=>!PORHASH[t]);
+    trocarUF(k,false);if(cargo!==ufCargo)trocarCargoUF(cargo,false);irPara(aba?("e-"+aba):"e-geral",false);return;}}
   if(h.startsWith("dossie-")){trocarEscopo("br",false);irPara("candidatos",false);const c=C.find(x=>slug(x.nome)===h.slice(7));if(c)openDossie(c.nome);return;}
   if(h.startsWith("e-")){trocarEscopo("uf",false);irPara(h,false);return;}
   trocarEscopo("br",false);irPara(h||prefs.aba,false);}
@@ -2405,8 +2409,9 @@ const pl=(n,s,p)=>n+" "+(Math.abs(n)===1?s:(p||s+"s"));
 const ART={AC:1,AL:0,AP:1,AM:1,BA:2,CE:1,DF:1,ES:1,GO:0,MA:1,MT:0,MS:0,MG:0,PA:1,PB:2,PR:1,PE:0,PI:1,RJ:1,RN:1,RS:1,RO:0,RR:0,SC:0,SP:0,SE:0,TO:1};
 const UF = DATA.estados || {};
 // expande a codificação compacta do gerador para o formato usado nas funções abaixo
-for(const k in UF){const u=UF[k];const por={};[...u.gov,...u.sen].forEach(c=>por[c.slug]=c);
-  [...u.gov,...u.sen].forEach(c=>{c.cor0=c.cor;Object.defineProperty(c,"cor",{get(){return corViva(this.cor0);},enumerable:true,configurable:true});});
+for(const k in UF){const u=UF[k];const chapa=["gov","sen","depfed","depest"].reduce((a,n)=>a.concat(u[n]||[]),[]);
+  const por={};chapa.forEach(c=>por[c.slug]=c);
+  chapa.forEach(c=>{c.cor0=c.cor;Object.defineProperty(c,"cor",{get(){return corViva(this.cor0);},enumerable:true,configurable:true});});
   const nm=i=>{const n=u.nomes[i]||["?","","",""];return (n[1]&&por[n[1]])?[por[n[1]].nome,n[1],n[2],n[3]]:n;};const corDe=n=>(n[1]&&por[n[1]])?por[n[1]].cor0:(n[3]||"var(--ink-3)");
   u.polls=(u.polls||[]).map(([ri,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,n[0],v,n[1],corDe(n),n[2]||""];});
   u.cenarios=(u.cenarios||[]).map(([ri,cen,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,String(cen),n[0],v,n[1],n[2]||"",corDe(n)];});
@@ -2427,28 +2432,55 @@ const corPartido=p=>{const k=String(p||"").toUpperCase();return ESCURO?(CORP_DAR
 // rótulos que saem do mapa (estados estreitos do litoral e o DF), em unidades do viewBox
 const LBL={RN:[1078,282],PB:[1078,326],PE:[1078,370],AL:[1078,414],SE:[1078,458],ES:[955,690],RJ:[880,790],DF:[600,470]};
 const ABAS_UF=[["e-geral","Visão geral"],["e-pesquisas","Pesquisas"],["e-busca","Busca e redes"],["e-candidatos","Candidatos"],["e-lado","Lado a lado"],["e-partidos","Partidos"],["e-tempo","Linha do tempo"],["e-metodo","Método"]];
+// ---- as disputas de um estado, uma entrada por cargo em vez de um binário governo/Senado.
+// "lista" é a chave dentro de UF[uf]; "vagas" é quantos a rodada elege (o corte de eleitos);
+// "pesq" diz se o cargo tem pesquisa nominal: proporcional não tem, e por isso deputado
+// estadual e federal entram só com a ficha do TSE. "hash" é o pedaço que vai para a URL.
+const CARGOS={
+  governador:{lista:"gov",bt:"Governo",label:"governo",art:"o governo",por:"pelo governo",cand:"governador",vice:"Vice",vagas:1,pesq:true,hash:"governo"},
+  senador:{lista:"sen",bt:"Senado",label:"Senado",art:"o Senado",por:"pelo Senado",cand:"senador",vice:"Suplentes",vagas:2,pesq:true,hash:"senado"},
+  depfed:{lista:"depfed",bt:"Câmara",label:"Câmara dos Deputados",art:"a Câmara dos Deputados",por:"pela Câmara dos Deputados",cand:"deputado federal",vice:"",vagas:1,pesq:false,hash:"federal"},
+  depest:{lista:"depest",bt:"Assembleia",label:"Assembleia Legislativa",art:"a Assembleia Legislativa",por:"pela Assembleia Legislativa",cand:"deputado estadual",vice:"",vagas:1,pesq:false,hash:"estadual"}
+};
+const ORDEM_CARGO=["governador","senador","depfed","depest"];
+const cargoOk = c => Object.prototype.hasOwnProperty.call(CARGOS,c);
+// cada estado declara os cargos que tem; sem a lista (edição antiga), valem os dois majoritários
+const cargosDe = k => {const u=UF[k];if(!u)return ["governador","senador"];
+  const l=(u.cargos||[]).filter(cargoOk);return l.length?l:ORDEM_CARGO.filter(c=>(u[CARGOS[c].lista]||[]).length);};
+const listaDe = (u,cargo) => (u&&cargoOk(cargo)?(u[CARGOS[cargo].lista]||[]):[]);
+// todo mundo que o estado tem, em qualquer cargo: para achar um slug, nunca para contar
+const todosUF = u => u?ORDEM_CARGO.reduce((a,c)=>a.concat(u[CARGOS[c].lista]||[]),[]):[];
 let ufAtual = prefs.uf && UF[prefs.uf] ? prefs.uf : "SP";
-let ufCargo = prefs.ufCargo === "senador" ? "senador" : "governador";
-let ufCargoCards = "governador", ufRodada = null, ufLado = [], ufCen = null, ufInstOff = new Set(), ufCandVis = null;
-const VAGAS = c => c === "senador" ? 2 : 1;
-const cargoLabel = c => c === "senador" ? "Senado" : "governo";
+let ufCargo = cargosDe(ufAtual).includes(prefs.ufCargo) ? prefs.ufCargo : "governador";
+let ufCargoCards = ufCargo, ufRodada = null, ufLado = [], ufCen = null, ufInstOff = new Set(), ufCandVis = null;
+const VAGAS = c => (CARGOS[c]||CARGOS.governador).vagas;
+const cargoLabel = c => (CARGOS[c]||CARGOS.governador).label;
+const cargoArt = c => (CARGOS[c]||CARGOS.governador).art;
+const cargoPor = c => (CARGOS[c]||CARGOS.governador).por;
+const cargoDisputa = c => c==="senador"?"Senado (2 vagas)":c==="governador"?"Governo do estado":cargoLabel(c);
+const temPesquisa = c => (CARGOS[c]||CARGOS.governador).pesq;
 const pollsDe = (u,cargo) => (UF[u]?UF[u].polls:[]).filter(p=>p[0]===cargo);
 const rodadasDe = (u,cargo) => (UF[u]?UF[u].rodadas:[]).filter(r=>r.cargo===cargo);
-const candsDe = (u,cargo) => (UF[u]?(cargo==="senador"?UF[u].sen:UF[u].gov):[]);
-const candPorSlug = s => {const u=UF[ufAtual];if(!u)return null;return [...u.gov,...u.sen].find(c=>c.slug===s)||null;};
+const candsDe = (u,cargo) => listaDe(UF[u],cargo);
+const candPorSlug = s => {const u=UF[ufAtual];if(!u)return null;return todosUF(u).find(c=>c.slug===s)||null;};
 function rodadaKey(r){return r.cargo+"|"+r.inst+"|"+r.data;}
 function pontosRodada(u,r,cen){
   if(cen&&cen!=="principal"){return (UF[u].cenarios||[]).filter(p=>p[0]===r.cargo&&p[1]===r.inst&&p[2]===r.data&&p[3]===cen).map(p=>[p[0],p[1],p[2],p[4],p[5],p[6],p[8],p[7]]).sort((a,b)=>b[4]-a[4]);}
   return (UF[u].polls||[]).filter(p=>p[0]===r.cargo&&p[1]===r.inst&&p[2]===r.data).sort((a,b)=>b[4]-a[4]);}
 function ultimaRodadaUF(u,cargo){const r=rodadasDe(u,cargo);return r.length?r[0]:null;}
 function liderDe(u,cargo){const r=ultimaRodadaUF(u,cargo);if(!r)return null;const pts=pontosRodada(u,r);return pts.length?{r,pts}:null;}
+// disputa proporcional não tem pesquisa nominal: o mercado não publica por nome. Onde o resto
+// do mural mostraria uma rodada, esses dois cargos mostram essa frase, não um vazio sem motivo.
+const semPesq=c=>temPesquisa(c)
+  ?`Nenhuma rodada de ${cargoLabel(c)} deste estado entrou no observatório ainda.`
+  :`${cargoArt(c).charAt(0).toUpperCase()+cargoArt(c).slice(1)} é disputa proporcional, e os institutos não publicam pesquisa por nome nesses cargos. O que o observatório tem aqui é a ficha do TSE de cada candidatura, na editoria Candidatos.`;
 const focoUF = () => {const p=(ufAtual||"").toLowerCase()+"-";return new Set((prefs.focoUF||[]).filter(s=>s.startsWith(p)));};
 function toggleFocoUF(slug){const f=[...(prefs.focoUF||[])];const i=f.indexOf(slug);if(i>=0)f.splice(i,1);else f.push(slug);prefs.focoUF=f;salvar();desenharUF();}
 
 // barras horizontais de uma rodada
 function barrasRodada(u, cargo, o={}){
   const r = o.rodada || ultimaRodadaUF(u,cargo);
-  if(!r) return `<div class="empty"><b>Sem pesquisa registrada</b>Nenhuma rodada deste estado para ${cargoLabel(cargo)} entrou no observatório ainda.</div>`;
+  if(!r) return `<div class="empty"><b>${temPesquisa(cargo)?"Sem pesquisa registrada":"Sem pesquisa nominal"}</b>${semPesq(cargo)}</div>`;
   const pts = pontosRodada(u,r,o.cen), max = Math.max(...pts.map(p=>p[4]),10);
   if(!pts.length) return `<div class="empty"><b>Sem números</b>Esta rodada não tem pontos para este cenário.</div>`;
   const vagas = VAGAS(cargo), foc = focoUF();
@@ -2475,7 +2507,7 @@ function evolucaoUF(u,cargo){
   return chartTempo({W:1180,H:300,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,t0:Math.min(...ts)-4*864e5,t1:Math.max(...ts)+4*864e5,aria:"Evolução das pesquisas no estado"});
 }
 // mapa geográfico
-function liderPartido(k,cargo){const l=liderDe(k,cargo);if(!l)return null;const p=l.pts[0];const c=[...UF[k].gov,...UF[k].sen].find(x=>x.slug===p[5]);return {l,p,c,partido:c?c.partido:""};}
+function liderPartido(k,cargo){const l=liderDe(k,cargo);if(!l)return null;const p=l.pts[0];const c=todosUF(UF[k]).find(x=>x.slug===p[5]);return {l,p,c,partido:c?c.partido:""};}
 function drawMapa(){
   const G=DATA.geo; if(!G){$("#mapa-svg").innerHTML="";return;}
   const [vx,vy,vw,vh]=G.viewBox.split(" ").map(Number);
@@ -2509,9 +2541,9 @@ function drawMapaSel(){
   const outro=ufCargo==="senador"?"governador":"senador", lo=liderPartido(k,outro);
   let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${l?` · ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}</div>`;
   if(l){
-    h+=l.pts.slice(0,4).map((p,i)=>{const c=[...u.gov,...u.sen].find(x=>x.slug===p[5]);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p[6])}">${c?esc(c.num):""}</span><span><b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="v">${fPct(p[4])}%</span></div>`;}).join("");
+    h+=l.pts.slice(0,4).map((p,i)=>{const c=todosUF(u).find(x=>x.slug===p[5]);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p[6])}">${c?esc(c.num):""}</span><span><b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="v">${fPct(p[4])}%</span></div>`;}).join("");
     if(l.pts.length>4)h+=`<div class="src">mais ${l.pts.length-4} nomes testados nesta rodada</div>`;
-  } else h+=`<div class="empty" style="margin:0"><b>Sem pesquisa</b>Nenhuma rodada de ${cargoLabel(ufCargo)} deste estado entrou no observatório ainda.</div>`;
+  } else h+=`<div class="empty" style="margin:0"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;
   h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p[3])} (${esc(lo.partido)}) com ${fPct(lo.p[4])}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
   h+=`<a class="go" href="#uf-${k.toLowerCase()}${ufCargo==="senador"?"-senado":"-governo"}-pesquisas" data-goto-aba="e-pesquisas">Abrir ${esc(u.nome)} →</a>`;
   $("#mapa-sel").innerHTML=h;
@@ -2529,11 +2561,16 @@ function drawGeralUF(){
   const nGov=u.gov.length, nSen=u.sen.length, nPart=new Set([...u.gov,...u.sen].map(c=>c.partido)).size;
   const nRod=u.rodadas.length, insts=new Set(u.rodadas.map(r=>r.inst)).size;
   // manchete numérica do estado: os três primeiros da última rodada da disputa escolhida, sem verbo
-  {const l=liderDe(ufAtual,ufCargo),disp=ufCargo==="senador"?"Senado":"Governo";
-    $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${l?`última rodada ${l.r.inst}, ${dBR(l.r.data)}`:"sem pesquisa registrada"}`;
-    $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · "):`Sem pesquisa registrada para ${ufCargo==="senador"?"o Senado":"o governo"} ${emUF(ufAtual)}`;
+  {const l=liderDe(ufAtual,ufCargo),disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
+    $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${l?`última rodada ${l.r.inst}, ${dBR(l.r.data)}`:(temPesquisa(ufCargo)?"sem pesquisa registrada":"sem pesquisa nominal")}`;
+    $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · ")
+      :(temPesquisa(ufCargo)?`Sem pesquisa registrada para ${cargoArt(ufCargo)} ${emUF(ufAtual)}`
+        :`${pl(nDep,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargo)} ${emUF(ufAtual)}`);
     const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;
-    $("#e-lede").innerHTML=`${pl(nGov,"candidatura")} ao governo e ${nSen} ao Senado, de ${pl(nPart,"partido")}, registradas no TSE. ${rc.length?`${pl(rc.length,"rodada")} de ${pl(ic,"instituto")} para ${ufCargo==="senador"?"o Senado":"o governo"} no observatório${nRod>rc.length?`, ${nRod} no estado`:""}.`:`Nenhuma rodada de ${cargoLabel(ufCargo)} no observatório ainda${nRod?`; ${pl(nRod,"rodada")} da outra disputa`:""}.`} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;}
+    const abre=temPesquisa(ufCargo)
+      ? `${pl(nGov,"candidatura")} ao governo e ${nSen} ao Senado, de ${pl(nPart,"partido")}, registradas no TSE.`
+      : `${pl(nDep,"candidatura acompanhada","candidaturas acompanhadas")} na disputa ${cargoPor(ufCargo)}, de ${pl(new Set(listaDe(u,ufCargo).map(c=>c.partido)).size,"partido")}: parlamentares em busca de reeleição e nomes novos de repercussão, não o registro inteiro.`;
+    $("#e-lede").innerHTML=`${abre} ${rc.length?`${pl(rc.length,"rodada")} de ${pl(ic,"instituto")} para ${cargoArt(ufCargo)} no observatório${nRod>rc.length?`, ${nRod} no estado`:""}.`:(temPesquisa(ufCargo)?`Nenhuma rodada de ${cargoLabel(ufCargo)} no observatório ainda${nRod?`; ${pl(nRod,"rodada")} da outra disputa`:""}.`:semPesq(ufCargo))} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;}
   $("#e-panel-gov").style.order=ufCargo==="governador"?0:1; $("#e-panel-sen").style.order=ufCargo==="senador"?0:1;
   $("#e-panel-gov").classList.toggle("pick",ufCargo==="governador"); $("#e-panel-sen").classList.toggle("pick",ufCargo==="senador");
   // alertas do estado
@@ -2548,7 +2585,7 @@ function drawGeralUF(){
     if(cargo==="senador"&&ant&&q&&me!=null&&Math.abs(ant[4]-q[4])<=2*me)A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant[3])}</b> e <b>${esc(q[3])}</b> disputam a segunda vaga do Senado dentro da margem (${fPct(ant[4])}% e ${fPct(q[4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} pontos`});
   }
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
-  for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${c.cargo==="senador"?"Senado":"governo"}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
+  for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${esc(cargoLabel(c.cargo))}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
   if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});
   renderAlertas($("#e-alerts"),A,`Alertas ${deUF(ufAtual)}`,hashDe("e-tempo"));
   const lg=liderDe(ufAtual,"governador"), ls=liderDe(ufAtual,"senador");
@@ -2557,6 +2594,7 @@ function drawGeralUF(){
     [String(nSen),"candidatos ao Senado","duas vagas em disputa neste estado"],
     [String(nPart),"partidos na disputa",`${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`],
     [String(nRod),nRod===1?"rodada de pesquisa":"rodadas de pesquisa",nRod?`${pl(insts,"instituto")}; a última em ${dBR(u.rodadas[0].data)}`:"nenhuma no observatório ainda"],
+    ...cargosDe(ufAtual).filter(c=>!temPesquisa(c)).map(c=>[String(listaDe(u,c).length),`nomes na ${CARGOS[c].bt}`,"grupo acompanhado, sem pesquisa nominal"]),
     [lg?fPct(lg.pts[0][4])+"<small>%</small>":"n/d","líder no governo",lg?`${esc(lg.pts[0][3])} (${esc(lg.r.inst)}, ${dBR(lg.r.data)})`:"sem pesquisa"],
     [ls?fPct(ls.pts[0][4])+"<small>%</small>":"n/d","líder no Senado",ls?`${esc(ls.pts[0][3])} (${esc(ls.r.inst)}, ${dBR(ls.r.data)})`:"sem pesquisa"],
   ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
@@ -2590,7 +2628,7 @@ function drawCorridaUF(){
   const el=$("#e-f-cands");
   el.innerHTML=cands.slice(0,18).map(([k,c])=>`<button type="button" class="chipbtn" data-k="${esc(k)}" aria-pressed="${ufCandVis.has(k)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${c.slug?"":" (não registrado no TSE)"}${c.recente?"":" · fora das rodadas recentes"}"><i></i>${esc(curtoNome(c.nome))}${c.recente?"":" (até "+MESES_L[new Date(c.ult.t).getUTCMonth()].slice(0,3)+")"}</button>`).join("")+(cands.length>18?`<span class="cap" style="margin:0;align-self:center">+${cands.length-18} nomes com menos menções</span>`:"");
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufCandVis.has(k)?ufCandVis.delete(k):ufCandVis.add(k);b.setAttribute("aria-pressed",ufCandVis.has(k));drawCorridaUF();}));
-  if(!series.length){$("#e-ch-corrida").innerHTML=`<div class="empty"><b>Sem pontos</b>Nenhuma rodada de ${cargoLabel(cargo)} com os filtros atuais.</div>`;return;}
+  if(!series.length){$("#e-ch-corrida").innerHTML=`<div class="empty"><b>${temPesquisa(cargo)?"Sem pontos":"Sem pesquisa nominal"}</b>${temPesquisa(cargo)?`Nenhuma rodada de ${cargoLabel(cargo)} com os filtros atuais.`:semPesq(cargo)}</div>`;return;}
   const [ymax,ticks]=escalaY(series,52);
   pinta("#e-ch-corrida",chartTempo({id:"#e-ch-corrida",H:380,ml:44,mr:130,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],aria:`Intenção de voto para ${cargoLabel(cargo)} ${emUF(ufAtual)} ao longo de 2026`}));
 }
@@ -2601,7 +2639,7 @@ function drawRodadaUF(){
   const r=rs.find(x=>rodadaKey(x)===ufRodada)||rs[0];
   const sel=$("#e-sel-rod");
   sel.innerHTML=rs.map(x=>`<option value="${esc(rodadaKey(x))}" ${x===r?"selected":""}>${esc(x.inst)} · campo até ${dBR(x.data)}${x.ncen>1?` · ${x.ncen} cenários`:""}</option>`).join("");
-  if(!r){$("#e-h-rod").textContent="Rodada em destaque";$("#e-cap-rod").textContent="";$("#e-ch-rodada").innerHTML=`<div class="empty"><b>Sem pesquisa</b>Este estado ainda não tem rodada de ${cargoLabel(ufCargo)} no observatório.</div>`;$("#e-sel-cen-w").hidden=true;return;}
+  if(!r){$("#e-h-rod").textContent="Rodada em destaque";$("#e-cap-rod").textContent="";$("#e-ch-rodada").innerHTML=`<div class="empty"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;$("#e-sel-cen-w").hidden=true;return;}
   const cens=[...new Set((u.cenarios||[]).filter(p=>p[0]===r.cargo&&p[1]===r.inst&&p[2]===r.data).map(p=>p[3]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   $("#e-sel-cen-w").hidden=!cens.length;
   if(cens.length){const sc=$("#e-sel-cen");if(!ufCen||(ufCen!=="principal"&&!cens.includes(ufCen)))ufCen="principal";sc.innerHTML=[`<option value="principal" ${ufCen==="principal"?"selected":""}>principal (mais próximo do TSE)</option>`,...cens.map(c=>`<option value="${esc(c)}" ${ufCen===c?"selected":""}>cenário ${esc(c)}</option>`)].join("");}
@@ -2702,20 +2740,51 @@ function cardUF(c){
   const l=liderDe(ufAtual,c.cargo), pt=l?l.pts.find(p=>p[5]===c.slug):null, pos=l?l.pts.findIndex(p=>p[5]===c.slug)+1:0;
   const foc=(prefs.focoUF||[]).includes(c.slug);
   const sit=/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn";
+  const nAnt=(c.ext&&c.ext.ant?c.ext.ant.split("; ").filter(Boolean).length:0);
   return `<article class="card${foc?" vigiado":""}" id="ecard-${c.slug}">
-    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig?" · "+esc(c.colig):""} · ${c.cargo==="senador"?"Senado":"governo"}</div><div class="pills"><span class="pill ${sit}">${esc(c.sit)}</span></div></div></div>
-    <div class="stats">
+    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · ${esc((CARGOS[c.cargo]||CARGOS.governador).bt)}${c.cat?" · "+(c.cat==="A"?"reeleição":"estreia"):""}</div><div class="pills"><span class="pill ${sit}">${esc(c.sit)}</span></div></div></div>
+    <div class="stats">${temPesquisa(c.cargo)?`
       <div class="st"><span>Intenção</span><b class="display tnum">${pt?fPct(pt[4])+"<small>%</small>":"<small>não medido</small>"}</b><span class="d">${pt?`${esc(l.r.inst)} · ${dBR(l.r.data)}`:"nesta rodada"}</span></div>
-      <div class="st"><span>Posição</span><b class="display tnum">${pos?pos+"º":"n/d"}</b><span class="d">${pos?`entre ${l.pts.length} testados`:"fora da rodada"}</span></div>
+      <div class="st"><span>Posição</span><b class="display tnum">${pos?pos+"º":"n/d"}</b><span class="d">${pos?`entre ${l.pts.length} testados`:"fora da rodada"}</span></div>`:`
+      <div class="st"><span>Perfil</span><b class="display" style="font-size:14px;line-height:1.2">${c.cat==="A"?"Reeleição":c.cat==="B"?"Estreia":"n/d"}</b><span class="d">${c.cat==="A"?"está no cargo":c.cat==="B"?"nome novo na disputa":"sem classificação"}</span></div>
+      <div class="st"><span>Eleições</span><b class="display tnum">${nAnt}</b><span class="d">${nAnt?"disputas anteriores no TSE":"primeira no DivulgaCandContas"}</span></div>`}
       <div class="st"><span>Situação</span><b class="display" style="font-size:14px;line-height:1.2">${esc(c.sit.split(" ")[0])}</b><span class="d">registro no TSE</span></div>
     </div>
     <div class="foot"><button type="button" class="btn primary" data-edossie="${esc(c.slug)}">Abrir dossiê</button><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${foc}"><span class="glyph" aria-hidden="true">${foc?"★":"☆"}</span>${foc?"Em foco":"Pôr em foco"}</button><span class="spacer"></span><a href="${esc(c.url)}" target="_blank" rel="noopener">TSE</a></div>
   </article>`;
 }
+// nas disputas majoritárias a lista é o registro inteiro; nas proporcionais é um grupo curado,
+// e a diferença precisa estar escrita, não subentendida
+function subCand(u){
+  const emUf=emUF(ufAtual);
+  if(ufCargoCards==="todos"){
+    const props=cargosDe(ufAtual).filter(c=>!temPesquisa(c));
+    return `${u.gov.length} candidaturas ao governo e ${u.sen.length} ao Senado, todas as registradas no TSE ${emUf}`
+      +(props.length?`, mais ${props.map(c=>`${listaDe(u,c).length} nomes acompanhados na ${CARGOS[c].bt}`).join(" e ")}`:"")
+      +`. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;
+  }
+  if(temPesquisa(ufCargoCards))
+    return `Todas as ${listaDe(u,ufCargoCards).length} candidaturas a ${cargoArt(ufCargoCards)} registradas no TSE ${emUf}. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;
+  const l=listaDe(u,ufCargoCards),a=l.filter(c=>c.cat==="A").length,b=l.filter(c=>c.cat==="B").length;
+  return `${pl(l.length,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargoCards)} ${emUf}: `
+    +(a||b?`${a} em busca de reeleição e ${b} de estreia com repercussão. `:"")
+    +`Não é o registro inteiro do TSE, é o grupo que o observatório acompanha; a ficha de cada um vem do DivulgaCandContas.`;
+}
+let ufCatVis="todas";
 function drawCandidatosUF(){
   const u=UF[ufAtual];if(!u)return;
-  $("#e-sub-cand").innerHTML=`Todas as candidaturas registradas no TSE ${emUF(ufAtual)}: ${u.gov.length} ao governo e ${u.sen.length} ao Senado. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;
-  let lista = ufCargoCards==="todos"?[...u.gov,...u.sen]:candsDe(ufAtual,ufCargoCards);
+  $("#e-sub-cand").innerHTML=subCand(u);
+  let lista = ufCargoCards==="todos"?todosUF(u):candsDe(ufAtual,ufCargoCards);
+  // o filtro de perfil só existe onde a lista é curada e traz categoria
+  const temCat=ufCargoCards!=="todos"&&lista.some(c=>c.cat);
+  const elc=$("#e-cat");
+  if(elc){
+    elc.hidden=!temCat;
+    if(temCat)elc.innerHTML=[["todas","Todos"],["A","Reeleição"],["B","Estreia"]]
+      .map(([v,t])=>`<button type="button" data-cat="${v}" aria-pressed="${ufCatVis===v}">${t}</button>`).join("");
+    else ufCatVis="todas";
+  }
+  if(temCat&&ufCatVis!=="todas")lista=lista.filter(c=>c.cat===ufCatVis);
   const ord=$("#e-sort").value, foc=prefs.focoUF||[];
   const pctDe=c=>{const l=liderDe(ufAtual,c.cargo);const p=l?l.pts.find(x=>x[5]===c.slug):null;return p?p[4]:-1;};
   lista=lista.slice().sort((a,b)=>{
@@ -2737,7 +2806,7 @@ function renderDossieUF(c,cwMed=0){
   const cob=[["Registro no TSE",true],["Partido e número",true],["Coligação",!!c.colig],["Perfil e bens",!!c.ext],["Redes informadas",!!(c.ext&&(c.ext.ig||c.ext.tt||c.ext.yt||c.ext.x))],["Pesquisa nominal",linhas.length>0],["Mais de uma rodada",linhas.length>1],["Busca no Google",!!(Bz.tr&&Bz.tr[c.slug])],["Verbete na Wikipédia",!!(Bz.wk&&Bz.wk[c.slug])],["Seguidores lidos",!!(Bz.ig&&Bz.ig[c.slug]&&Bz.ig[c.slug].n!=null)]];
   return `<div class="dz">
     <div class="top"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div>
-      <div><span class="kick">Dossiê · ${esc(u.nome)} · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(c.nome)}</h2><div class="party">${esc(c.partido)}${c.colig?" · "+esc(c.colig):""} · candidatura a ${c.cargo==="senador"?"senador":"governador"}</div></div>
+      <div><span class="kick">Dossiê · ${esc(u.nome)} · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(c.nome)}</h2><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · candidatura a ${esc((CARGOS[c.cargo]||CARGOS.governador).cand)}</div></div>
       <div class="acts"><span class="stamp ${/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn"}">${esc(c.sit)}</span><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
     </div>
     <div class="body">
@@ -2750,7 +2819,7 @@ function renderDossieUF(c,cwMed=0){
           <div><span>Partido</span><b>${esc(c.partido)}</b></div>
           <div><span>Coligação</span><b>${esc(c.colig||"partido isolado")}</b></div>
           <div><span>Situação</span><b>${esc(c.sit)}</b></div>
-          <div><span>Disputa</span><b>${c.cargo==="senador"?"Senado (2 vagas)":"Governo do estado"}</b></div>
+          <div><span>Disputa</span><b>${esc(cargoDisputa(c.cargo))}</b></div>
           <div><span>Estado</span><b>${esc(u.nome)}</b></div>
         </div><div class="foot"><a href="${esc(c.url)}" target="_blank" rel="noopener">Ficha no DivulgaCandContas</a>${coligPart.length?`<span>${c.ext&&c.ext.comp?"Coligação registrada no TSE":"Na coligação, com candidatura própria"}: ${coligPart.map(esc).join(", ")}</span>`:""}</div></div>
         <div class="box"><h4>Perfil registrado no TSE</h4>${(()=>{const x=c.ext;if(!x)return `<p class="sit">Detalhe da candidatura ainda não lido.</p>`;
@@ -2763,7 +2832,7 @@ function renderDossieUF(c,cwMed=0){
             <div><span>Natural de</span><b>${x.nascMun?esc(x.nascMun.toLowerCase().replace(/(^|\s)\p{L}/gu,ch=>ch.toUpperCase()))+(x.nascUF?" ("+esc(x.nascUF==="ZZ"?"exterior":x.nascUF)+")":""):"n/d"}</b></div>
             <div><span>Escolaridade</span><b>${esc(x.instr||"n/d")}</b></div>
             <div><span>Ocupação declarada</span><b>${esc(x.ocup||"n/d")}</b></div>
-            <div><span>${c.cargo==="senador"?"Suplentes":"Vice"}</span><b>${esc(x.vice||"n/d")}</b></div>
+            ${(CARGOS[c.cargo]||CARGOS.governador).vice?`<div><span>${esc((CARGOS[c.cargo]||CARGOS.governador).vice)}</span><b>${esc(x.vice||"n/d")}</b></div>`:""}
             <div><span>Patrimônio declarado</span><b>${x.bens!=null?fBRL(x.bens)+(x.nbens?` <small>(${pl(x.nbens,"bem","bens")})</small>`:""):"n/d"}</b></div>
           </div>${redes.length?`<div class="cap" style="margin-top:8px">Redes informadas ao TSE: ${redes.join(" · ")}</div>`:`<div class="cap" style="margin-top:8px">Nenhuma rede informada ao TSE.</div>`}${ant.length?`<div class="cap" style="margin-top:6px">Eleições anteriores: ${ant.map(esc).join("; ")}.</div>`:`<div class="cap" style="margin-top:6px">Primeira eleição registrada no DivulgaCandContas.</div>`}`;})()}</div>
       </div>
@@ -2776,9 +2845,9 @@ function renderDossieUF(c,cwMed=0){
           const svg=pts.length>1?chartTempo({W:1000,H:230,ml:44,mr:80,ymax,ticks:[0,Math.round(ymax/2),ymax].filter((v,i,a)=>a.indexOf(v)===i),fmtY:v=>fPct(v)+"%",series:[{nome:c.nome,cor:c.cor,r:3.4,lw:2,sigma:pts.length>=3?14:0,linha:pts.length>=3?null:pts,pts,op:.9,rotulo:`${fPct(ult[4])}%`}],t0:Math.min(...pts.map(p=>p.t))-6*864e5,t1:T1,aria:`Série de ${c.nome} nas pesquisas`,cross:false,cw:cwMed||(MOBILE?Math.max(240,innerWidth-62):0),Hm:200}):"";
           return `<div class="cap">${pl(linhas.length,"rodada")} de ${pl(new Set(linhas.map(p=>p[1])).size,"instituto")} entre ${dBR(prim[2])} e ${dBR(ult[2])}${tend!=null?`; tendência de 30 dias ${tend>=1?"▲ +"+fPct(tend):tend<=-1?"▼ "+fPct(tend):"estável"} na média móvel`:""}.</div><div class="chart">${svg}</div><div class="polls3">${linhas.slice(0,6).map(p=>{const r=rodada(p);return `<div class="pm"><div class="inst">${esc(p[1])} · ${dBR(p[2])}</div><div class="pct display tnum">${fPct(p[4])}<small>%</small></div>${r?`<div class="rej">${r.modo&&r.modo!=="não informada"?esc(r.modo)+" · ":""}${r.amostra?esc(r.amostra)+" entrev.":""}</div>`:""}</div>`;}).join("")}</div>${l&&l.pts.some(p=>p[5]===c.slug)?`<div class="cap" style="margin-top:8px">Na rodada mais recente aparece em ${l.pts.findIndex(p=>p[5]===c.slug)+1}º lugar entre ${l.pts.length} nomes testados${c.cargo==="senador"?", com duas vagas em disputa":""}.</div>`:""}`;})():`<p class="sit">Nenhuma rodada do observatório testou este nome até agora. Isso é comum em candidaturas de partidos pequenos e não diz nada sobre a candidatura em si: diz que o instituto não a incluiu no questionário.</p>`}</div>
       </div>
-      <div class="box"><h4>A disputa ${emUF(ufAtual)}</h4><div class="cap">Rodada mais recente de ${c.cargo==="senador"?"Senado":"governo"}${l?`: ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}.</div>${barrasRodada(ufAtual,c.cargo)}</div>
+      <div class="box"><h4>A disputa ${emUF(ufAtual)}</h4><div class="cap">${temPesquisa(c.cargo)?`Rodada mais recente de ${cargoLabel(c.cargo)}${l?`: ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}.`:`${cargoDisputa(c.cargo)}: sem rodada nominal registrada.`}</div>${barrasRodada(ufAtual,c.cargo)}</div>
       <div class="foot-acts"><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button></div>
-      <div class="foot"><span>Fontes: TSE DivulgaCandContas (registro, partido, coligação e situação, consulta de 2/9/2026)${linhas.length?`; pesquisas pela compilação pública da Wikipédia conferida com as divulgações, ficha técnica registrada pela Gazeta do Povo quando existe`:""}.</span><span>Nenhum número entra sem data e fonte.</span></div>
+      <div class="foot"><span>Fontes: TSE DivulgaCandContas (registro, partido, coligação e situação, consulta de ${temPesquisa(c.cargo)?"2/9/2026":"7/9/2026"})${temPesquisa(c.cargo)?"":"; grupo acompanhado definido por curadoria de imprensa, em notas/curadoria-deputados-rjsp-2026-09-07.md"}${linhas.length?`; pesquisas pela compilação pública da Wikipédia conferida com as divulgações, ficha técnica registrada pela Gazeta do Povo quando existe`:""}.</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 function openDossieUF(slug,opener){
@@ -2798,7 +2867,7 @@ const CRIT_UF=[
  ["Redes e perfil","Pico de busca no Google",c=>{const B=UF[ufAtual].busca||{};const t=B.tr&&B.tr[c.slug]?sStr(B.tr[c.slug]):null;if(!t||!t.length)return {txt:"sem série"};const m=t.reduce((a,b)=>b.v>a.v?b:a);return {v:m.v,txt:String(m.v),src:`índice no estado, ${dBR(dISO(m.t))}`,better:"max",bar:true};}],
  ["Redes e perfil","Patrimônio declarado",c=>c.ext&&c.ext.bens!=null?{v:c.ext.bens,txt:fBRL(c.ext.bens),src:`${pl(c.ext.nbens||0,"bem","bens")} no TSE`,bar:true}:{txt:"n/d"}],
  ["Redes e perfil","Eleições anteriores",c=>{const n=c.ext&&c.ext.ant?c.ext.ant.split("; ").filter(Boolean).length:0;return {v:n,txt:String(n),src:n?c.ext.ant.split("; ")[0]:"primeira eleição",bar:true};}],
- ["Ficha do TSE","Disputa",c=>({txt:c.cargo==="senador"?"Senado (2 vagas)":"Governo do estado",plain:true})],
+ ["Ficha do TSE","Disputa",c=>({txt:cargoDisputa(c.cargo),plain:true})],
  ["Ficha do TSE","Ocupação declarada",c=>({txt:c.ext&&c.ext.ocup?c.ext.ocup:"n/d",plain:true})],
  ["Ficha do TSE","Escolaridade",c=>({txt:c.ext&&c.ext.instr?c.ext.instr:"n/d",plain:true})],
  ["Ficha do TSE","Número",c=>({txt:c.num,plain:true})],
@@ -2808,7 +2877,7 @@ const CRIT_UF=[
  ["Ficha do TSE","Nome completo",c=>({txt:c.completo,plain:true})],
 ];
 function renderLadoUFControls(){
-  const u=UF[ufAtual];const todos=[...u.gov,...u.sen];
+  const u=UF[ufAtual];const todos=todosUF(u);
   const opts=i=>todos.map(c=>`<option value="${esc(c.slug)}" ${ufLado[i]===c.slug?"selected":""}>${esc(c.nome)} · ${esc(c.partido)} · ${c.cargo==="senador"?"Senado":"Governo"}</option>`).join("");
   $("#e-lado-controls").innerHTML=[0,1,2].map(i=>`<label class="sel">${["Primeiro","Segundo","Terceiro"][i]} <select data-ei="${i}">${i===2?`<option value="" ${!ufLado[2]?"selected":""}>ninguém</option>`:""}${opts(i)}</select></label>`).join("");
   $("#e-lado-controls").querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{ufLado[+s.dataset.ei]=s.value;renderLadoUF();}));
@@ -2872,6 +2941,10 @@ function drawMetodoUF(){
     return `<tr${k===ufAtual?' style="font-weight:600"':''}><td><a href="#" data-goto-uf="${k}">${esc(u.nome)}</a></td><td class="tot">${ok.filter(Boolean).length}/${ok.length}</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(ABR[i])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
   const nR=Object.values(UF).reduce((s,u)=>s+u.rodadas.length,0), nI=new Set(Object.values(UF).flatMap(u=>u.rodadas.map(r=>r.inst))).size, nReg=Object.values(UF).reduce((s,u)=>s+u.rodadas.filter(r=>r.reg).length,0), n2=Object.values(UF).reduce((s,u)=>s+(u.rodadas2||[]).length,0);
   $("#e-notes").innerHTML=`<p><b>Candidaturas.</b> Todas as 510 candidaturas a governo e Senado dos 27 estados vêm da API pública do TSE DivulgaCandContas (eleição 20322002026), consultada em 2 de setembro de 2026: nome de urna, nome completo, número, partido, coligação e situação do registro. A situação muda enquanto os tribunais julgam, então ela é relida a cada rodada de coleta.</p>
+<p><b>Deputado federal e estadual.</b> ${(()=>{const D=Object.entries(UF).filter(([k,u])=>(u.depfed||[]).length||(u.depest||[]).length);
+  if(!D.length)return "Ainda fora desta edição.";
+  const n=D.reduce((s,[k,u])=>s+(u.depfed||[]).length+(u.depest||[]).length,0);
+  return `${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga.`;})()}</p>
 <p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, mais ${n2} confrontos de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base; ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o que mais coincide com as candidaturas registradas; os demais ficam no seletor de cenário. Rodadas de institutos diferentes nunca são somadas nem ponderadas; a média móvel de cada candidato é só um guia de leitura.</p>
 <p><b>O que ainda falta.</b> Número de registro no TSE, modo de coleta e contratante da maior parte das rodadas, que a compilação não traz e que entram conforme as fichas forem localizadas; eventos de campanha por estado; série diária de seguidores, que começa nesta edição; TikTok e YouTube por candidato estadual. A rotina diária das 8h e das 20h passa a cobrir os estados na mesma varredura.</p>
 <p><b>Busca e redes.</b> ${(()=>{const T=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).tr||{}).length,0),W=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).wk||{}).length,0),I=Object.values(UF).reduce((s,u)=>s+Object.values((u.busca||{}).ig||{}).filter(x=>x.n!=null).length,0),H=Object.values(UF).reduce((s,u)=>s+[...u.gov,...u.sen].filter(c=>c.ext&&c.ext.ig).length,0);return `Google Trends dentro de cada estado para as 510 candidaturas, em lotes de até cinco nomes ancorados pelo líder da última pesquisa: ${T} nomes com algum sinal de busca em 2026, o resto zerado pelo próprio Google. Verbete na Wikipédia localizado e conferido para ${W} candidaturas, com acessos diários desde janeiro. ${H} candidaturas informaram perfil de Instagram ao TSE e ${I} tiveram o número de seguidores lido no perfil público. Perfis, bens e vices vêm do detalhe de cada candidatura no DivulgaCandContas.`;})()}</p>
@@ -2885,27 +2958,45 @@ function desenharUF(){
   document.querySelectorAll(".btn.star[data-efoco]").forEach(b=>{const on=(prefs.focoUF||[]).includes(b.dataset.efoco);b.setAttribute("aria-pressed",on);b.innerHTML=`<span class="glyph" aria-hidden="true">${on?"★":"☆"}</span>${on?"Em foco":"Pôr em foco"}`;});
 }
 function ladoPadraoUF(k){
-  const u=UF[k], base=candsDe(k,ufCargo).length?candsDe(k,ufCargo):[...u.gov,...u.sen];
+  const u=UF[k], base=candsDe(k,ufCargo).length?candsDe(k,ufCargo):todosUF(u);
   let par=base.slice(0,2).map(c=>c.slug);
   const l=liderDe(k,ufCargo); if(l){const top=l.pts.slice(0,ufCargo==="senador"?3:2).map(p=>p[5]).filter(Boolean);if(top.length>=2)par=top;}
   return par;
 }
 function trocarUF(k,push=true){
-  if(!UF[k])return; ufAtual=k; prefs.uf=k; salvar();
+  if(!UF[k])return; ufAtual=k; prefs.uf=k;
+  // estado sem a disputa que estava aberta (deputado só existe em alguns): volta ao governo
+  if(!cargosDe(k).includes(ufCargo)){ufCargo="governador";prefs.ufCargo=ufCargo;}
+  if(ufCargoCards!=="todos"&&!cargosDe(k).includes(ufCargoCards))ufCargoCards=ufCargo;
+  salvar(); renderCargoSeg();
   ufRodada=null; ufCen=null; ufInstOff=new Set(); ufCandVis=null; ufTrVis=null; ufLado=ladoPadraoUF(k);
   drawUFSel(); renderLadoUFControls(); renderLadoUF(); desenharUF();
   if(push&&escopo==="uf")rotaUF();
 }
+// os dois seletores de disputa saem dos cargos do estado: dois botões nos 25 estados que só
+// têm governo e Senado, quatro no Rio e em São Paulo, que também têm deputado
+function renderCargoSeg(){
+  const cs=cargosDe(ufAtual);
+  const el=$("#ufb-cargos");
+  if(el)el.innerHTML=cs.map(c=>`<button type="button" data-cargo="${c}" aria-pressed="${c===ufCargo}">${esc(CARGOS[c].bt)}</button>`).join("");
+  const ec=$("#e-cargos");
+  if(ec)ec.innerHTML=cs.map(c=>`<button type="button" data-ecargo="${c}" aria-pressed="${c===ufCargoCards}">${esc(CARGOS[c].bt)}</button>`).join("")
+    +`<button type="button" data-ecargo="todos" aria-pressed="${ufCargoCards==="todos"}">Todos</button>`;
+  const cap=$("#ufb-cap");
+  if(cap){const props=cs.filter(c=>!temPesquisa(c));
+    cap.textContent=props.length
+      ? `Governo e Senado com todas as candidaturas registradas; ${props.map(c=>CARGOS[c].bt).join(" e ")} com os principais nomes`
+      : "27 disputas de governo e 54 vagas no Senado, duas por estado";}
+}
 function trocarCargoUF(c,push=true){
-  ufCargo=c==="senador"?"senador":"governador"; prefs.ufCargo=ufCargo; salvar();
-  $$("#ufbar .seg button[data-cargo]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.cargo===ufCargo));
-  ufCargoCards=ufCargo; $$("#v-e-candidatos .seg button[data-ecargo]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.ecargo===ufCargo));
+  ufCargo=cargosDe(ufAtual).includes(c)?c:"governador"; prefs.ufCargo=ufCargo; salvar();
+  ufCargoCards=ufCargo; renderCargoSeg();
   ufRodada=null; ufCen=null; ufInstOff=new Set(); ufCandVis=null; ufTrVis=null; ufLado=ladoPadraoUF(ufAtual);
   renderLadoUFControls(); renderLadoUF(); desenharUF();
   if(INICIADO)atualizarCarimbos();
   if(push)rotaUF();
 }
-function rotaUF(){try{history.replaceState(null,"",`#uf-${ufAtual}${ufCargo==="senador"?"-senado":""}${abaAtual&&abaAtual!=="e-geral"?"-"+abaAtual.replace(/^e-/,""):""}`);}catch(e){}}
+function rotaUF(){try{history.replaceState(null,"",`#uf-${ufAtual}${ufCargo==="governador"?"":"-"+CARGOS[ufCargo].hash}${abaAtual&&abaAtual!=="e-geral"?"-"+abaAtual.replace(/^e-/,""):""}`);}catch(e){}}
 // eventos do módulo
 $("#uf-sel").addEventListener("change",e=>trocarUF(e.target.value));
 $("#mapa-svg").addEventListener("click",e=>{tip.classList.remove("on");const b=e.target.closest("[data-uf]");if(b)trocarUF(b.dataset.uf);});
@@ -2914,8 +3005,9 @@ $("#mapa-sel").addEventListener("click",e=>{const b=e.target.closest("[data-goto
 // "Mapa do Brasil" no subnível: abre a Visão geral do estado e rola até o mapa, abrindo a dobra se estiver fechada
 $("#ufb-mapa").addEventListener("click",e=>{e.preventDefault();if(abaAtual!=="e-geral")irPara("e-geral");const m=$("#mapa");if(!m.open)m.open=true;
   const y=m.getBoundingClientRect().top+scrollY-$("#nav-band").offsetHeight-12;window.scrollTo({top:Math.max(0,y),behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});});
-$$("#ufbar .seg button[data-cargo]").forEach(b=>b.addEventListener("click",()=>trocarCargoUF(b.dataset.cargo)));
-$$("#v-e-candidatos .seg button[data-ecargo]").forEach(b=>b.addEventListener("click",()=>{ufCargoCards=b.dataset.ecargo;$$("#v-e-candidatos .seg button[data-ecargo]").forEach(x=>x.setAttribute("aria-pressed",x===b));drawCandidatosUF();}));
+$("#ufb-cargos").addEventListener("click",e=>{const b=e.target.closest("button[data-cargo]");if(b)trocarCargoUF(b.dataset.cargo);});
+$("#e-cargos").addEventListener("click",e=>{const b=e.target.closest("button[data-ecargo]");if(!b)return;ufCargoCards=b.dataset.ecargo;renderCargoSeg();drawCandidatosUF();});
+$("#e-cat").addEventListener("click",e=>{const b=e.target.closest("button[data-cat]");if(!b)return;ufCatVis=b.dataset.cat;drawCandidatosUF();});
 $("#e-sort").addEventListener("change",drawCandidatosUF);
 $("#e-sel-rod").addEventListener("change",e=>{ufRodada=e.target.value;ufCen=null;drawRodadaUF();});
 $("#e-sel-cen").addEventListener("change",e=>{ufCen=e.target.value;drawRodadaUF();});
@@ -2940,8 +3032,8 @@ function carimboDe(id){
     switch(id){
       case "e-pesquisas":{const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;return rc.length?`${pl(rc.length,"rodada")} · ${pl(ic,"instituto")} · até ${dBR(rc[0].data)}`:"sem rodada no observatório";}
       case "e-busca":return B.data?`coleta própria em ${dBR(B.data)}`:"coleta própria";
-      case "e-candidatos":return `${pl(u.gov.length+u.sen.length,"candidatura")} · TSE`;
-      case "e-lado":return `${CRIT_UF.length} critérios · ${pl(u.gov.length+u.sen.length,"nome")}`;
+      case "e-candidatos":{const n=ufCargoCards==="todos"?todosUF(u).length:candsDe(ufAtual,ufCargoCards).length;return `${pl(n,"candidatura")} · TSE`;}
+      case "e-lado":return `${CRIT_UF.length} critérios · ${pl(todosUF(u).length,"nome")}`;
       case "e-partidos":return `${pl(new Set([...u.gov,...u.sen].map(c=>c.partido)).size,"partido")} · ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`;
       case "e-tempo":return `${pl(rs.length,"rodada")} · calendário do TSE`;
       case "e-metodo":return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}`;
