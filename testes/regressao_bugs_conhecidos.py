@@ -804,18 +804,24 @@ with sync_playwright() as p:
     check("a mensagem do segundo turno existe e diz o mesmo que o painel",
           len(m2t) == 1 and (("Empate técnico" in cap2t) == ("empate técnico" in m2t[0])),
           {"msg": m2t[0][:90] if m2t else None, "cap": cap2t[:60]})
-    # o link do escopo "esta página" leva ao ponto que a pessoa está vendo, inclusive num estado
+    # só o mural: nada de compartilhar "esta página", e o link nunca leva a uma âncora interna
+    check("o diálogo não tem escolha de escopo: compartilha o mural",
+          page.locator("#share [data-esc]").count() == 0)
+    check("nenhum link de mensagem aponta para uma âncora interna",
+          not [t for t in txts if "#" in t], [t[-40:] for t in txts if "#" in t])
+    # a última mensagem serve em qualquer dia: sem data, sem porcentagem, sem nome de candidato
+    ger = txts[-1]
+    check("a última mensagem é genérica: não envelhece com o número do dia",
+          "%" not in ger and "setembro" not in ger and "Lula" not in ger, ger[:110])
+    # de dentro de um estado, o botão continua compartilhando o mural, sem quebrar
     page.click("#share [data-close]")
     page.click('.scope button[data-escopo="uf"]')
     page.wait_for_timeout(900)
     page.click("#b-share")
     page.wait_for_timeout(250)
-    page.click('#share button[data-esc="pagina"]')
-    page.wait_for_timeout(250)
     uf = page.evaluate("""() => [...document.querySelectorAll('#share .msg p')].map(e => e.textContent)""")
-    check("no estado, a mensagem cita o estado e o link cai na página do estado",
-          uf and all("#uf-" in t for t in uf) and any("São Paulo" in t for t in uf),
-          [t[:70] for t in uf])
+    check("num estado, o botão compartilha o mural do mesmo jeito",
+          uf and all(t.rstrip().endswith(sh["canon"]) for t in uf), [t[-50:] for t in uf][:2])
     check("compartilhar sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
