@@ -8,21 +8,25 @@ título do resultado: ele lê a introdução do verbete e exige prova.
 
 Como pontua, do mais forte para o mais fraco:
 
-  +7  a introdução traz o nome completo do TSE (todos os tokens com três letras ou mais,
-      na ordem ou não). É a prova forte: o verbete de Eduardo Bolsonaro não diz "Marcelo
-      Messias Bolsonaro", e o do jogador Luís Fabiano não diz "Luis Fabiano Clemente".
-  +3  a introdução tem papel político (deputado, vereador, político...) e cita o estado
-      ou o partido da candidatura.
-  +2  todo token do título cabe dentro do nome completo. Segura "Luiz Fernando Machado" e
-      "Luiz Paulo Conde", que acrescentam sobrenome que o candidato não tem.
-  -8  o título tem token de nome que não existe no nome completo nem no nome de urna.
-  -8  o verbete é de outra coisa (clube, banda, município, filme, desambiguação).
+  +7  a introdução traz o nome completo do TSE inteiro. É a prova forte: o verbete de
+      Eduardo Bolsonaro não diz "Marcelo Bolsonaro", e o de Thiago Auricchio não diz
+      "Thiago dos Reis Pereira dos Santos".
+  +5  traz o primeiro e o último nome e ao menos 60% dos tokens (verbete que abrevia o
+      nome do meio, que é o caso comum).
+  +4  o título é exatamente o nome de urna. Sozinho não basta: nome artístico curto
+      ("Benny Briolly", "MC Smith", "Índia Armelau") quase nunca traz o nome de cartório
+      no verbete, e é para esses que essa linha existe.
+  +3  a introdução tem papel político e cita o estado ou o partido da candidatura.
+  +2  todo token do título cabe no nome completo ou no nome de urna. Segura
+      "Luiz Fernando Machado" e "Luiz Paulo Conde", que acrescentam sobrenome.
+  -8  o título acrescenta nome que o candidato não tem.
+ -20  página de desambiguação, ou título que é clube, banda, município, filme.
 
-Aceita 8 ou mais, o que na prática significa: ou o nome completo aparece no verbete, ou o
-título cabe no nome e o texto confirma cargo e estado. Empate resolve pelo maior.
+Aceita 8 ou mais, o que sempre exige duas evidências independentes. Token conta como
+presente com uma letra de diferença ("Brito" do TSE e "Britto" do verbete).
 
-A saída é uma PROPOSTA, com pontuação e o trecho que sustentou cada aceite, para
-conferência humana antes de qualquer nome entrar na lista congelada de verbetes.
+O "não é pessoa" olha só o título: biografia de pastor fala de igreja, a de jogador fala
+de futebol e a de ator fala de novela, e nenhuma das três deixa de ser biografia.
 
 Roda no GitHub Actions: do contêiner do Claude a Wikipédia responde 403 no proxy de saída.
 Uso: python3 coleta/wikipedia_verbetes_deputados.py [--limite N]
@@ -93,19 +97,46 @@ def intros(titulos):
     return out
 
 
+def perto(t, alvos):
+    """Token presente, aceitando uma letra de diferença: o TSE grafa Brito e o verbete Britto."""
+    if t in alvos: return True
+    if len(t) < 5: return False
+    for u in alvos:
+        if abs(len(u) - len(t)) > 1 or u[0] != t[0]: continue
+        i = j = dif = 0
+        while i < len(t) and j < len(u):
+            if t[i] == u[j]: i += 1; j += 1; continue
+            dif += 1
+            if dif > 1: break
+            if len(t) == len(u): i += 1; j += 1
+            elif len(t) > len(u): i += 1
+            else: j += 1
+        if dif + (len(t) - i) + (len(u) - j) <= 1: return True
+    return False
+
+
 def pontuar(titulo, intro, c):
+    sem_par = re.sub(r"\([^)]*\)", " ", titulo)          # "(política)" não é sobrenome
     t_norm, i_norm = norm(titulo), norm(intro)
+    i_toks = set(toks(intro, 2))
     completo = toks(c["nome_completo"])
     urna = [t for t in toks(c["nome_urna"]) if t not in TRATAMENTO]
-    t_toks = [t for t in toks(titulo) if t not in TRATAMENTO]
+    t_toks = [t for t in toks(sem_par) if t not in TRATAMENTO]
     if not t_toks: return -20
+    if "pode referir-se a" in i_norm or "desambiguacao" in t_norm: return -20
+    if any(w in t_norm for w in RUIM): return -20
     p = 0
-    if completo and all(t in i_norm for t in completo): p += 7
-    if any(w in i_norm for w in PAPEL) and (norm(UF_NOME[c["uf"]]) in i_norm or norm(c["partido"]) in i_norm):
+    achados = [t for t in completo if perto(t, i_toks)]
+    if completo and len(achados) == len(completo): p += 7
+    elif completo and len(achados) >= max(2, int(0.6 * len(completo))) \
+            and perto(completo[0], i_toks) and perto(completo[-1], i_toks): p += 5
+    if urna and [t for t in toks(sem_par) if t not in TRATAMENTO] == urna: p += 4
+    partido = norm(c["partido"])
+    if any(w in i_norm for w in PAPEL) and (norm(UF_NOME[c["uf"]]) in i_norm
+                                            or partido in i_toks or partido in i_norm):
         p += 3
-    if all(t in completo or t in urna for t in t_toks): p += 2
+    if all(perto(t, set(completo) | set(urna)) for t in t_toks): p += 2
     else: p -= 8
-    if any(w in t_norm for w in RUIM) or any(w in i_norm[:160] for w in RUIM): p -= 8
     return p
 
 
@@ -131,13 +162,15 @@ def main():
         p, titulo, intro = melhor
         status = "aceito" if p >= 8 else "sem verbete localizado"
         linhas.append([c["uf"], c["slug"], c["nome_urna"], c["nome_completo"],
-                       titulo if p >= 8 else "", p, re.sub(r"\s+", " ", intro)[:200], status])
+                       titulo if p >= 8 else "", p, re.sub(r"\s+", " ", intro)[:200], status,
+                       titulo])
         print(f"{i:3d}/{len(cands)} {c['uf']} {c['nome_urna'][:28]:28s} {p:4d} {status:22s} {titulo[:42]}", flush=True)
         time.sleep(0.3)
     saida = os.path.join(DEP, "_verbetes-deputados.csv")
     with io.open(saida, "w", newline="\r\n", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["uf", "slug", "nome_urna", "nome_completo", "verbete", "pontuacao", "trecho", "status"])
+        w.writerow(["uf", "slug", "nome_urna", "nome_completo", "verbete", "pontuacao", "trecho",
+                    "status", "melhor_titulo"])
         w.writerows(linhas)
     ok = sum(1 for l in linhas if l[7] == "aceito")
     print(f"\n{saida}: {len(linhas)} linhas, {ok} verbetes aceitos, {len(linhas)-ok} sem verbete")
