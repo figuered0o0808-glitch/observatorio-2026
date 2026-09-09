@@ -38,13 +38,15 @@ jobs:
 
       - name: Commitar a proposta
         run: |
-          if git diff --quiet -- dados/rjsp/_verbetes-deputados.csv; then
-            echo "nada mudou na proposta de verbetes"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dados/rjsp/_verbetes-deputados.csv
+          # --cached, e não git diff: na primeira rodada o arquivo é novo, e para o git um
+          # arquivo que ainda não existe não tem diferença nenhuma
+          if git diff --cached --quiet -- dados/rjsp/_verbetes-deputados.csv; then
+            echo "nada mudou na proposta de verbetes"
+            exit 0
+          fi
           aceitos=$(python3 - <<'EOF'
           import csv, io
           linhas = list(csv.DictReader(io.open("dados/rjsp/_verbetes-deputados.csv", encoding="utf-8-sig")))

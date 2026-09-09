@@ -1,19 +1,28 @@
 # -*- coding: utf-8 -*-
 """Procura o verbete da Wikipédia de cada deputado curado de RJ e SP.
 
-Mesmo método já usado nas disputas majoritárias (coleta/navegador_estados.md, seção 4),
-escrito aqui para rodar sem navegador: busca pelo nome completo entre aspas, depois sem
-aspas, depois nome de urna mais estado mais "político"; pontua coincidência de tokens do
-título com o nome, papel político no trecho e menção ao estado, e desconta títulos que
-são clube, banda, município, filme e afins. Aceita pontuação 6 ou mais.
-
 Proporcional é onde homônimo mais aparece: são milhares de candidatos por disputa e nomes
-de urna curtos. Por isso o aceite exige token distintivo do nome no título e o resultado
-sai para conferência antes de virar dado.
+de urna curtos ("Freixo", "Conrado", "Barba"). O bug mais sério já corrigido neste projeto
+foi exatamente casamento de identidade por nome fraco, então aqui o aceite não olha só o
+título do resultado: ele lê a introdução do verbete e exige prova.
 
-Saída: dados/rjsp/_verbetes-deputados.csv (proposta, para conferência) (uf,slug,nome_urna,nome_completo,verbete,
-pontuacao,trecho,status), no mesmo formato de dados/estados/wikipedia-verbetes-estados.csv
-mais as colunas de nome para a conferência.
+Como pontua, do mais forte para o mais fraco:
+
+  +7  a introdução traz o nome completo do TSE (todos os tokens com três letras ou mais,
+      na ordem ou não). É a prova forte: o verbete de Eduardo Bolsonaro não diz "Marcelo
+      Messias Bolsonaro", e o do jogador Luís Fabiano não diz "Luis Fabiano Clemente".
+  +3  a introdução tem papel político (deputado, vereador, político...) e cita o estado
+      ou o partido da candidatura.
+  +2  todo token do título cabe dentro do nome completo. Segura "Luiz Fernando Machado" e
+      "Luiz Paulo Conde", que acrescentam sobrenome que o candidato não tem.
+  -8  o título tem token de nome que não existe no nome completo nem no nome de urna.
+  -8  o verbete é de outra coisa (clube, banda, município, filme, desambiguação).
+
+Aceita 8 ou mais, o que na prática significa: ou o nome completo aparece no verbete, ou o
+título cabe no nome e o texto confirma cargo e estado. Empate resolve pelo maior.
+
+A saída é uma PROPOSTA, com pontuação e o trecho que sustentou cada aceite, para
+conferência humana antes de qualquer nome entrar na lista congelada de verbetes.
 
 Roda no GitHub Actions: do contêiner do Claude a Wikipédia responde 403 no proxy de saída.
 Uso: python3 coleta/wikipedia_verbetes_deputados.py [--limite N]
@@ -24,55 +33,81 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 DEP = os.path.join(RAIZ, "dados", "rjsp")
 API = "https://pt.wikipedia.org/w/api.php"
-UA = "MuralDosCandidatos/1.0 (observatorio de candidatos 2026; contato pelo repositorio)"
+UA = "observatorio-2026/0.3 (coleta automática; contato: figuered0o0808@gmail.com)"
 UF_NOME = {"RJ": "Rio de Janeiro", "SP": "São Paulo"}
-PAPEL = ("polít", "deputad", "vereador", "senador", "prefeit", "governador", "advogad",
-         "delegad", "pastor", "jornalist", "empresár", "sindicalist", "ativist")
-RUIM = ("futebol", "clube", "banda", "álbum", "canção", "filme", "novela", "município",
-        "bairro", "rio ", "avenida", "escola de samba", "personagem", "desambiguação",
-        "igreja", "distrito", "estação", "rodovia", "espécie", "gênero de")
+PAPEL = ("polit", "deputad", "vereador", "senador", "prefeit", "governador", "parlamentar",
+         "secretario", "ministro", "candidat")
+RUIM = ("futebol", "clube", "banda", "album", "cancao", "filme", "novela", "municipio",
+        "bairro", "escola de samba", "personagem", "desambiguacao", "igreja", "distrito",
+        "estacao", "rodovia", "especie", "genero de", "telenovela", "jogo eletronico")
+CORTE = {"de", "da", "do", "dos", "das", "e", "-"}
+TRATAMENTO = {"dr", "dra", "delegado", "delegada", "pastor", "pastora", "professor", "professora",
+              "capitao", "coronel", "general", "sargento", "soldado", "mc", "dj", "doutor",
+              "doutora", "tia", "tio", "irmao", "irma", "vereador", "vereadora", "deputado",
+              "deputada", "indio", "india", "sargenta"}
+
 
 def norm(s):
     return unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().lower()
 
-def tokens(nome):
-    corte = {"de", "da", "do", "dos", "das", "e", "junior", "filho", "neto", "sobrinho"}
-    return [t for t in re.split(r"[^a-z0-9]+", norm(nome)) if len(t) > 2 and t not in corte]
 
-def pedir(params, tentativas=5):
-    q = urllib.parse.urlencode({**params, "format": "json", "formatversion": "2"})
+def toks(s, minimo=3):
+    return [t for t in re.split(r"[^a-z0-9]+", norm(s)) if len(t) >= minimo and t not in CORTE]
+
+
+def pedir(params, tentativas=3):
+    q = urllib.parse.urlencode({**params, "format": "json", "formatversion": "2", "maxlag": "5"})
     espera = 5
     for t in range(tentativas):
         try:
-            req = urllib.request.Request(API + "?" + q, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=30) as r:
+            req = urllib.request.Request(API + "?" + q, headers={"User-Agent": UA, "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=25) as r:
                 return json.loads(r.read().decode("utf-8"))
         except Exception as e:
             if t == tentativas - 1:
-                print("  falhou:", type(e).__name__, str(e)[:80], file=sys.stderr)
+                print("  falhou: %s %s" % (type(e).__name__, str(e)[:70]), file=sys.stderr, flush=True)
                 return None
-            time.sleep(espera); espera = min(espera * 2, 60)
+            time.sleep(espera); espera = min(espera * 2, 20)
+
 
 def buscar(termo, n=6):
-    d = pedir({"action": "query", "list": "search", "srsearch": termo, "srlimit": n,
-               "srprop": "snippet"})
+    d = pedir({"action": "query", "list": "search", "srsearch": termo, "srlimit": n, "srprop": ""})
     if not d: return []
-    return [(x["title"], re.sub("<[^>]+>", "", x.get("snippet", ""))) for x in d.get("query", {}).get("search", [])]
+    return [x["title"] for x in d.get("query", {}).get("search", [])]
 
-def pontuar(titulo, trecho, nome_urna, nome_completo, uf):
-    t_norm, tr_norm = norm(titulo), norm(trecho)
-    toks_c, toks_u = tokens(nome_completo), tokens(nome_urna)
-    distintivos = [t for t in toks_c if len(t) >= 4]
-    achados = [t for t in toks_c if t in t_norm]
-    # sem nenhum token distintivo do nome no título, não é a pessoa: é o principal freio de homônimo
-    if not any(t in t_norm for t in distintivos): return 0, "sem token distintivo no título"
-    p = 2 * len(achados)
-    if all(t in t_norm for t in toks_u): p += 2
-    if any(w in tr_norm for w in PAPEL): p += 3
-    if norm(UF_NOME[uf]) in tr_norm or norm(uf) == t_norm[-2:]: p += 1
-    if any(w in t_norm for w in RUIM) or any(w in tr_norm[:80] for w in RUIM): p -= 6
-    if "(" in titulo and not any(w in t_norm for w in ("polit", "deputad")): p -= 1
-    return p, ""
+
+def intros(titulos):
+    """Introdução em texto puro de até 20 verbetes por chamada."""
+    if not titulos: return {}
+    d = pedir({"action": "query", "prop": "extracts", "exintro": "1", "explaintext": "1",
+               "exlimit": "20", "redirects": "1", "titles": "|".join(titulos)})
+    if not d: return {}
+    out = {}
+    q = d.get("query", {})
+    volta = {}
+    for r in q.get("redirects", []) or []: volta[r["to"]] = r["from"]
+    for r in q.get("normalized", []) or []: volta.setdefault(r["to"], r["from"])
+    for p in q.get("pages", []):
+        if p.get("missing"): continue
+        out[p["title"]] = p.get("extract", "")
+    return out
+
+
+def pontuar(titulo, intro, c):
+    t_norm, i_norm = norm(titulo), norm(intro)
+    completo = toks(c["nome_completo"])
+    urna = [t for t in toks(c["nome_urna"]) if t not in TRATAMENTO]
+    t_toks = [t for t in toks(titulo) if t not in TRATAMENTO]
+    if not t_toks: return -20
+    p = 0
+    if completo and all(t in i_norm for t in completo): p += 7
+    if any(w in i_norm for w in PAPEL) and (norm(UF_NOME[c["uf"]]) in i_norm or norm(c["partido"]) in i_norm):
+        p += 3
+    if all(t in completo or t in urna for t in t_toks): p += 2
+    else: p -= 8
+    if any(w in t_norm for w in RUIM) or any(w in i_norm[:160] for w in RUIM): p -= 8
+    return p
+
 
 def main():
     lim = None
@@ -81,19 +116,24 @@ def main():
     if lim: cands = cands[:lim]
     linhas = []
     for i, c in enumerate(cands, 1):
-        uf, urna, completo = c["uf"], c["nome_urna"], c["nome_completo"]
-        melhor = (0, "", "", "")
-        for termo in (f'"{completo}"', completo, f'{urna} {UF_NOME[uf]} político'):
-            for titulo, trecho in buscar(termo):
-                p, _ = pontuar(titulo, trecho, urna, completo, uf)
-                if p > melhor[0]: melhor = (p, titulo, trecho, termo)
-            time.sleep(0.4)
-            if melhor[0] >= 10: break
-        p, titulo, trecho, _ = melhor
-        status = "aceito" if p >= 6 else "sem verbete localizado"
-        linhas.append([uf, c["slug"], urna, completo, titulo if p >= 6 else "", p,
-                       trecho[:180], status])
-        print(f"{i:3d}/{len(cands)} {uf} {urna[:28]:28s} {p:3d} {status:22s} {titulo[:40]}", flush=True)
+        vistos = []
+        for termo in (c["nome_urna"], c["nome_completo"], f'{c["nome_urna"]} {UF_NOME[c["uf"]]} político'):
+            for t in buscar(termo):
+                if t not in vistos: vistos.append(t)
+            time.sleep(0.3)
+        textos = intros(vistos[:20])
+        melhor = (-99, "", "")
+        for t in vistos:
+            intro = textos.get(t, "")
+            if not intro: continue
+            p = pontuar(t, intro, c)
+            if p > melhor[0]: melhor = (p, t, intro)
+        p, titulo, intro = melhor
+        status = "aceito" if p >= 8 else "sem verbete localizado"
+        linhas.append([c["uf"], c["slug"], c["nome_urna"], c["nome_completo"],
+                       titulo if p >= 8 else "", p, re.sub(r"\s+", " ", intro)[:200], status])
+        print(f"{i:3d}/{len(cands)} {c['uf']} {c['nome_urna'][:28]:28s} {p:4d} {status:22s} {titulo[:42]}", flush=True)
+        time.sleep(0.3)
     saida = os.path.join(DEP, "_verbetes-deputados.csv")
     with io.open(saida, "w", newline="\r\n", encoding="utf-8-sig") as f:
         w = csv.writer(f)
@@ -101,6 +141,7 @@ def main():
         w.writerows(linhas)
     ok = sum(1 for l in linhas if l[7] == "aceito")
     print(f"\n{saida}: {len(linhas)} linhas, {ok} verbetes aceitos, {len(linhas)-ok} sem verbete")
+
 
 if __name__ == "__main__":
     main()
