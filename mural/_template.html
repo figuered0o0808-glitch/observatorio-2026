@@ -152,6 +152,9 @@ button{font:inherit}
 .ufb-top select{padding:4px 8px;height:32px}
 .ufb-top .seg button{padding:6px 12px}
 .ufb-top .seg{background:var(--paper)}
+#ufb-cargos{min-width:0;flex:0 1 auto;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+#ufb-cargos::-webkit-scrollbar{display:none}
+#ufb-cargos button{flex:0 0 auto}
 #ufb-cap{margin:0 0 0 auto;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ufb-mapa{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;text-decoration-color:var(--ink-3)}
 #ufb-cap+.ufb-mapa{margin-left:0}
@@ -254,7 +257,7 @@ details.filtros .chips{margin:8px 0 0}
 .legend i{flex:none}
 .legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--paper)}
-.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 600;font-stretch:84%;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px;cursor:pointer}
+.seg button{appearance:none;border:0;background:transparent;white-space:nowrap;color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 600;font-stretch:84%;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 label.sel{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13.5px;max-width:100%;min-width:0}
 label.sel select{max-width:62vw;min-width:0;text-overflow:ellipsis}
@@ -741,10 +744,9 @@ details.mapa{margin-top:var(--gap)}
   .panel.pick .ph h3::after{display:block;margin:4px 0 0}
   .ufb-top{padding:4px 14px;gap:8px 10px;flex-wrap:nowrap}
   .ufb-top .eyebrow,.ufb-top .lt,#ufb-cap,.ufb-mapa{display:none}
-  .ufb-top .seg{flex:none}
   .ufb-top .seg button{padding:6px 10px}
-  .ufb-top label.sel{flex:1 1 auto}
-  .ufb-top label.sel select{max-width:none;flex:1}
+  .ufb-top label.sel{flex:0 1 auto;min-width:118px}
+  .ufb-top label.sel select{max-width:none;flex:1;min-width:0}
   .brow{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto}
   .brow .val{white-space:nowrap}
   #e-ch-part .brow{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 40px}
@@ -929,7 +931,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
         <div class="ph"><h3>A corrida</h3><span class="ztools"><span class="stamp-dt" id="home-ate"></span><span class="seg" role="group" aria-label="Janela do gráfico" id="home-seg"><button type="button" data-hj="90" aria-pressed="false">90 dias</button><button type="button" data-hj="ano" aria-pressed="true">2026</button></span></span></div>
         <div id="ch-home"></div>
         <div class="lg-placar" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
-        <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><span id="home-fonte"></span></div>
+        <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><a id="home-dep" hidden></a><span id="home-fonte"></span></div>
       </div>
     </div>
     <aside class="rail">
@@ -1171,6 +1173,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
     <div class="fc fc-marca"><div class="brand-f" id="brand-f"></div><p class="slogan">Observatório do desempenho dos candidatos</p><p>Pesquisas, busca, redes e ficha do TSE das disputas de 2026, com data e fonte em cada número.</p><p class="credit">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></p></div>
     <div class="fc"><span class="fh">Editorias</span><ul id="foot-editorias"></ul></div>
     <div class="fc fc-estados"><span class="fh">Estados</span><ul class="foot-ufs" id="foot-estados"></ul></div>
+    <div class="fc" hidden><span class="fh">Deputados</span><ul id="foot-deputados"></ul></div>
     <div class="fc"><span class="fh">Método e fontes</span><p>Pesquisas e acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; Google Trends, seguidores e ficha do TSE entram a cada coleta do observatório.</p><p>Fontes: TSE DivulgaCandContas, fichas técnicas registradas das pesquisas, compilação pública da Wikipédia, Wikimedia REST API, Google Trends, perfis públicos no Instagram, imprensa e calendário oficial.</p><a class="go" href="#metodo" id="foot-metodo">Ler o método →</a></div>
   </div>
 </div></footer>
@@ -2439,8 +2442,8 @@ const ABAS_UF=[["e-geral","Visão geral"],["e-pesquisas","Pesquisas"],["e-busca"
 const CARGOS={
   governador:{lista:"gov",bt:"Governo",label:"governo",art:"o governo",por:"pelo governo",cand:"governador",vice:"Vice",vagas:1,pesq:true,hash:"governo"},
   senador:{lista:"sen",bt:"Senado",label:"Senado",art:"o Senado",por:"pelo Senado",cand:"senador",vice:"Suplentes",vagas:2,pesq:true,hash:"senado"},
-  depfed:{lista:"depfed",bt:"Câmara",label:"Câmara dos Deputados",art:"a Câmara dos Deputados",por:"pela Câmara dos Deputados",cand:"deputado federal",vice:"",vagas:1,pesq:false,hash:"federal"},
-  depest:{lista:"depest",bt:"Assembleia",label:"Assembleia Legislativa",art:"a Assembleia Legislativa",por:"pela Assembleia Legislativa",cand:"deputado estadual",vice:"",vagas:1,pesq:false,hash:"estadual"}
+  depfed:{lista:"depfed",bt:"Dep. federal",casa:"Câmara dos Deputados",label:"Câmara dos Deputados",art:"a Câmara dos Deputados",por:"pela Câmara dos Deputados",cand:"deputado federal",vice:"",vagas:1,pesq:false,hash:"federal"},
+  depest:{lista:"depest",bt:"Dep. estadual",casa:"Assembleia Legislativa",label:"Assembleia Legislativa",art:"a Assembleia Legislativa",por:"pela Assembleia Legislativa",cand:"deputado estadual",vice:"",vagas:1,pesq:false,hash:"estadual"}
 };
 const ORDEM_CARGO=["governador","senador","depfed","depest"];
 const cargoOk = c => Object.prototype.hasOwnProperty.call(CARGOS,c);
@@ -2978,15 +2981,15 @@ function trocarUF(k,push=true){
 function renderCargoSeg(){
   const cs=cargosDe(ufAtual);
   const el=$("#ufb-cargos");
-  if(el)el.innerHTML=cs.map(c=>`<button type="button" data-cargo="${c}" aria-pressed="${c===ufCargo}">${esc(CARGOS[c].bt)}</button>`).join("");
+  if(el)el.innerHTML=cs.map(c=>`<button type="button" data-cargo="${c}" aria-pressed="${c===ufCargo}"${CARGOS[c].casa?` title="${esc(CARGOS[c].casa)}"`:""}>${esc(CARGOS[c].bt)}</button>`).join("");
   const ec=$("#e-cargos");
   if(ec)ec.innerHTML=cs.map(c=>`<button type="button" data-ecargo="${c}" aria-pressed="${c===ufCargoCards}">${esc(CARGOS[c].bt)}</button>`).join("")
     +`<button type="button" data-ecargo="todos" aria-pressed="${ufCargoCards==="todos"}">Todos</button>`;
   const cap=$("#ufb-cap");
+  // com quatro disputas a legenda cederia espaço aos botões; o mesmo texto está no lede do estado
   if(cap){const props=cs.filter(c=>!temPesquisa(c));
-    cap.textContent=props.length
-      ? `Governo e Senado com todas as candidaturas registradas; ${props.map(c=>CARGOS[c].bt).join(" e ")} com os principais nomes`
-      : "27 disputas de governo e 54 vagas no Senado, duas por estado";}
+    cap.hidden=props.length>0;
+    cap.textContent="27 disputas de governo e 54 vagas no Senado, duas por estado";}
 }
 function trocarCargoUF(c,push=true){
   ufCargo=cargosDe(ufAtual).includes(c)?c:"governador"; prefs.ufCargo=ufCargo; salvar();
@@ -3024,6 +3027,20 @@ function montarRodape(){
   const bf=$("#brand-f");if(bf){const svg=$(".brand svg.mark").cloneNode(true);svg.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));svg.removeAttribute("role");svg.setAttribute("aria-hidden","true");bf.innerHTML="";bf.appendChild(svg);bf.insertAdjacentHTML("beforeend",`<span class="m2f">dos Candidatos</span>`);}
   $("#foot-editorias").innerHTML=ABAS_BR.map(([id,t])=>`<li><a href="#${id}">${esc(t)}</a></li>`).join("");
   $("#foot-estados").innerHTML=UFLIST.map(k=>`<li><a href="#uf-${k.toLowerCase()}-governo" title="${esc(UF[k].nome)}">${k}</a></li>`).join("");
+  // deputado ainda não existe em todo estado, então o atalho é montado a partir de quem tem
+  // o mesmo atalho na primeira tela, com os estados que já têm deputado
+  const hd=$("#home-dep");
+  if(hd){const comDep=UFLIST.filter(k=>["depfed","depest"].some(c=>(UF[k][CARGOS[c].lista]||[]).length));
+    hd.hidden=!comDep.length;
+    if(comDep.length){hd.href=`#uf-${comDep[0].toLowerCase()}-federal-candidatos`;
+      hd.textContent=`Deputado federal e estadual ${comDep.length===1?emUF(comDep[0]):"em "+comDep.map(k=>UF[k].nome).join(" e ")} →`;}}
+  const dep=$("#foot-deputados");
+  if(dep){const linhas=[];
+    for(const c of ["depfed","depest"])
+      for(const k of UFLIST) if((UF[k][CARGOS[c].lista]||[]).length)
+        linhas.push(`<li><a href="#uf-${k.toLowerCase()}-${CARGOS[c].hash}-candidatos">${esc(CARGOS[c].bt.replace("Dep.","Deputado"))} ${esc(k)}</a></li>`);
+    dep.closest(".fc").hidden=!linhas.length;
+    dep.innerHTML=linhas.join("");}
 }
 // ---- cabeçalhos de seção: carimbo dos dados e "Copiar link" à direita; fecho gerado em irPara
 function carimboDe(id){

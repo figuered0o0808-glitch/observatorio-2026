@@ -719,20 +719,26 @@ with sync_playwright() as p:
         return {maior1: share(p1), maior2: share(p2), repetido: insts.length !== new Set(insts).size,
                 institutos: new Set(insts).size, veritaShare: veri.length ? veri[0][1] / tot2 : null,
                 m2: agregarEm(r2, n2, SIG, t), inc2: incertezaEm(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro'),
-                empate2: empatam(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro'),
-                empate1: empatam(r1, OITO, SIG, t, 'Lula', 'Flávio Bolsonaro')}; }""")
+                empate2: empatam(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro')}; }""")
     check("nenhuma rodada passa de 15% do peso da média (primeiro e segundo turno)",
           ag["maior1"] <= 0.1501 and ag["maior2"] <= 0.1501, {k: ag[k] for k in ("maior1", "maior2")})
     check("cada instituto entra uma vez só na janela", not ag["repetido"], ag["institutos"])
     check("a janela junta pelo menos cinco institutos", ag["institutos"] >= 5, ag["institutos"])
     check("a rodada que destoa do conjunto perde peso (Veritá abaixo do teto no segundo turno)",
           ag["veritaShare"] is not None and ag["veritaShare"] < 0.15, ag["veritaShare"])
-    check("segundo turno hoje é empate técnico, e o primeiro turno não",
-          ag["empate2"] and not ag["empate1"],
-          {"dif2": round(ag["m2"]["Lula"] - ag["m2"]["Flávio Bolsonaro"], 2), "erro2": round(ag["inc2"]["erro"], 2)})
+    # o empate técnico é uma regra, não um resultado do dia: quem decide é a conta, e o texto do
+    # painel tem que dizer a mesma coisa que ela. Este bloco já barrou uma rodada automática por
+    # fixar o placar de um dia (9/9/2026), então checa a coerência, nunca o número.
+    dif2 = ag["m2"]["Lula"] - ag["m2"]["Flávio Bolsonaro"]
+    empate = abs(dif2) < ag["inc2"]["erro"]
+    check("empatam() concorda com a conta: diferença menor que a incerteza da média",
+          ag["empate2"] == empate,
+          {"dif2": round(dif2, 2), "erro2": round(ag["inc2"]["erro"], 2), "empatam": ag["empate2"]})
     texto = page.evaluate("() => document.querySelector('#cap-2t').textContent")
-    check("o painel do segundo turno diz o empate em vez de anunciar um líder",
-          "Empate técnico" in texto and "Nenhum dos dois está à frente" in texto, texto[:120])
+    diz_empate = "Empate técnico" in texto and "Nenhum dos dois está à frente" in texto
+    check("o painel do segundo turno diz o que a conta diz, empate ou vantagem",
+          diz_empate == empate and (diz_empate or "à frente de" in texto),
+          {"empate": empate, "texto": texto[:120]})
     # a média não pode achatar movimento real: a subida do Cury em agosto continua na linha
     cury = page.evaluate("""() => { const p = posicao('Augusto Cury');
         return {agora: p.agora, antes: p.antes, delta: p.delta}; }""")
@@ -846,7 +852,8 @@ with sync_playwright() as p:
     check("RJ tem quatro disputas e um estado sem deputado continua com duas",
           dep["cargos"] == ["governador", "senador", "depfed", "depest"] and dep["cargosAC"] == ["governador", "senador"],
           {"RJ": dep["cargos"], "AC": dep["cargosAC"]})
-    check("o seletor de disputa mostra os quatro botões do Rio", dep["botoes"] == ["Governo", "Senado", "Câmara", "Assembleia"], dep["botoes"])
+    check("o seletor de disputa mostra os quatro botões do Rio",
+          dep["botoes"] == ["Governo", "Senado", "Dep. federal", "Dep. estadual"], dep["botoes"])
     check("a editoria Candidatos lista as candidaturas curadas do cargo",
           dep["cards"] == dep["lista"] and dep["cards"] > 0, {"cards": dep["cards"], "lista": dep["lista"]})
     check("o filtro de perfil aparece na lista curada", dep["cat"] == ["todas", "A", "B"], dep["cat"])
@@ -883,6 +890,33 @@ with sync_playwright() as p:
     check("os 75 curados entram nas listas de deputado, não nas de governo e Senado",
           cont["depfed"] + cont["depest"] > 0 and cont["todos"] == cont["gov"] + cont["sen"] + cont["depfed"] + cont["depest"],
           cont)
+    # o caminho até os deputados: atalho na primeira tela, no rodapé e o rótulo com a palavra
+    # "deputado" nos botões (a primeira versão escondia tudo atrás de "Câmara" e "Assembleia")
+    page.goto(URL)
+    page.wait_for_timeout(900)
+    atalhos = page.evaluate("""() => ({
+        home: (document.querySelector('#home-dep') || {}).textContent || '',
+        homeVisivel: !!document.querySelector('#home-dep') && !document.querySelector('#home-dep').hidden,
+        homeHref: (document.querySelector('#home-dep') || {}).getAttribute ? document.querySelector('#home-dep').getAttribute('href') : null,
+        rodape: [...document.querySelectorAll('#foot-deputados a')].map(a => a.textContent),
+    })""")
+    check("a primeira tela tem atalho para a cobertura de deputado",
+          atalhos["homeVisivel"] and "eputado" in atalhos["home"] and "-federal-" in (atalhos["homeHref"] or ""),
+          atalhos["home"])
+    check("o rodapé lista os atalhos de deputado por estado",
+          len(atalhos["rodape"]) == 4 and all("eputado" in t for t in atalhos["rodape"]), atalhos["rodape"])
+    for larg in (390, 768, 1280):
+        page.set_viewport_size({"width": larg, "height": 900})
+        page.goto(URL + "#uf-rj-federal-candidatos")
+        page.wait_for_timeout(900)
+        barra = page.evaluate("""() => ({
+            bt: [...document.querySelectorAll('#ufb-cargos button')].map(b => b.textContent),
+            h: Math.round(document.querySelector('.ufb-top').getBoundingClientRect().height),
+            sw: document.documentElement.scrollWidth, win: innerWidth })""")
+        check(f"a {larg}px o seletor tem as quatro disputas do Rio, numa linha de 44px, sem rolagem lateral",
+              barra["bt"] == ["Governo", "Senado", "Dep. federal", "Dep. estadual"]
+              and barra["h"] == 44 and barra["sw"] <= barra["win"], barra)
+    page.set_viewport_size({"width": 1400, "height": 900})
     check("deputados sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
