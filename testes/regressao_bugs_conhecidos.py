@@ -756,6 +756,37 @@ with sync_playwright() as p:
     iguais = [k for k in home["leg"] if k in home["rot"] and home["leg"][k] != home["rot"][k]]
     check("gráfico da home e legenda-placar com o mesmo valor para cada candidato", not iguais,
           {k: (home["rot"].get(k), home["leg"].get(k)) for k in iguais} or home["leg"])
+    # ---- efeito casa: instituto que erra sempre para o mesmo lado é régua torta, não rodada
+    # fora da curva, e o desconto por rodada não pegava isso (medido em 10/9/2026: o Gerp
+    # aparecia 6,6 pontos mais favorável a Flávio em 11 de 11 rodadas e perdia só 11% do peso)
+    casa = page.evaluate("""() => {
+        const n2 = ['Lula', 'Flávio Bolsonaro'], t = Date.parse(DATA.meta.ultima);
+        const c2 = casaDe(rodadas2T(), n2);
+        const marg = i => c2[i] ? ((c2[i]['Lula'] || {aj: 0}).aj - (c2[i]['Flávio Bolsonaro'] || {aj: 0}).aj) : null;
+        const cru = rodadas2T().map(r => ({...r, v: {...r.v}}));
+        const bruto = (() => {   // média sem correção, refazendo a conta com os valores publicados
+            const sem = cru.map(r => ({inst: r.inst, t: r.t, v: r.v}));
+            const guarda = AG.tetoCasa; AG.tetoCasa = 0;
+            const m = agregarEm(sem, n2, SIG, t); AG.tetoCasa = guarda; return m; })();
+        const inc = incertezaEm(rodadas2T(), n2, SIG, t, 'Lula', 'Flávio Bolsonaro');
+        const m = agregarEm(rodadas2T(), n2, SIG, t);
+        return {gerp: marg('Gerp'), atlas: marg('AtlasIntel/Bloomberg'),
+                erro: inc.erro, parteCasa: inc.casa,
+                mediaL: m['Lula'], brutoL: bruto['Lula'],
+                pontosCrus: DATA.polls2t.filter(p => p[0] === 'Gerp' && p[2] === 'Lula').map(p => p[3])};
+    }""")
+    check("o instituto que mede sempre para o mesmo lado é corrigido, e no sentido medido",
+          casa["gerp"] is not None and casa["gerp"] < -1 and casa["atlas"] > 0.5,
+          {"Gerp": casa["gerp"], "AtlasIntel": casa["atlas"]})
+    check("a correção de viés entra na média (o valor corrigido difere do cru)",
+          abs(casa["mediaL"] - casa["brutoL"]) > 0.05,
+          {"corrigida": round(casa["mediaL"], 2), "crua": round(casa["brutoL"], 2)})
+    check("a incerteza soma o erro da própria estimativa do viés, e não fica estreita de mentira",
+          casa["parteCasa"] is not None and casa["parteCasa"] > 0 and casa["erro"] > casa["parteCasa"],
+          {"erro": round(casa["erro"], 2), "parte de viés": round(casa["parteCasa"], 2)})
+    check("os pontos publicados não são reescritos pela correção",
+          all(float(v) == round(float(v), 1) for v in casa["pontosCrus"]) and len(casa["pontosCrus"]) > 0,
+          casa["pontosCrus"][:4])
     check("agregação sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 

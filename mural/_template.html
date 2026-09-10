@@ -1077,6 +1077,9 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. Mede dado, não mérito.</div><div id="ch-cobertura"></div></div>
     <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta sai da ficha técnica registrada no TSE, por palavra-chave. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
   </div>
+  <div class="panel"><div class="ph"><h3>A régua de cada instituto</h3><span class="cap" style="margin:0" id="casa-cap"></span></div>
+    <div class="tablewrap"><table id="tb-casa"><thead><tr><th>Instituto</th><th class="num">Rodadas</th><th class="num">1º turno, Lula</th><th class="num">1º turno, Flávio</th><th class="num">2º turno, margem</th></tr></thead><tbody></tbody></table></div>
+    <p class="cap" id="casa-nota"></p></div>
   <details class="fold"><summary><span class="btn">Ler as notas completas de método</span><span class="cap" style="margin:0">pesquisas, metodologias, redes, busca, partidos, TSE e eventos</span></summary><div class="panel"><div class="notes" id="notes"></div></div></details>
 </section>
 <section class="view" id="v-e-geral" role="tabpanel" data-title="Visão geral do estado">
@@ -1474,7 +1477,7 @@ const serieDe=n=>DATA.polls.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[
 //      dos candidatos é;
 //   4. nenhuma rodada passa de AG.teto do peso total.
 // A régua (SIG) continua mandando no peso do tempo: rodada mais recente pesa mais.
-const AG={inst:5,k:1.5,teto:.15,piso:1,voltas:6};
+const AG={inst:5,k:1.5,teto:.15,piso:1,voltas:6,semana:7*864e5,vizinhos:3,encolhe:4,tetoCasa:5};
 // junta pontos por candidato ({nome:[{t,v,inst}]}) nas rodadas que os produziram
 function emRodadas(porNome){
   const R=new Map();
@@ -1492,7 +1495,63 @@ function medPond(pares){
   let acc=0;for(const [v,w] of a){acc+=w;if(acc>=tot/2)return v;}
   return a[a.length-1][0];
 }
+// ---- efeito casa: a régua torta de um instituto não é rodada fora da curva
+// O desconto por rodada não pega instituto que erra sempre para o mesmo lado: cada rodada dele
+// parece só um pouco fora, e ele publica muitas. Medido em 10/9/2026 no segundo turno, o Gerp
+// aparecia 6,6 pontos mais favorável a Flávio que o campo em 11 das 11 rodadas, e mesmo assim
+// perdia só 11% do peso. Aqui a régua de cada instituto é medida contra a mediana dos outros na
+// mesma semana, encolhida pelo número de rodadas (n/(n+4), então uma rodada só quase não corrige)
+// e limitada a 5 pontos. A correção entra na média; nos pontos do gráfico continua o que o
+// instituto publicou, porque é isso que ele publicou.
+const _casa=new WeakMap();
+function casaDe(rods,nomes){
+  let porNome=_casa.get(rods);
+  if(!porNome){porNome=new Map();_casa.set(rods,porNome);}
+  const chave=nomes.join("|");
+  if(porNome.has(chave))return porNome.get(chave);
+  const desv={};
+  for(const r of rods){
+    const perto=rods.filter(o=>o!==r&&o.inst!==r.inst&&Math.abs(o.t-r.t)<=AG.semana);
+    if(perto.length<AG.vizinhos)continue;
+    for(const n of nomes){
+      const v=r.v[n];if(v==null)continue;
+      const outros=perto.map(o=>o.v[n]).filter(x=>x!=null);
+      if(outros.length<AG.vizinhos)continue;
+      const med=medPond(outros.map(x=>[x,1]));
+      if(med==null)continue;
+      const d=(desv[r.inst]=desv[r.inst]||{});
+      (d[n]=d[n]||[]).push(v-med);
+    }
+  }
+  const out={};
+  for(const inst in desv){
+    out[inst]={};
+    for(const n in desv[inst]){
+      const v=desv[inst][n],med=medPond(v.map(x=>[x,1]));
+      if(med==null)continue;
+      const enc=med*v.length/(v.length+AG.encolhe);
+      const aj=Math.max(-AG.tetoCasa,Math.min(AG.tetoCasa,enc));
+      const mm=v.reduce((a,b)=>a+b,0)/v.length;
+      const dp=Math.sqrt(v.reduce((a,b)=>a+(b-mm)*(b-mm),0)/Math.max(1,v.length-1));
+      out[inst][n]={aj,se:dp/Math.sqrt(v.length)};
+    }
+  }
+  porNome.set(chave,out);return out;
+}
+function comCasa(rods,nomes){
+  const c=casaDe(rods,nomes);
+  let mexeu=false;
+  const saida=rods.map(r=>{
+    const ci=c[r.inst];if(!ci)return r;
+    const v={...r.v};let m=false;
+    for(const n of nomes)if(v[n]!=null&&ci[n]&&ci[n].aj){v[n]-=ci[n].aj;m=true;}
+    if(!m)return r;
+    mexeu=true;return {inst:r.inst,t:r.t,v,casa:ci};
+  });
+  return mexeu?saida:rods;
+}
 function pesosEm(rods,nomes,sigma,t){
+  rods=comCasa(rods,nomes);
   let s=Math.max(1,sigma);
   while(s<45){const q=new Set();for(const r of rods)if(Math.abs(r.t-t)<=2*s*864e5)q.add(r.inst);if(q.size>=AG.inst)break;s++;}
   const jan=2*s*864e5,viz=new Map(),base=[];
@@ -1581,7 +1640,16 @@ function incertezaEm(rods,nomes,sigma,t,a,b){
   const sw=w.reduce((x,y)=>x+y,0),med=m.reduce((x,y,i)=>x+y*w[i],0)/sw;
   const varr=m.reduce((x,y,i)=>x+w[i]*(y-med)*(y-med),0)/sw;
   const nef=sw*sw/w.reduce((x,y)=>x+y*y,0);
-  return {dp:Math.sqrt(varr),nef,erro:Math.sqrt(varr/nef)};
+  // corrigir o efeito casa tira dispersão que era sistemática, e sem isto a margem ficaria
+  // estreita de mentira: o erro da própria estimativa do viés volta aqui, somado em variância
+  let vC=0,sC=0;
+  for(let i=0;i<dentro.length;i++){
+    const c=dentro[i].r.casa;if(!c||!peso[i])continue;
+    const ea=c[a]?c[a].se:0,eb=c[b]?c[b].se:0;
+    vC+=peso[i]*(ea*ea+eb*eb);sC+=peso[i];
+  }
+  const varCasa=sC?vC/sC/Math.max(1,nef):0;
+  return {dp:Math.sqrt(varr),nef,erro:Math.sqrt(varr/nef+varCasa),casa:Math.sqrt(varCasa)};
 }
 // empate técnico: a diferença entre os dois é menor que a incerteza da própria agregação
 function empatam(rods,nomes,sigma,t,a,b){
@@ -1884,6 +1952,29 @@ function draw2T(){
       ? `<b>Empate técnico</b> na média: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média (${fPct(inc.erro)} ponto). Nenhum dos dois está à frente.`
       : `Na média, <b>${esc(curto(frente))}</b> aparece ${fPct(Math.abs(d))} pontos à frente de ${esc(curto(atras))}, contra ${fPct(inc.erro)} de incerteza da média.`;
   }
+}
+DRAW["#tb-casa"]=()=>drawCasa();
+// a correção de efeito casa muda a média, então ela precisa estar visível e conferível: quem é
+// medido para qual lado, com quantas rodadas, e o quanto disso o mural desconta
+function drawCasa(){
+  const c1=casaDe(rodadas1T(),OITO), c2=casaDe(rodadas2T(),["Lula","Flávio Bolsonaro"]);
+  const insts=[...new Set([...Object.keys(c1),...Object.keys(c2)])];
+  const nR=i=>rodadas1T().filter(r=>r.inst===i).length+rodadas2T().filter(r=>r.inst===i).length;
+  const aj=(c,i,n)=>(c[i]&&c[i][n])?c[i][n].aj:null;
+  const margem=i=>{const a=aj(c2,i,"Lula"),b=aj(c2,i,"Flávio Bolsonaro");return (a==null&&b==null)?null:(a||0)-(b||0);};
+  const linhas=insts.map(i=>({i,n:nR(i),lula:aj(c1,i,"Lula"),flavio:aj(c1,i,"Flávio Bolsonaro"),m:margem(i)}))
+    .filter(x=>x.lula!=null||x.flavio!=null||x.m!=null)
+    .sort((a,b)=>(a.m==null?0:a.m)-(b.m==null?0:b.m));
+  const cel=v=>v==null?'<td class="num"><span style="color:var(--ink-3)">n/d</span></td>'
+    :`<td class="num" style="color:${Math.abs(v)<0.5?"var(--ink-3)":(v>0?"var(--c1)":"var(--c2)")}">${v>0?"+":""}${fPct(v)}</td>`;
+  $("#tb-casa tbody").innerHTML=linhas.map(x=>`<tr><td><b>${esc(x.i)}</b></td><td class="num">${x.n}</td>${cel(x.lula)}${cel(x.flavio)}${cel(x.m)}</tr>`).join("");
+  const forte=linhas.filter(x=>x.m!=null&&Math.abs(x.m)>=2);
+  $("#casa-cap").textContent=`quanto cada instituto difere do conjunto, em pontos, depois de encolhida a estimativa`;
+  $("#casa-nota").innerHTML=`Positivo quer dizer que o instituto mede Lula acima do que o conjunto mede; negativo, Flávio. `
+    +`A conta compara cada rodada com a mediana das rodadas dos outros institutos na mesma semana, tira a mediana desses desvios ao longo do ano, `
+    +`encolhe pelo número de rodadas (com uma rodada só, quase não corrige) e limita a 5 pontos. A média do mural entra já corrigida, e a incerteza da própria correção volta somada à margem, `
+    +`para a média não ficar estreita de mentira. Os pontos dos gráficos continuam mostrando o que cada instituto publicou. `
+    +(forte.length?`Hoje as réguas mais tortas são ${forte.slice(0,3).map(x=>`<b>${esc(x.i)}</b> (${x.m>0?"+":""}${fPct(x.m)})`).join(", ")}.`:"");
 }
 DRAW["#ch-rej"]=()=>drawRej();
 function drawRej(){
@@ -2406,7 +2497,8 @@ pr.addEventListener("change",e=>{
 });
 
 // ---- notas
-$("#notes").innerHTML=`<p><b>Atualização e verificação.</b> As pesquisas, nacionais e estaduais, e os acessos aos verbetes da Wikipédia entram sozinhos, duas vezes por dia, às 8h e às 20h de Brasília: uma rotina no GitHub lê a compilação pública da Wikipédia e a API oficial da Wikimedia, regenera o mural, confere as regras de dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE dependem do navegador do observatório e entram a cada coleta, com a data ao lado. Cada número carrega a data e a fonte ao lado; "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato, e mede disponibilidade de dado, não mérito. Foco, janela de tempo, tema e densidade ficam guardados só no navegador de quem escolheu.</p>
+$("#notes").innerHTML=`<p><b>Como a média é feita.</b> A média de cada candidato é ponderada no tempo, com janela que encurta conforme a eleição se aproxima, e cada instituto entra com uma rodada só dentro da janela, para quem publica muito não pesar mais que os outros. Nenhuma rodada passa de 15% do peso. Duas defesas cuidam do resultado que destoa: a rodada cujo formato foge do conjunto além do que o erro amostral explica perde peso, e o viés sistemático de cada instituto, medido ao longo do ano contra o conjunto, é descontado antes da média (a tabela "A régua de cada instituto", acima, mostra quanto e para que lado). A incerteza publicada soma o erro amostral e o erro da própria estimativa do viés, e é ela que decide quando o mural diz empate técnico em vez de anunciar um líder.</p>
+<p><b>Atualização e verificação.</b> As pesquisas, nacionais e estaduais, e os acessos aos verbetes da Wikipédia entram sozinhos, duas vezes por dia, às 8h e às 20h de Brasília: uma rotina no GitHub lê a compilação pública da Wikipédia e a API oficial da Wikimedia, regenera o mural, confere as regras de dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE dependem do navegador do observatório e entram a cada coleta, com a data ao lado. Cada número carrega a data e a fonte ao lado; "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato, e mede disponibilidade de dado, não mérito. Foco, janela de tempo, tema e densidade ficam guardados só no navegador de quem escolheu.</p>
 <p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro TSE na tabela "ver as rodadas". O gráfico da corrida mistura metodologias distintas de propósito; a AtlasIntel (digital) roda sistematicamente acima dos presenciais e telefônicos para Lula, e a linha é média das rodadas, não modelo. A média usa a janela da régua (${SIG} dias hoje, encurtando até a eleição) e tem quatro defesas para que uma pesquisa isolada não vire a corrida sozinha: de cada instituto entra só a rodada mais próxima da data calculada; a janela alarga sozinha até juntar cinco institutos; a rodada que aponta uma disputa diferente da do conjunto entra com peso menor, medido depois de tirar o nível dela (quem mede todo mundo dois pontos abaixo não é penalizado por isso, quem troca a ordem dos candidatos é); e nenhuma rodada passa de 15% do peso. Quando a diferença entre os dois primeiros é menor que a incerteza da própria média, o mural diz empate técnico em vez de anunciar um líder. Rejeição: cada instituto pergunta a seu modo; leia cada cor dentro do mesmo instituto. Rodadas de janeiro e fevereiro do Datafolha e do PoderData não foram localizadas; Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período; a AtlasIntel de 19/5 teve divulgação suspensa por liminar e entrou parcial.</p>
 <p><b>Metodologias.</b> O modo de cada rodada (presencial, telefônica, digital) é classificado a partir da ficha técnica registrada; "não informada" quando a ficha não diz. O desvio por instituto compara cada rodada com a média de todos os outros institutos numa janela de 28 dias; com poucos concorrentes na janela (janeiro e fevereiro), o desvio fica mais ruidoso. Ele mede efeito de casa e de metodologia, não acerto: só a urna diz quem acertou.</p>
 <p><b>Redes.</b> Desde 1/9 o número de seguidores no Instagram é coleta própria: o observatório lê o valor exato no perfil público pelo navegador do Mac e grava uma linha por candidato e dia da leitura. Essa leitura não é automática, porque o Instagram exige sessão logada, e por isso a data de cada número fica ao lado dele. TikTok e YouTube entram na mesma rotina. Antes disso, e para o histórico do ano, os números vêm da imprensa: são ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados pela imprensa (Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon, Fanpage Karma), com a fonte em cada ponto. A série é esparsa e as fontes divergem entre si no mesmo dia; as linhas ligam medianas diárias. Os acessos à Wikipédia de cada candidato, ao contrário, entram sozinhos todo dia pela API oficial da Wikimedia.</p>
@@ -3092,7 +3184,7 @@ $$(".panel>h3").forEach(h=>{const ph=document.createElement("div");ph.className=
 chipRow($("#f-cands"),OITO,candOn,drawCorrida,true);
 chipRow($("#f-inst"),DATA.institutos,instOn,drawCorrida,false);$("#f-n").textContent=DATA.institutos.length+MODOS.length;
 (()=>{const el=$("#f-modos");el.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="true" style="--chipc:${c}" title="Modo de coleta"><i></i>${esc(m)}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modoOn.has(k)?modoOn.delete(k):modoOn.add(k);b.setAttribute("aria-pressed",modoOn.has(k));drawCorrida();}));})();
-chipsModo();drawVies();drawPartidos();drawMetodo();renderCal();
+chipsModo();drawVies();drawPartidos();drawMetodo();drawCasa();renderCal();
 lado=ladoPadrao();
 atualizarFoco();
 drawUFSel();trocarUF(ufAtual,false);
