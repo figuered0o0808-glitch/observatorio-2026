@@ -53,6 +53,8 @@ COLS = ["uf","cargo","nome_citado","partido_citado","id_tse","slug","nome_urna",
         "campo_inicio","campo_fim","entrevistas","margem","confianca","coleta","tipo","fonte",
         "fonte_url","data_acesso"]
 
+PROMETIDOS = 30      # a matéria diz "os 30 mais citados" em cada cargo
+
 FICHA = {
     "instituto": "Prefab Future",
     "contratante": "Diário do Rio",
@@ -112,7 +114,7 @@ def citados(txt):
         if cargo is None:
             continue
         for nome, sigla in re.findall(r"([A-ZÁÂÃÀÉÊÍÓÔÕÚÜÇ][\w'’.\- ÁÂÃÀÉÊÍÓÔÕÚÜÇáâãàéêíóôõúüç]{1,48}?)"
-                                      r"\s*\(([A-Za-zÇç ]{2,16})\)", linha):
+                                      r"\s*\(([A-Za-zÁÂÃÀÉÊÍÓÔÕÚÜÇáâãàéêíóôõúüç ]{2,16})\)", linha):
             if sem_acento(sigla) not in {sem_acento(p) for p in PARTIDOS}:
                 continue
             nome = nome.strip(" .-–—")
@@ -154,6 +156,22 @@ def resolver(nome, sigla, cargo, univ):
                   if sem_acento(c["partido"]) == sig and sem_acento(c["nome_completo"]).startswith(alvo)]
     if len(porpartido) == 1:
         return porpartido[0], "nome completo começa pelo citado, partido confere"
+    # O jornal escreve o nome civil; o TSE registra o nome de urna, que quase sempre é outro:
+    # Marcelo Freixo é "FREIXO", Lindbergh Farias é "LINDBERGH", Daniela Carneiro é "DANIELA DO
+    # WAGUINHO". Sem esta passagem, 11 dos 59 citados ficavam de fora, e justamente os mais
+    # conhecidos. Continua estreito de propósito: todo token do nome citado tem de estar no nome
+    # completo registrado, no mesmo cargo e no mesmo partido, e o acerto tem de ser único.
+    # "Henrique Vieira" casa com três nomes completos no RJ e só um é do PSOL e do cargo certo.
+    toks = [t for t in alvo.split() if len(t) > 2]
+    if toks:
+        porcompleto = [c for c in mesmo_cargo
+                       if sem_acento(c["partido"]) == sig
+                       and all(t in sem_acento(c["nome_completo"]) for t in toks)]
+        if len(porcompleto) == 1:
+            return porcompleto[0], ("nome civil da matéria dentro do nome completo registrado; "
+                                    "concorre como \"%s\"" % porcompleto[0]["nome_urna"])
+        if len(porcompleto) > 1:
+            return None, "nome civil casa com %d candidaturas do mesmo partido" % len(porcompleto)
     # O caso que mais aparece aqui não é nome inventado: é a matéria pôr o candidato no cargo
     # errado. Já aconteceu na curadoria (notas/curadoria-deputados-rjsp-2026-09-07.md) e
     # continua acontecendo. Dizer qual é o cargo registrado poupa a conferência humana, e
@@ -163,6 +181,14 @@ def resolver(nome, sigla, cargo, univ):
         outro = {"depfed": "deputado federal", "depest": "deputado estadual"}[noutro[0]["cargo"]]
         return None, "a matéria lista neste cargo, mas o registro no TSE é de %s (%s)" % (
             outro, noutro[0]["partido"])
+    # A pesquisa é de 24 a 29 de julho e o registro de candidatura só fechou em 15 de agosto:
+    # nome citado que não aparece em lugar nenhum do registro provavelmente não se candidatou.
+    # É a mesma situação que o mural já trata nas majoritárias, onde nome testado que não
+    # registrou fica na rodada antiga sem slug, marcado. Não é erro de leitura nem homônimo.
+    solto = [c for c in univ if all(t in sem_acento(c["nome_completo"] + " " + c["nome_urna"])
+                                    for t in toks)] if toks else []
+    if not solto:
+        return None, "citado na pesquisa, mas sem candidatura registrada no RJ (o campo foi em julho, antes do registro)"
     return None, "sem candidatura registrada correspondente"
 
 
@@ -173,7 +199,7 @@ def diagnostico(url, txt, achados):
         "url": url, "caracteres": len(txt),
         "diz federal": "DEPUTADO FEDERAL" in alvo,
         "diz estadual": "DEPUTADO ESTADUAL" in alvo,
-        "pares Nome (SIGLA)": len(re.findall(r"[A-ZÁÂÃÀÉÊÍÓÔÕÚÜÇ][^()\n]{1,48}\(([A-Za-zÇç ]{2,16})\)", txt)),
+        "pares Nome (SIGLA)": len(re.findall(r"[A-ZÁÂÃÀÉÊÍÓÔÕÚÜÇ][^()\n]{1,48}\(([A-Za-zÁÂÃÀÉÊÍÓÔÕÚÜÇáâãàéêíóôõúüç ]{2,16})\)", txt)),
         "citados federal": len(achados["depfed"]), "citados estadual": len(achados["depest"]),
     }
 
@@ -182,16 +208,27 @@ def main():
     univ = universo()
     hoje = datetime.now(timezone(timedelta(hours=-3))).date().isoformat()
     lidas, erros = [], []
-    for f in FONTES:
-        try:
-            lidas.append((f, baixar(f["url"])))
-        except Exception as e:                                   # rede é rede
-            erros.append("%s -> %s" % (f["url"], e))
+    # --offline reprocessa o bruto já guardado, sem bater no site outra vez. Serve para corrigir
+    # o extrator sem gastar rodada de runner e sem incomodar o jornal a cada tentativa.
+    if "--offline" in sys.argv:
+        bruto = io.open(os.path.join(DEP, "_pesquisa-deputados-rj.html"), encoding="utf-8").read()
+        partes = re.split(r"<!-- ===== (\S+) ===== -->", bruto)[1:]
+        porurl = dict(zip(partes[0::2], partes[1::2]))
+        for f in FONTES:
+            if f["url"] in porurl:
+                lidas.append((f, porurl[f["url"]]))
+        print("modo offline: %d páginas lidas do bruto guardado" % len(lidas))
+    else:
+        for f in FONTES:
+            try:
+                lidas.append((f, baixar(f["url"])))
+            except Exception as e:                               # rede é rede
+                erros.append("%s -> %s" % (f["url"], e))
 
     # O bruto é gravado antes de qualquer extração, e a extração não pode derrubar o trabalho
     # de gravá-lo. A primeira rodada deste coletor morreu com "nenhum nome extraído" sem
     # commitar o HTML, e aí não havia como saber por quê. Diagnóstico só serve se sobreviver.
-    if lidas:
+    if lidas and "--offline" not in sys.argv:
         io.open(os.path.join(DEP, "_pesquisa-deputados-rj.html"), "w", encoding="utf-8").write(
             "\n\n".join("<!-- ===== %s ===== -->\n%s" % (f["url"], h) for f, h in lidas))
     for e in erros:
@@ -230,6 +267,15 @@ def main():
                 avisos.append("%s (%s): só na principal %s | só no espelho %s"
                               % (cargo, f["url"], sorted(a - b)[:6], sorted(b - a)[:6]))
 
+    # A matéria promete 30 por cargo. Espelho concordando não prova leitura certa: os três
+    # passam pelo mesmo extrator e erram junto. Foi assim que "Rafael Nobre (União Brasil)"
+    # sumiu, porque o "Ã" da sigla não cabia na classe de caracteres. Contagem prometida é a
+    # única testemunha independente do meu próprio código.
+    for cargo, rotulo in (("depfed", "federal"), ("depest", "estadual")):
+        if len(principal[cargo]) != PROMETIDOS:
+            avisos.append("li %d nomes de deputado %s e a matéria promete %d: falta nome, o "
+                          "extrator precisa de revisão" % (len(principal[cargo]), rotulo, PROMETIDOS))
+
     saida = []
     for cargo in ("depfed", "depest"):
         for nome, sigla in principal[cargo]:
@@ -240,7 +286,9 @@ def main():
                 "id_tse": achou["id_tse"] if achou else "",
                 "slug": achou["slug"] if achou else "",
                 "nome_urna": achou["nome_urna"] if achou else "",
-                "status": "resolvido" if achou else "conferir",
+                "status": ("resolvido" if achou
+                           else "nao_registrado" if "sem candidatura registrada no RJ" in motivo
+                           else "conferir"),
                 "motivo": motivo,
                 "natureza": fonte["natureza"],
                 "medida": "citado espontaneamente entre os mais lembrados",
