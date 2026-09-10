@@ -1,1 +1,1 @@
-uf,cargo,registro_tse,campo_inicio,campo_fim,instituto,entrevistas,margem,confianca,tipo,natureza,nome_citado,partido_citado,percentual,id_tse,slug,nome_urna,status,motivo,fonte_url,data_acesso
+uf,cargo,registro_tse,campo_inicio,campo_fim,instituto,entrevistas,acumulado,cumulativa,coleta,margem,confianca,tipo,natureza,nome_citado,partido_citado,percentual,id_tse,slug,nome_urna,status,motivo,fonte_url,data_acesso
