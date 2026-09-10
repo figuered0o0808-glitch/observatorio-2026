@@ -3,6 +3,30 @@
 Data do teste: 1 de setembro de 2026.
 Pasta: /home/claude/api-tests/
 
+## Atualização de 10 de setembro de 2026: Instagram reconferido, e piorou
+
+Sonda repetida antes de começar a divulgação do mural, com `coleta/_sonda_instagram.py` no
+runner do GitHub, em três perfis (@lula, @jandirafeghali, @erikahilton) e quatro caminhos:
+
+| Caminho | Em 7/9 | Em 10/9 |
+|---|---|---|
+| `www.instagram.com/<perfil>/` (HTML público) | 200, sem o número no corpo | **429 Too Many Requests** |
+| `www.instagram.com/api/v1/users/web_profile_info` | 429 | 429 |
+| `i.instagram.com/api/v1/users/web_profile_info` | não testado | 429 |
+| `?__a=1&__d=dis` | não testado | 201 com corpo vazio |
+
+Nenhum dos quatro devolveu número, em nenhum dos três perfis. O bloqueio é por faixa de IP
+de datacenter: o 429 vem antes de qualquer autenticação, então cookie de sessão no runner
+não resolveria, além de ser coisa que não se guarda em segredo de repositório.
+
+Do contêiner do Claude Code é pior ainda: o proxy de saída recusa o CONNECT para
+instagram.com, para o TSE, para a Wikipédia e para o próprio github.io, então de lá só o
+GitHub responde.
+
+Conclusão prática, a mesma de 7/9 e agora com mais evidência: seguidores de Instagram só
+saem de um navegador em IP residencial, que é como a coleta de 2/9 foi feita. O roteiro
+está em `coleta/navegador_estados.md`, seção 5.
+
 ## Atualização de 7 de setembro de 2026: o que o runner alcança
 
 Sonda rodada de dentro do runner do GitHub, com sessão que guarda cookies e cabeçalhos de
