@@ -116,14 +116,53 @@ def slugify(s):
     return s
 
 
+def citados_em_pesquisa():
+    """Categoria C: quem a pesquisa registrada do RJ mostrou entre os mais lembrados.
+
+    A curadoria A/B saiu da imprensa de setembro. Esta lista sai do eleitor: sao os nomes
+    que apareceram espontaneamente na Prefab/Diario do Rio, registro TSE RJ-02770/2026. As
+    duas listas quase nao se encontram, e ser lembrado por conta propria numa pesquisa
+    registrada e prova mais forte de ser "principal" do que ser citado numa materia. Entra
+    por id_tse, nunca por nome, e so quem tem candidatura registrada.
+
+    Devolve {(uf, cargo, id_tse): motivo}.
+    """
+    caminho = os.path.join(AQUI, "_pesquisa-deputados-rj.csv")
+    if not os.path.exists(caminho):
+        return {}
+    fora = {}
+    with open(caminho, encoding="utf-8-sig") as f:
+        for l in csv.DictReader(f):
+            if l["status"] != "resolvido" or not l["id_tse"]:
+                continue
+            cargo = "deputado federal" if l["cargo"] == "depfed" else "deputado estadual"
+            fora[(l["uf"], cargo, l["id_tse"])] = l["fonte"]
+    return fora
+
+
 def main():
     with open(ENTRADA, encoding="utf-8-sig") as f:
         linhas = list(csv.DictReader(f))
     indice = {(r["uf"], r["cargo"], r["nome_urna"]): r for r in linhas}
+    por_id = {(r["uf"], r["cargo"], r["id_tse"]): r for r in linhas}
+
+    citados = citados_em_pesquisa()
+    curados = list(CURADOS)
+    ja = {(uf, cargo, indice[(uf, cargo, n)]["id_tse"])
+          for uf, cargo, n, _ in curados if (uf, cargo, n) in indice}
+    novos = 0
+    for chave, _fonte in sorted(citados.items()):
+        if chave in ja:
+            continue
+        r = por_id.get(chave)
+        if r is None:                       # citado sem candidatura: ja fica de fora na coleta
+            continue
+        curados.append((chave[0], chave[1], r["nome_urna"], "C"))
+        novos += 1
 
     faltando = []
     saida = []
-    for uf, cargo, nome_urna, categoria in CURADOS:
+    for uf, cargo, nome_urna, categoria in curados:
         r = indice.get((uf, cargo, nome_urna))
         if r is None:
             faltando.append((uf, cargo, nome_urna))
@@ -151,10 +190,15 @@ def main():
             "url_tse": url_tse,
             "fonte": (
                 "TSE DivulgaCandContas (dados/rjsp/candidatos-rjsp.csv, coleta de "
-                "7/9/2026); curadoria de imprensa em "
+                "7/9/2026); "
+                + ("entrou por ser citado espontaneamente na pesquisa Prefab Future / "
+                   "Diario do Rio, registro TSE RJ-02770/2026, campo de 24 a 29/7/2026 "
+                   "(dados/rjsp/_pesquisa-deputados-rj.csv)"
+                   if categoria == "C" else "")
+                + ("" if categoria == "C" else "curadoria de imprensa em "
                 "notas/varredura-deputados-rj-2026-09-07.md e "
                 "notas/varredura-deputados-sp-2026-09-07.md, cruzada e corrigida em "
-                "notas/curadoria-deputados-rjsp-2026-09-07.md"
+                "notas/curadoria-deputados-rjsp-2026-09-07.md")
             ),
         })
 
@@ -175,7 +219,11 @@ def main():
         w.writeheader()
         w.writerows(saida)
 
-    print(f"{len(saida)} candidaturas curadas escritas em {SAIDA}")
+    porcat = {}
+    for r in saida:
+        porcat[r["categoria"]] = porcat.get(r["categoria"], 0) + 1
+    print(f"{len(saida)} candidaturas escritas em {SAIDA} "
+          f"(por categoria: {dict(sorted(porcat.items()))}; {novos} entraram pela pesquisa)")
     por_disputa = {}
     for r in saida:
         chave = (r["uf"], r["cargo"])

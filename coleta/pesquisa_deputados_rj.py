@@ -46,6 +46,13 @@ FONTES = [
      "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
     {"url": "https://mancheterio.com.br/pesquisa-revela-os-candidatos-a-deputados-mais-citados-no-rio/",
      "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
+    # Há indício de uma segunda edição da mesma pesquisa. Se existir, é o começo de uma série
+    # temporal, que é o que falta para o proporcional. Entra como diagnóstico: é baixada e
+    # relatada, mas não vira dado, porque a ficha técnica dela (registro, campo, amostra) é
+    # outra e ainda não foi lida. Carimbar a ficha de julho numa rodada de setembro seria
+    # inventar procedência.
+    {"url": "https://www.ultimahoraonline.com.br/noticia/veja-o-ranking-dos-mais-cotados-para-deputado-federal-e-estadual-nas-eleicoes-2026-segundo-nova-edicao-da-pesquisa-prefab-future",
+     "uf": "RJ", "natureza": "registrada", "papel": "nova-edicao"},
 ]
 
 COLS = ["uf","cargo","nome_citado","partido_citado","id_tse","slug","nome_urna","status","motivo",
@@ -258,7 +265,7 @@ def main():
     # divergência entre a matéria e o espelho não é detalhe: é sinal de leitura errada
     avisos = []
     for f, outro, _ in por_fonte:
-        if f["url"] == fonte["url"]:
+        if f["url"] == fonte["url"] or f["papel"] not in ("principal", "espelho"):
             continue
         for cargo in ("depfed", "depest"):
             a = {sem_acento(n) for n, _ in principal[cargo]}

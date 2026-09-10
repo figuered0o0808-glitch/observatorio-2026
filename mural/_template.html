@@ -352,6 +352,12 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .evs li{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:13px;line-height:1.4;align-items:baseline}
 .evs li.geral{opacity:.6}
 .evs .dt{color:var(--ink-3);font-size:12px}
+.citbox{margin:0 var(--pad);padding:12px 14px;border:1px solid color-mix(in oklab,var(--m2) 30%,transparent);background:color-mix(in oklab,var(--m2) 8%,transparent);border-radius:10px;display:grid;gap:5px}
+.citbox b{font-size:13.5px;color:var(--ink-1)}
+.citbox span{font-size:12.5px;color:var(--ink-2)}
+.citbox em{font-size:12.5px;color:var(--ink-2);font-style:normal;border-left:2px solid color-mix(in oklab,var(--m2) 45%,transparent);padding-left:8px}
+.citbox a{font-size:12.5px;justify-self:start}
+.pill.cit{background:color-mix(in oklab,var(--m2) 16%,transparent);color:var(--m2);border-color:color-mix(in oklab,var(--m2) 34%,transparent);cursor:help}
 .evs .cat{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 
 /* tabelas */
@@ -3051,7 +3057,8 @@ function drawBuscaUF(){
   $("#e-t-busca").textContent=`Busca e redes ${emUF(ufAtual)}`;
   const nTr=cands.filter(c=>B.tr&&B.tr[c.slug]).length, nWk=cands.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).length, nIg=cands.filter(c=>B.ig&&B.ig[c.slug]&&B.ig[c.slug].n!=null).length;
   const semDados=!nTr&&!nWk&&!nIg;
-  $("#e-sub-busca").innerHTML=semDados?`A coleta própria de busca e redes para ${cargoLabel(cargo)} ${emUF(ufAtual)} ainda não entrou nesta edição.`:`Para ${cargoLabel(cargo)}: ${pl(nTr,"nome")} com série no Google Trends dentro do estado, ${nWk} com verbete na Wikipédia e ${nIg} com perfil público no Instagram informado ao TSE. Coleta própria pelo navegador do observatório${B.data?`, ${dBR(B.data)}`:""}.`;
+  const nCand=candsDe(ufAtual,cargo).length;
+  $("#e-sub-busca").innerHTML=semDados?`A coleta própria de busca e redes para ${cargoLabel(cargo)} ${emUF(ufAtual)} ainda não entrou nesta edição.`:`Para ${cargoLabel(cargo)}: ${nTr} de ${pl(nCand,"nome")} com série no Google Trends dentro do estado, ${nWk} com verbete na Wikipédia e ${nIg} com perfil público no Instagram informado ao TSE. Coleta própria pelo navegador do observatório${B.data?`, ${dBR(B.data)}`:""}.${nCand-nTr>0?` Faltam ${nCand-nTr} nomes, entrados depois da última coleta de busca.`:""}`;
   const foc=focoUF();
   // ---- trends
   const l=liderDe(ufAtual,cargo);
@@ -3087,17 +3094,30 @@ function drawBuscaUF(){
     return `<tr><td><b>${esc(c.nome)}</b></td><td>${esc(c.partido)}</td><td class="num">${i&&i.n!=null?(i.a?`<span title="número aproximado, lido da meta da página">≈${fInt(i.n)}</span>`:fInt(i.n)):"n/d"}</td><td>${i&&i.h?`<a href="https://www.instagram.com/${esc(i.h)}/" target="_blank" rel="noopener">@${esc(i.h)}</a>`:"<span style=\"color:var(--ink-3)\">não informado ao TSE</span>"}</td><td class="num">${pico?`${pico.v} <small style="color:var(--ink-3)">${dBR(dISO(pico.t))}</small>`:"n/d"}</td><td class="num">${s7!=null?s7:"n/d"}</td><td class="num">${w7!=null?fInt(w7):"n/d"}</td><td>${w&&w.t?`<a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(w.t.replace(/ /g,"_"))}" target="_blank" rel="noopener">${esc(w.t)}</a>`:"<span style=\"color:var(--ink-3)\">sem verbete</span>"}</td></tr>`;}).join("");
 }
 for(const k of ["#e-ch-trends","#e-ch-wiki"])DRAW[k]=()=>drawBuscaUF();
+// A pesquisa de deputado não é da mesma família das majoritárias e o mural não pode deixar
+// parecer que é. Ela mede pertencimento a um conjunto ("foi lembrado espontaneamente entre
+// os 30 mais citados"), não intenção de voto, e não publica percentual nem classificação.
+// Toda vez que o selo aparece, esta ficha vai junto, para ninguém ler como "está ganhando".
+function citFicha(k){
+  const d=(x)=>x&&x.length>=10?dBR(x)+"/"+x.slice(0,4):(x||"");
+  return `${k.inst}${k.contratante?" para "+k.contratante:""} · registro ${k.registro} no TSE · `
+       + `${k.n} entrevistas${k.coleta==="presencial"?" presenciais":""} de ${d(k.de)} a ${d(k.ate)}`
+       + ` · margem de ${String(k.margem).replace(".",",")} pontos · pergunta ${k.tipo==="espontanea"?"espontânea":"estimulada"}`
+       + ` · sem percentual publicado`;
+}
 function cardUF(c){
   const l=liderDe(ufAtual,c.cargo), pt=l?l.pts.find(p=>p[5]===c.slug):null, pos=l?l.pts.findIndex(p=>p[5]===c.slug)+1:0;
   const foc=(prefs.focoUF||[]).includes(c.slug);
   const sit=/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn";
   const nAnt=(c.ext&&c.ext.ant?c.ext.ant.split("; ").filter(Boolean).length:0);
+  const cit=c.cit;
   return `<article class="card${foc?" vigiado":""}" id="ecard-${c.slug}">
-    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · ${esc((CARGOS[c.cargo]||CARGOS.governador).bt)}${c.cat?" · "+(c.cat==="A"?"reeleição":"estreia"):""}</div><div class="pills"><span class="pill ${sit}">${esc(c.sit)}</span></div></div></div>
+    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · ${esc((CARGOS[c.cargo]||CARGOS.governador).bt)}${c.cat?" · "+(c.cat==="A"?"reeleição":c.cat==="C"?"lembrado em pesquisa":"estreia"):""}</div><div class="pills"><span class="pill ${sit}">${esc(c.sit)}</span>${cit?`<span class="pill cit" title="${esc(citFicha(cit))}">Lembrado em pesquisa</span>`:""}</div></div></div>
     <div class="stats">${temPesquisa(c.cargo)?`
       <div class="st"><span>Intenção</span><b class="display tnum">${pt?fPct(pt[4])+"<small>%</small>":"<small>não medido</small>"}</b><span class="d">${pt?`${esc(l.r.inst)} · ${dBR(l.r.data)}`:"nesta rodada"}</span></div>
       <div class="st"><span>Posição</span><b class="display tnum">${pos?pos+"º":"n/d"}</b><span class="d">${pos?`entre ${l.pts.length} testados`:"fora da rodada"}</span></div>`:`
-      <div class="st"><span>Perfil</span><b class="display" style="font-size:14px;line-height:1.2">${c.cat==="A"?"Reeleição":c.cat==="B"?"Estreia":"n/d"}</b><span class="d">${c.cat==="A"?"está no cargo":c.cat==="B"?"nome novo na disputa":"sem classificação"}</span></div>
+      ${cit?`<div class="st"><span>Pesquisa</span><b class="display" style="font-size:14px;line-height:1.2">Lembrado</b><span class="d">entre os 30 mais citados · ${esc(cit.inst)}</span></div>`:`
+      <div class="st"><span>Perfil</span><b class="display" style="font-size:14px;line-height:1.2">${c.cat==="A"?"Reeleição":c.cat==="B"?"Estreia":"n/d"}</b><span class="d">${c.cat==="A"?"está no cargo":c.cat==="B"?"nome novo na disputa":"sem classificação"}</span></div>`}
       <div class="st"><span>Eleições</span><b class="display tnum">${nAnt}</b><span class="d">${nAnt?"disputas anteriores no TSE":"primeira no DivulgaCandContas"}</span></div>`}
       <div class="st"><span>Situação</span><b class="display" style="font-size:14px;line-height:1.2">${esc(c.sit.split(" ")[0])}</b><span class="d">registro no TSE</span></div>
     </div>
@@ -3160,6 +3180,12 @@ function renderDossieUF(c,cwMed=0){
       <div><span class="kick">Dossiê · ${esc(u.nome)} · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(c.nome)}</h2><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · candidatura a ${esc((CARGOS[c.cargo]||CARGOS.governador).cand)}</div></div>
       <div class="acts"><span class="stamp ${/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn"}">${esc(c.sit)}</span><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
     </div>
+    ${c.cit?`<div class="citbox">
+      <b>Citado entre os 30 mais lembrados espontaneamente</b>
+      <span>${esc(citFicha(c.cit))}</span>
+      <em>Não é intenção de voto. Disputa proporcional não tem pesquisa por nome com percentual, e esta não publica percentual nem classificação: diz quem foi lembrado, não quem está na frente.</em>
+      <a href="${esc(c.cit.url)}" target="_blank" rel="noopener">Ver a divulgação da pesquisa</a>
+    </div>`:""}
     <div class="body">
       <div class="cover"><span class="blocks" aria-hidden="true">${cob.map(x=>`<i class="${x[1]?"on":""}" title="${esc(x[0])}"></i>`).join("")}</span><span>Cobertura do dossiê: <b>${cob.filter(x=>x[1]).length} de ${cob.length}</b> fontes disponíveis para esta candidatura</span></div>
       <div class="row2">

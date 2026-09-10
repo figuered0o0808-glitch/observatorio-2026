@@ -259,6 +259,32 @@ def ler_dep():
         raise SystemExit("candidatos-deputados.csv sem as colunas: " + ", ".join(falta))
     return linhas
 
+def pesquisa_dep():
+    """Citações da única pesquisa nominal de deputado que existe, indexadas por id_tse.
+
+    O que ela mede é pertencimento a um conjunto: quem foi lembrado espontaneamente entre os
+    30 mais citados de cada cargo. Não é intenção de voto e não tem percentual, porque a
+    pesquisa não publica percentual nem classificação; sai em ordem alfabética. O mural
+    mostra exatamente isso e nada além, com a ficha técnica junto.
+    """
+    caminho = os.path.join(DEP_DIR, "_pesquisa-deputados-rj.csv")
+    if not os.path.exists(caminho): return {}
+    with io.open(caminho, encoding="utf-8-sig") as f:
+        linhas = list(csv.DictReader(f))
+    fora = {}
+    for l in linhas:
+        if l.get("status") != "resolvido" or not l.get("id_tse"): continue
+        fora[l["id_tse"]] = {
+            "medida": l["medida"], "natureza": l["natureza"],
+            "inst": l["instituto"], "contratante": l["contratante"],
+            "registro": l["registro_tse"], "de": l["campo_inicio"], "ate": l["campo_fim"],
+            "n": l["entrevistas"], "margem": l["margem"], "coleta": l["coleta"],
+            "tipo": l["tipo"], "url": l["fonte_url"],
+        }
+    return fora
+
+PESQ_DEP = pesquisa_dep()
+
 for c in ler_dep():
     u = ufs.get(c["uf"])
     if u is None:                      # estado sem ficha estadual: não se inventa um
@@ -272,6 +298,8 @@ for c in ler_dep():
              "slug": c["slug"], "url": c["url_tse"], "cargo": cargo, "id_tse": c["id_tse"]}
     cat = (c.get("categoria") or "").strip().upper()
     if cat: ficha["cat"] = cat
+    cit = PESQ_DEP.get(c["id_tse"])
+    if cit: ficha["cit"] = cit
     u.setdefault(cargo, []).append(ficha)
 
 # o detalhe de cada deputado curado vem do arquivo completo do TSE, casado por id_tse (nunca por
