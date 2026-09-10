@@ -1200,7 +1200,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
     <div class="fc"><span class="fh">Editorias</span><ul id="foot-editorias"></ul></div>
     <div class="fc fc-estados"><span class="fh">Estados</span><ul class="foot-ufs" id="foot-estados"></ul></div>
     <div class="fc" hidden><span class="fh">Deputados</span><ul id="foot-deputados"></ul></div>
-    <div class="fc"><span class="fh">Método e fontes</span><p>Pesquisas e acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; Google Trends, seguidores e ficha do TSE entram a cada coleta do observatório.</p><p>Fontes: TSE DivulgaCandContas, fichas técnicas registradas das pesquisas, compilação pública da Wikipédia, Wikimedia REST API, Google Trends, perfis públicos no Instagram, imprensa e calendário oficial.</p><a class="go" href="#metodo" id="foot-metodo">Ler o método →</a></div>
+    <div class="fc"><span class="fh">Método e fontes</span><p>Pesquisas e acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; Google Trends, seguidores e ficha do TSE entram a cada coleta do observatório.</p><p>Fontes: TSE DivulgaCandContas, fichas técnicas registradas das pesquisas, compilação pública da Wikipédia, Wikimedia REST API, Google Trends, perfis públicos no Instagram, imprensa e calendário oficial.</p><a class="go" href="#metodo" id="foot-metodo">Ler o método →</a><p style="margin-top:10px"><a href="privacidade.html">Privacidade</a></p></div>
   </div>
 </div></footer>
 
@@ -2580,7 +2580,12 @@ function renderConta(){
         ${["","imprensa","assessoria ou campanha","pesquisa ou academia","empresa","órgão público","outra"].map(v=>`<option value="${v}" ${md.area===v?"selected":""}>${v||"prefiro não dizer"}</option>`).join("")}
       </select></div>
       <button type="button" class="btn primary" data-acao="salvar">Salvar</button>
-      <p class="troca"><button type="button" data-acao="sair">Sair desta conta</button></p>`;
+      <div class="ou">seus dados</div>
+      <button type="button" class="btn" data-acao="baixar" style="width:100%;justify-content:center;min-height:42px">Baixar meus dados</button>
+      <p class="troca" style="margin-top:14px"><button type="button" data-acao="sair">Sair desta conta</button>
+        · <button type="button" data-acao="apagar">Apagar minha conta</button></p>
+      <p class="aviso">Apagar remove email, nome e área na hora, sem pedir motivo. É definitivo.
+        O que a gente guarda e por quanto tempo está na <a href="privacidade.html" target="_blank" rel="noopener">política de privacidade</a>.</p>`;
   }else if(telaConta==="recuperar"){
     corpo=`<p class="cap">Digite o email da conta. Você recebe um link para escolher outra senha.</p>
       ${campo("c-email","Email","email",'autocomplete="email"')}
@@ -2605,7 +2610,7 @@ function renderConta(){
       <button type="button" class="btn" data-acao="google" style="width:100%;justify-content:center;min-height:44px">Entrar com Google</button>
       <p class="troca">${criar?`Já tem conta? <button type="button" data-acao="tela-entrar">Entrar</button>`
         :`Ainda não tem conta? <button type="button" data-acao="tela-criar">Criar agora</button> · <button type="button" data-acao="tela-recuperar">Esqueci a senha</button>`}</p>
-      ${criar?`<p class="aviso">Guardamos seu email, e o nome e a área se você preencher, só para dar acesso ao mural e avisar de mudanças grandes. Nada de CPF, título de eleitor ou dado de voto. Você pode apagar a conta quando quiser, e os dados vão junto.</p>`:""}`;
+      ${criar?`<p class="aviso">Guardamos seu email, e o nome e a área se você preencher, só para dar acesso ao mural e avisar de mudanças grandes. Nada de CPF, título de eleitor ou dado de voto, e nenhum rastreador no site. Você pode baixar ou apagar seus dados quando quiser, dentro da própria conta. Ao criar a conta você concorda com a <a href="privacidade.html" target="_blank" rel="noopener">política de privacidade</a>.</p>`:""}`;
   }
   dlgConta.innerHTML=`<div class="sh">
     <div class="shead"><div><h2 id="conta-title" class="display">${logado?"Sua conta":(telaConta==="criar"?"Criar conta":telaConta==="recuperar"?"Recuperar acesso":"Entrar no mural")}</h2>
@@ -2661,6 +2666,29 @@ dlgConta.addEventListener("click",async e=>{
     const {error}=await c.auth.updateUser({data:{nome:nome(),area:area()}});
     if(error)throw error;
     avisar("Salvo");
+  });
+  if(a==="baixar")return comOcupado(async()=>{
+    const u=sessao.user, md=u.user_metadata||{};
+    const meu={conta:{email:u.email,criada_em:u.created_at,ultimo_acesso:u.last_sign_in_at},
+      perfil:{nome:md.nome||"",area:md.area||""},
+      preferencias:JSON.parse(localStorage.getItem(PREF_KEY)||"{}"),
+      gerado_em:new Date().toISOString(),
+      observacao:"Tudo o que o Mural dos Candidatos guarda sobre você. As preferências ficam só no seu navegador."};
+    const blob=new Blob([JSON.stringify(meu,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob), a2=document.createElement("a");
+    a2.href=url; a2.download="meus-dados-mural.json"; a2.click();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    avisar("Arquivo baixado");
+  });
+  if(a==="apagar")return comOcupado(async()=>{
+    if(!confirm("Apagar a conta e todos os dados guardados? Isso não tem volta."))return;
+    const c=await cliente();
+    const {error}=await c.rpc("apagar_minha_conta");
+    if(error)throw new Error("não consegui apagar aqui; escreva para o email da política e apagamos");
+    await c.auth.signOut();
+    try{sessionStorage.removeItem("mural.completo");}catch(e){}
+    alert("Conta apagada. Seus dados foram removidos.");
+    location.reload();
   });
   if(a==="sair")return comOcupado(async()=>{
     const c=await cliente();

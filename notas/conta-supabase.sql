@@ -40,3 +40,19 @@ on conflict (id) do nothing;
 
 create policy "logado lê a carga do mural" on storage.objects for select
   using (bucket_id = 'mural' and auth.role() = 'authenticated');
+
+-- Direito de exclusão (LGPD art. 18, VI): a pessoa apaga a própria conta de dentro do mural,
+-- sem precisar pedir por email. Só isso justifica security definer aqui: apagar de auth.users
+-- exige privilégio que a chave pública do aplicativo não tem, e a função apaga exclusivamente
+-- a linha de quem chamou. O perfil vai junto pelo on delete cascade.
+create or replace function public.apagar_minha_conta()
+returns void language plpgsql security definer set search_path = public, auth as $$
+declare eu uuid := auth.uid();
+begin
+  if eu is null then raise exception 'sem sessão'; end if;
+  delete from public.perfil where id = eu;
+  delete from auth.users where id = eu;
+end $$;
+
+revoke all on function public.apagar_minha_conta() from public, anon;
+grant execute on function public.apagar_minha_conta() to authenticated;

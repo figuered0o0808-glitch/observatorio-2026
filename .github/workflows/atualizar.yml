@@ -348,12 +348,23 @@ jobs:
           MURAL_CARGA_URL: ${{ secrets.MURAL_CARGA_URL }}
         run: python3 mural/_gerar_mural.py
 
+      # Cadastro no ar exige política de privacidade completa. É dado pessoal de brasileiro, a
+      # LGPD se aplica, e formulário publicado ao lado de uma política com lacuna é exatamente o
+      # que não pode passar por descuido. Só barra quando a chave da conta existe de verdade.
+      - name: Não publicar cadastro com política incompleta
+        run: |
+          if [ -n "${{ secrets.MURAL_SUPABASE_URL }}" ] && grep -q "PREENCHER" privacidade.html; then
+            echo "::error::O cadastro está configurado, mas notas/organizacao.json ainda tem campos por preencher. Preencha antes de publicar."
+            exit 1
+          fi
+
       - name: Separar o que o site serve
         if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           mkdir -p site/mural/logo
           cp index.html site/index.html
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          cp privacidade.html site/privacidade.html
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
           touch site/.nojekyll
 

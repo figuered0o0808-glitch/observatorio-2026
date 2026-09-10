@@ -999,6 +999,14 @@ with sync_playwright() as p:
           bytes_pub < 0.45 * bytes_tudo, {"público": bytes_pub, "inteiro": bytes_tudo})
     check("sem chave de conta configurada, o mural não tranca ninguém do lado de fora",
           pub["trava"] is False, pub["trava"])
+    pol = (_P(__file__).resolve().parent.parent / "privacidade.html")
+    check("a política de privacidade é gerada e o rodapé leva até ela",
+          pol.exists() and page.evaluate("!!document.querySelector('a[href=\"privacidade.html\"]')"),
+          pol.exists())
+    texto_pol = pol.read_text(encoding="utf-8") if pol.exists() else ""
+    check("a política diz o que o site faz de fato: sem rastreador, e o que fica no navegador",
+          "Google Analytics" in texto_pol and "mural.prefs" in texto_pol
+          and "CPF" in texto_pol and "art. 18" in texto_pol, len(texto_pol))
     b.close()
 
     # com as chaves configuradas: cadeado nas abas e cadastro no lugar da editoria vazia

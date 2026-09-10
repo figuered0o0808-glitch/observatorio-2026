@@ -1,0 +1,120 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacidade · Mural dos Candidatos</title>
+<meta name="description" content="O que o Mural dos Candidatos guarda de quem usa o site e de quem cria conta, por quê, por quanto tempo e como pedir para apagar.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://figuered0o0808-glitch.github.io/observatorio-2026/privacidade.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,400..900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{color-scheme:light dark;--paper:#FBFAF7;--ink:#17181C;--ink-2:#4A4E57;--ink-3:#7C818A;--line:#DAD7CF;--red:#C8102E;--max:44rem}
+@media (prefers-color-scheme:dark){:root{--paper:#0F1013;--ink:#ECEBE7;--ink-2:#B4B8C0;--ink-3:#83878F;--line:#2C2E33}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:17px;line-height:1.6}
+.wrap{max-width:var(--max);margin:0 auto;padding:28px 20px 72px}
+a{color:var(--ink)}
+h1{font-family:Archivo,"Arial Narrow",sans-serif;font-variation-settings:"wdth" 72,"wght" 900;font-weight:900;font-size:clamp(30px,7vw,44px);line-height:1;margin:6px 0 8px;text-transform:uppercase}
+h2{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 78,"wght" 800;font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.01em;margin:36px 0 8px}
+.eyebrow{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.data{color:var(--ink-3);font-size:14px;margin:0 0 26px;padding-bottom:20px;border-bottom:2px solid var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:15.5px;margin:12px 0}
+th,td{text-align:left;vertical-align:top;padding:9px 10px 9px 0;border-bottom:1px solid var(--line)}
+th{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+ul{padding-left:20px}li{margin:5px 0}
+.volta{display:inline-block;margin-top:40px;font-weight:700;border-top:1px solid var(--line);padding-top:20px;width:100%}
+.falta{background:#FFF3CD;color:#5C4400;border:1px solid #E0C060;padding:12px 14px;border-radius:3px;font-size:15px}
+@media (prefers-color-scheme:dark){.falta{background:#2A2410;color:#F0DFA8;border-color:#5C4E20}}
+code{font-size:14px;background:rgba(128,128,128,.12);padding:1px 5px;border-radius:3px}
+</style>
+<div class="wrap">
+<span class="eyebrow">Mural dos Candidatos</span>
+<h1>Privacidade</h1>
+<p class="data">Versão de 9 de setembro de 2026. Escrita a partir do que o site faz de fato, conferido no código que gera esta página.</p>
+
+<p class="falta"><b>Esta politica ainda esta incompleta.</b> Faltam preencher: nome, cnpj, endereco, email, encarregado. Enquanto isso, o cadastro nao deve ser aberto ao publico.</p>
+
+<p>O Mural dos Candidatos é um observatório público sobre a eleição de 2026, mantido pela
+PREENCHER: razão social da INDICA. Esta página explica o que o site guarda de quem entra, o que guarda de quem cria
+uma conta, por quê, por quanto tempo e como pedir para apagar.</p>
+
+<h2>Quem responde pelos dados</h2>
+<p>PREENCHER: razão social da INDICA, CNPJ PREENCHER: 00.000.000/0001-00, PREENCHER: cidade e estado. Pedidos sobre dados pessoais:
+<a href="mailto:PREENCHER: email para pedidos de dados, ex. privacidade@indica.com.br">PREENCHER: email para pedidos de dados, ex. privacidade@indica.com.br</a>, aos cuidados de PREENCHER: nome de quem responde pelos pedidos (o encarregado da LGPD).</p>
+
+<h2>Sem conta: o que acontece quando você só lê o mural</h2>
+<p>Nada de você é enviado para nós. O mural é uma página que roda no seu navegador, sem
+formulário e sem cadastro obrigatório.</p>
+<p><b>Não usamos rastreador nenhum.</b> Não há Google Analytics, pixel de rede social, mapa de
+calor ou qualquer script de medição de audiência. Isso é verificável: o código do site é
+público em <a href="https://github.com/figuered0o0808-glitch/observatorio-2026">github.com/figuered0o0808-glitch/observatorio-2026</a>.</p>
+<p>O que fica guardado é no seu próprio navegador, e não chega até nós:</p>
+<table>
+  <tr><th>O quê</th><th>Para quê</th><th>Onde</th></tr>
+  <tr><td><code>mural.prefs</code></td><td>suas escolhas de leitura: tema claro ou escuro, densidade, janela de tempo, aba de abertura, estado e candidatos que você pôs em foco</td><td>armazenamento local do navegador, até você limpar</td></tr>
+  <tr><td><code>mural.completo</code></td><td>a parte do mural que vem depois do login, para a página não baixar tudo de novo a cada clique. São dados públicos de eleição, nada seu</td><td>armazenamento de sessão, apagado ao fechar a aba</td></tr>
+</table>
+<p>Três serviços recebem o endereço de IP do seu navegador porque a página busca arquivos neles,
+como acontece em qualquer site: <b>GitHub Pages</b>, que hospeda o mural; <b>Google Fonts</b>, de
+onde vêm as duas fontes; e, só se você usar a área de conta, o <b>jsDelivr</b>, de onde vem a
+biblioteca do Supabase. Não temos acesso a esses registros.</p>
+
+<h2>Com conta: o que pedimos e por quê</h2>
+<p>A Visão geral da Presidência é aberta a todo mundo. O resto do mural pede uma conta, gratuita.</p>
+<table>
+  <tr><th>Dado</th><th>Obrigatório</th><th>Para quê</th><th>Base legal</th></tr>
+  <tr><td>Email</td><td>sim</td><td>identificar a conta, permitir entrar e recuperar o acesso</td><td>execução do contrato (art. 7º, V)</td></tr>
+  <tr><td>Senha</td><td>sim, se você não entrar com o Google</td><td>proteger a conta. Guardada cifrada; ninguém, nem nós, consegue lê-la</td><td>execução do contrato (art. 7º, V)</td></tr>
+  <tr><td>Nome</td><td>não</td><td>tratar você pelo nome na interface</td><td>consentimento (art. 7º, I)</td></tr>
+  <tr><td>Área em que trabalha</td><td>não</td><td>entender que tipo de gente usa o mural e decidir o que construir a seguir. Usada de forma agregada</td><td>consentimento (art. 7º, I)</td></tr>
+  <tr><td>Registros de acesso</td><td>automático</td><td>endereço de IP e navegador guardados pelo serviço de autenticação, para segurança da conta e contra abuso</td><td>legítimo interesse (art. 7º, IX) e obrigação legal (Marco Civil, art. 15)</td></tr>
+</table>
+<p>Se você entrar com o Google, recebemos do Google apenas o email, o nome e o endereço da foto
+do perfil. Não recebemos sua senha do Google, nem acesso a email, agenda ou arquivos.</p>
+<p><b>Não pedimos e não guardamos</b> CPF, título de eleitor, telefone, endereço, filiação
+partidária ou qualquer informação sobre em quem você vota. Isso não é descuido de redação: é a
+mesma regra que o observatório aplica aos candidatos, e está escrita no método do projeto.</p>
+
+<h2>Quem mais encosta nesses dados</h2>
+<ul>
+  <li><b>Supabase</b>, que guarda as contas e cuida do login. Atua como operador, seguindo nossas
+  instruções. O banco fica na região de São Paulo; emails de confirmação e de recuperação podem
+  passar por servidores fora do Brasil, o que a LGPD permite (art. 33).</li>
+  <li><b>Google</b>, apenas se você escolher entrar com o Google.</li>
+</ul>
+<p>Não vendemos, não alugamos e não trocamos dado de ninguém. Não há publicidade no mural.
+Se algum dia formos obrigados a entregar algo por ordem judicial, entregamos o mínimo exigido
+e avisamos você, salvo se a própria ordem proibir.</p>
+
+<h2>Por quanto tempo fica guardado</h2>
+<p>Enquanto a conta existir. Quando você apagar a conta, email, nome e área somem junto, na hora.
+Os registros de acesso ficam seis meses, prazo do Marco Civil da Internet, e depois são
+descartados.</p>
+
+<h2>Seus direitos, e como usar</h2>
+<p>A LGPD (art. 18) garante a você confirmar se tratamos seus dados, acessá-los, corrigi-los,
+pedir cópia, pedir exclusão, revogar consentimento e saber com quem compartilhamos.</p>
+<p>Dentro do mural, em <b>Minha conta</b>, você faz sozinho e na hora:</p>
+<ul>
+  <li><b>Ver e corrigir</b> nome e área;</li>
+  <li><b>Baixar seus dados</b> num arquivo, para levar para onde quiser;</li>
+  <li><b>Apagar a conta</b>, o que remove tudo imediatamente e sem pedir motivo.</li>
+</ul>
+<p>Se preferir, escreva para <a href="mailto:PREENCHER: email para pedidos de dados, ex. privacidade@indica.com.br">PREENCHER: email para pedidos de dados, ex. privacidade@indica.com.br</a>. Respondemos em até
+15 dias. Você também pode reclamar à ANPD, a autoridade nacional de proteção de dados.</p>
+
+<h2>Segurança</h2>
+<p>O site é servido só por HTTPS. Senhas são guardadas com hash, não em texto. O acesso ao banco
+é restrito por regra por linha: cada conta só alcança a própria linha, nem com a chave pública do
+aplicativo dá para ler a linha de outra pessoa. Se algum dia houver um incidente com risco
+relevante, avisamos você e a ANPD, como manda o art. 48.</p>
+
+<h2>Menores de idade</h2>
+<p>O mural não é dirigido a crianças ou adolescentes e não pede idade. Se soubermos que uma conta
+foi criada por menor de 16 anos sem consentimento de quem responde por ele, apagamos.</p>
+
+<h2>Mudanças</h2>
+<p>Se esta política mudar, a data no topo muda junto e o histórico completo fica visível no
+repositório público, commit a commit. Mudança que afete você de verdade vem avisada por email.</p>
+
+<a class="volta" href="./">← Voltar para o mural</a>
+</div>
