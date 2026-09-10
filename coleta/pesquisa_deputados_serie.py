@@ -22,7 +22,7 @@ cargo conferindo e acerto único).
 
 Uso: python3 coleta/pesquisa_deputados_serie.py [--offline]
 """
-import csv, io, os, re, sys
+import csv, io, os, re, sys, urllib.request
 from datetime import datetime, timezone, timedelta
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -107,6 +107,43 @@ def percentuais(txt, cargo):
     return achados
 
 
+def imagens_da_pesquisa(html, base):
+    """Baixa os gráficos da matéria. Os números do Vetor Arrow saem em imagem, não em texto.
+
+    A matéria traz o registro, a amostra e o instituto por escrito, e manda "confira os
+    pré-candidatos com maior intenção de votos" apontando para um JPG. Extrator de texto não
+    alcança isso, e OCR de gráfico eu não uso para publicar número atribuído a pessoa de
+    verdade: um dígito lido errado vira percentual falso no nome de um candidato, sem
+    segunda fonte para desmentir. Então o coletor guarda a imagem no repositório, com a URL
+    de origem, e a transcrição é feita por quem consegue olhar, conferindo contra o gráfico
+    que fica arquivado ao lado.
+    """
+    pasta = os.path.join(DEP, "pesquisas-imagens")
+    os.makedirs(pasta, exist_ok=True)
+    salvas = []
+    for m in re.finditer(r'<img[^>]+src="([^"]+)"', html):
+        src = m.group(1).split("?")[0]
+        alvo = sem_acento(src)
+        if "WP-CONTENT/UPLOADS" not in alvo:
+            continue
+        if not any(k in alvo for k in ("VETOR", "PESQUISA", "DEPUTAD", "INTENCAO", "GRAFICO")):
+            continue
+        nome = re.sub(r"[^A-Za-z0-9._-]", "-", src.rsplit("/", 1)[-1])[:80]
+        destino = os.path.join(pasta, nome)
+        if os.path.exists(destino):
+            salvas.append(nome); continue
+        try:
+            req = urllib.request.Request(src, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                dados = r.read()
+            if len(dados) > 400:
+                io.open(destino, "wb").write(dados)
+                salvas.append(nome)
+        except Exception as e:
+            print("    imagem não baixou:", src[:80], e)
+    return salvas
+
+
 def main():
     univ = universo()
     hoje = datetime.now(timezone(timedelta(hours=-3))).date().isoformat()
@@ -142,6 +179,9 @@ def main():
                  fi.get("n", "-"), fi.get("margem", "-"), fi.get("tipo", "-"),
                  fi.get("inst", "-"), len(pc)))
         print("    " + f["url"])
+        imgs = imagens_da_pesquisa(html, f["url"]) if "--offline" not in sys.argv else []
+        if imgs:
+            print("    gráficos guardados para transcrição: " + ", ".join(imgs))
         if not fi.get("registro"):
             print("    PULADA: sem número de registro legível no texto")
             continue

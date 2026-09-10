@@ -48,7 +48,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dados/rjsp/_pesquisa-deputados-rj.csv dados/rjsp/_pesquisa-deputados-rj.html \
-                  dados/rjsp/_serie-deputados-rj.csv dados/rjsp/_serie-deputados-rj.html
+                  dados/rjsp/_serie-deputados-rj.csv dados/rjsp/_serie-deputados-rj.html \
+                  dados/rjsp/pesquisas-imagens
           # --cached, e não git diff: na primeira rodada os arquivos são novos, e para o git
           # arquivo que ainda não existe não tem diferença nenhuma
           if git diff --cached --quiet; then
