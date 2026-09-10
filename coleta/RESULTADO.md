@@ -3,6 +3,26 @@
 Data do teste: 1 de setembro de 2026.
 Pasta: /home/claude/api-tests/
 
+## Atualização de 10 de setembro de 2026: a Wikipédia não compila cronologia de campanha
+
+A linha do tempo do mural (`dados/eventos.csv`) é curada de imprensa e parou em 1/9. Antes de
+propor coleta automática, `coleta/_sonda_cronologia.py` perguntou à Wikipédia o que existe:
+
+- "Eleição presidencial no Brasil em 2026": seções de sistema eleitoral, candidaturas (uma
+  por candidato), pesquisas de opinião, debates e entrevistas, e calendário eleitoral, que é
+  só uma predefinição de datas legais. Não há seção de cronologia nem linha do tempo.
+- "Eleições gerais no Brasil em 2026": remete à página presidencial e às estaduais.
+- "Campanha presidencial de 2026 no Brasil": não existe.
+
+Ou seja, acontecimento de campanha não tem fonte compilada como as pesquisas têm. Continua
+sendo trabalho de leitura de imprensa, uma fonte por evento.
+
+A exceção útil é a seção "Debates e entrevistas" da página presidencial: ela traz prosa
+datada com referência (foi de lá que saiu o cancelamento do debate de 14/9, noticiado pela
+CNN em 8/9, que o mural ainda anunciava como agendado) e uma tabela de debates com data,
+organização, mediadores e presença de cada candidato. Serve para conferir o calendário de
+debates de tempos em tempos; não substitui a curadoria do resto.
+
 ## Atualização de 10 de setembro de 2026: Instagram reconferido, e piorou
 
 Sonda repetida antes de começar a divulgação do mural, com `coleta/_sonda_instagram.py` no
