@@ -8,6 +8,15 @@ quatro em setembro e uma em outubro. Ao contrário da Prefab, essas rodadas publ
 PERCENTUAL e posição, e são várias ao longo do tempo, que é exatamente o que o agregador do
 mural precisa: peso por data, comparação entre rodadas e dispersão para medir incerteza.
 
+ATENÇÃO, e isto muda o que se pode fazer com o dado: a série é CUMULATIVA. Cada divulgação
+soma as entrevistas das rodadas anteriores (14.510 em junho, 14.404 em julho, 14.605 na
+primeira de agosto, 14.671 na segunda, "totalizando 58.190"). Rodada cumulativa não é
+observação independente: jogar isso no agregador do mural, que pesa rodadas por data
+supondo independência, contaria as mesmas entrevistas várias vezes e amorteceria a
+tendência por construção. Por isso cada linha carrega a coluna `cumulativa` e o total
+acumulado, e quem for usar tem de tratar a série como acumulado, não como rodadas soltas.
+A coleta também é por telefone (URA), com menção espontânea.
+
 Cada rodada tem seu próprio número de registro (já apareceram RJ-04533/2026 e RJ-06966/2026),
 então o registro é lido do texto de cada matéria, nunca carimbado de fora. Rodada sem registro
 legível não vira dado: pesquisa eleitoral divulgada sem registro é justamente o que não se
@@ -38,6 +47,16 @@ FONTES = [
      "uf": "RJ", "cargo": "depfed"},
     {"url": "https://redecatolicanews.com.br/2026/06/13/pesquisa-aponta-rosenverg-reis-na-lideranca-da-corrida-para-deputado-federal-no-rj/",
      "uf": "RJ", "cargo": "depfed"},
+    # Rodadas seguintes. O Agenda do Poder publica o ranking dentro de um gráfico; os espelhos
+    # às vezes o transcrevem em texto, e é de onde o número tem chance de sair legível.
+    {"url": "https://agendadopoder.com.br/vetor-arrow-canella-assume-a-lideranca-entre-os-candidatos-a-deputado-estadual/",
+     "uf": "RJ", "cargo": "depest"},
+    {"url": "https://agendadopoder.com.br/vetor-arrow-canella-e-o-destaque-entre-os-candidatos-a-deputado-estadual-veja-o-ranking-dos-mais-citados/",
+     "uf": "RJ", "cargo": "depest"},
+    {"url": "https://mancheterio.com.br/ceciliano-canela-e-rosenverg-aparecem-entre-os-candidatos-a-deputado-estadual-mais-citados-em-pesquisa-vettor-arrow-veja-o-ranking/",
+     "uf": "RJ", "cargo": "depest"},
+    {"url": "https://www.osulfluminense.com/post/rosenverg-reis-lidera-nova-rodada-de-pesquisa-para-deputado-estadual-no-rio",
+     "uf": "RJ", "cargo": "depest"},
 ]
 
 MESES = {"janeiro":1,"fevereiro":2,"marco":3,"abril":4,"maio":5,"junho":6,"julho":7,
@@ -72,6 +91,11 @@ def ficha_de(txt):
             f["de"] = "%s-%02d-%02d" % (ano, mes, int(m.group(1)))
             f["ate"] = "%s-%02d-%02d" % (ano, mes, int(m.group(2)))
 
+    m = re.search(r"totalizando\s+([\d.]+)\s*(?:mil\s+)?(?:entrevistas|eleitores)", txt, re.I)
+    if m: f["acumulado"] = m.group(1).replace(".", "")
+    f["cumulativa"] = "1" if re.search(r"cumulativ|acumulad", txt, re.I) else ""
+    f["coleta"] = "telefone (URA)" if re.search(r"\bURA\b|IVR", txt) else (
+        "presencial" if re.search(r"presencia", txt, re.I) else "")
     f["tipo"] = "espontanea" if re.search(r"espont[âa]nea", txt, re.I) else (
         "estimulada" if re.search(r"estimulad", txt, re.I) else "")
     m = re.search(r"(Vetor Arrow|Vetor|Prefab Future|Prefab|Quaest|Datafolha|Paraná Pesquisas)", txt, re.I)
@@ -126,7 +150,15 @@ def imagens_da_pesquisa(html, base):
         alvo = sem_acento(src)
         if "WP-CONTENT/UPLOADS" not in alvo:
             continue
-        if not any(k in alvo for k in ("VETOR", "PESQUISA", "DEPUTAD", "INTENCAO", "GRAFICO")):
+        # Casar pedaço de palavra pegou "Tipografico" achando que era "grafico", e a primeira
+        # rodada guardou o logotipo de uma igreja. O nome do arquivo destes gráficos segue o
+        # padrão da casa, "DD-MM-2026-VETOR-ARROW-<disputa>", então o sinal forte é VETOR-ARROW;
+        # os outros termos só valem separados por hífen ou sublinhado, nunca no meio de palavra.
+        nomearq = alvo.rsplit("/", 1)[-1]
+        campos = re.split(r"[-_.]", nomearq)
+        if "VETOR" not in campos and not any(
+                c.startswith(k) for c in campos
+                for k in ("PESQUISA", "DEPUTAD", "INTENCAO", "GRAFICO", "SONDAGEM")):
             continue
         nome = re.sub(r"[^A-Za-z0-9._-]", "-", src.rsplit("/", 1)[-1])[:80]
         destino = os.path.join(pasta, nome)
@@ -195,6 +227,8 @@ def main():
                 "instituto": fi.get("inst", ""), "entrevistas": fi.get("n", ""),
                 "margem": fi.get("margem", ""), "confianca": fi.get("confianca", ""),
                 "tipo": fi.get("tipo", ""), "natureza": "registrada",
+                "cumulativa": fi.get("cumulativa", ""), "acumulado": fi.get("acumulado", ""),
+                "coleta": fi.get("coleta", ""),
                 "nome_citado": nome, "partido_citado": sig, "percentual": ("%.2f" % v),
                 "id_tse": achou["id_tse"] if achou else "",
                 "slug": achou["slug"] if achou else "",
@@ -206,7 +240,7 @@ def main():
             })
 
     cols = ["uf","cargo","registro_tse","campo_inicio","campo_fim","instituto","entrevistas",
-            "margem","confianca","tipo","natureza","nome_citado","partido_citado","percentual",
+            "acumulado","cumulativa","coleta","margem","confianca","tipo","natureza","nome_citado","partido_citado","percentual",
             "id_tse","slug","nome_urna","status","motivo","fonte_url","data_acesso"]
     with io.open(os.path.join(DEP, "_serie-deputados-rj.csv"), "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols, lineterminator="\r\n")
