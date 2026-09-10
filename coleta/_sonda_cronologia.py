@@ -12,11 +12,8 @@ import json, re, sys, time, urllib.parse, urllib.request
 
 API = "https://pt.wikipedia.org/w/api.php"
 UA = "observatorio-2026/0.3 (coleta automática; contato: figuered0o0808@gmail.com)"
-PAGINAS = ["Eleição presidencial no Brasil em 2026",
-           "Eleições gerais no Brasil em 2026",
-           "Campanha presidencial de 2026 no Brasil"]
-PISTA = ("cronolog", "linha do tempo", "campanha", "calendario", "calendário", "eventos",
-         "primeiro turno", "agosto", "setembro", "desdobramentos", "fatos")
+PAGINAS = ["Eleição presidencial no Brasil em 2026"]
+PISTA = ("debate", "entrevista")
 
 
 def pedir(params):
@@ -44,14 +41,14 @@ def main():
             if any(p in s["line"].lower() for p in PISTA):
                 marca = "  <<< pode servir"; interessa.append(s)
             print("   %-2s %s%s" % (s["number"], s["line"][:60], marca))
-        for s in interessa[:3]:
+        for s in interessa[:4]:
             print("\n  --- começo da seção %s (%s):" % (s["number"], s["line"]))
             try:
                 t = pedir({"action": "parse", "page": titulo, "prop": "wikitext", "section": s["index"]})
                 w = t["parse"]["wikitext"]
                 w = re.sub(r"<ref[^>]*>.*?</ref>", "", w, flags=re.S)
                 w = re.sub(r"<ref[^>]*/>", "", w)
-                linhas = [l for l in w.splitlines() if l.strip()][:14]
+                linhas = [l for l in w.splitlines() if l.strip()][:40]
                 for l in linhas: print("     ", l[:150])
             except Exception as e:
                 print("      falhou:", str(e)[:60])
