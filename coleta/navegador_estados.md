@@ -31,4 +31,60 @@ Aba na Wikipédia. Para cada candidatura, busca pelo nome completo entre aspas, 
 
 ## 5. Seguidores no Instagram
 
-Aba do Chrome logada no Instagram, em qualquer perfil. Para cada handle informado ao TSE, `GET /api/v1/users/web_profile_info/?username=X` com cabeçalho `x-ig-app-id: 936619743392459`; devolve o número exato em `edge_followed_by.count`. Quando o endpoint responde 400 com erro de esquema (perfis comerciais), o fallback é a página do perfil e o número aproximado da meta description ("338K seguidores"), guardado com a marca de aproximado. Três a cinco segundos entre pedidos; em 401, 403 ou 429, dois minutos de espera e desistência depois de seis falhas seguidas. Resultados ficam em `localStorage.mural_ig` para retomar. Armadilha do Chrome: numa aba em segundo plano os temporizadores (`setTimeout`) passam a disparar uma vez por segundo e, depois de cinco minutos, uma vez por minuto, e o laço fica lento sem dar erro. O que funcionou: o laço dorme com um `sleep` que só usa `setTimeout` enquanto uma chamada do app está em curso na aba (uma variável `__attachedUntil` marcada por chamadas de 20 a 28 segundos, repetidas até o fim) e, fora dessas janelas, espera a próxima chamada. Dois laços em paralelo sobre uma fila compartilhada, com cinco a sete segundos de intervalo cada, dão um intervalo agregado de três a cinco segundos entre pedidos; no fim, uma passada refaz só os handles sem resposta. O mural marca com "≈" os números arredondados da meta (a partir de mil) e a coluna `aproximado` do CSV guarda a marca; abaixo de mil a meta traz o número inteiro. Exportação: escrever o JSON no corpo da página e ler com `get_page_text`.
+Reescrita depois da coleta de 9/9/2026, que não conseguiu usar o método anterior. O que está
+abaixo é o que funcionou de fato, com os erros que custaram tempo.
+
+**O endpoint antigo morreu para nós.** `GET /api/v1/users/web_profile_info/?username=X`, que
+era o caminho principal, responde 429 de forma persistente. Não é falta de login: o cookie
+`ds_user_id` estava presente, o corpo do próprio 429 vinha com `class="logged-in"`, e mandar os
+cabeçalhos completos da página (`x-csrftoken`, `x-ig-www-claim`, `x-asbd-id`) não mudou nada.
+Quatro tentativas com as esperas de dois minutos, quatro 429. A explicação provável é que o
+Instagram restringe esse endpoint em particular, por ser o mais usado por scraper: em mais de
+500 pedidos aos outros endpoints na mesma sessão e no mesmo IP não veio nenhum 429.
+
+**O caminho que funciona é por id**, dois pedidos por perfil e sem renderizar página:
+
+1. `GET /web/search/topsearch/?query=<handle>` devolve o `pk`, casando pelo `username` exato.
+   (Alternativa: o HTML da página do perfil traz o padrão `profilePage_<pk>`.)
+2. `GET /api/v1/users/<pk>/info/` devolve `follower_count` exato.
+
+Nenhum dos dois estava bloqueado. Ritmo de 1,5 segundo entre perfis dá cerca de 11 perfis por
+minuto, e 443 perfis saem em meia hora.
+
+**Se for pela página renderizada, ler o `title`, nunca a meta description.** O contador de
+seguidores traz o número exato no atributo `title`; a meta traz o arredondado. A diferença não
+é cosmética: para Renan Santos a meta daria "3M" contra 2.554.755 reais, 18% de erro. A meta só
+serve quando não existe `title`, que é o caso de perfil pequeno, em que o número já aparece
+inteiro. Os dois caminhos conferem entre si: Alan Rick deu 83.713 no endpoint por id e 83.713
+no `title`. Por isso a coleta de 9/9 é exata e `aproximado` fica 0 na linha toda, ao contrário
+da de 2/9, que tinha 86 valores arredondados.
+
+**Armadilha dos temporizadores, pior do que estava escrito aqui.** Em aba de segundo plano o
+`setTimeout` degrada até cerca de um disparo por minuto: uma pausa pedida de 1,7 segundo levou
+quarenta, o que estourava o teto de 45 segundos por chamada e processava um perfil por chamada.
+A saída não é dormir com `setTimeout`. É ceder a thread com `MessageChannel` num laço que só
+olha o relógio: `while (Date.now() < alvo) await tick()`. Isso não sofre estrangulamento, não
+bloqueia a aba, e permite disparar o laço em segundo plano e consultar o progresso de fora.
+
+**Armadilha nova, que custou 51 minutos e a coleta inteira de 463 perfis: navegar a aba que
+guarda os resultados apaga tudo.** O aviso que existia aqui falava só de `window.open`, e o
+risco é qualquer navegação, inclusive um `navigate` do próprio agente para conferir outro
+perfil. A regra passa a ser: **a aba que coleta não se navega nunca, e quem precisa navegar
+abre outra aba.** E a gravação em `localStorage` a cada perfil, que este roteiro já mandava
+fazer e não estava implementada, agora está: chave `mural_ig_<data>`, retomada automática
+pulando o que já tem. Numa das quedas o laço estava em 188 e voltou vivo no mesmo ponto.
+
+**Perfil que não existe mais** vira linha com `seguidores` vazio e `status` explicando, nunca
+zero e nunca herdando número de outra data. Na próxima passada vale conferir se algum apenas
+trocou de nome de usuário: aí a correção é no handle, não no dado.
+
+**Fuso.** A data da linha segue Brasília, não UTC. A coleta de 9/9 terminou às 22h52 de
+Brasília, quando em UTC já era dia 10, e as linhas são de 2026-09-09.
+
+**Exportação:** escrever o JSON no corpo da página e ler com `get_page_text`, depois rodar
+`dados/estados/_gravar_instagram_<data>.py`, que valida e grava no contrato do CSV.
+
+**Isso cabe em rotina?** Cabe, mas não como estava escrito. Meia hora para 443 perfis é
+rotinizável e a ausência de 429 mostra folga no ritmo. O que não cabe em rotina é depender de
+sessão de navegador recém-logada e de máquina que pode hibernar no meio; a retomada por
+`localStorage` resolve a segunda parte, e a primeira pede uma sessão do Chrome já estabelecida.
