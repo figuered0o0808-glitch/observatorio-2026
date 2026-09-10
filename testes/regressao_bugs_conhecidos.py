@@ -991,14 +991,35 @@ with sync_playwright() as p:
         estados: Object.keys(DATA.estados || {}).length})""")
     bytes_pub = (_P(__file__).resolve().parent.parent / "index.html").stat().st_size
     bytes_tudo = (_P(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").stat().st_size
-    check("a página pública não carrega os estados (a trava é dado ausente, não CSS)",
-          pub["estados"] == 0, pub["estados"])
     check("a aba principal funciona sem conta, com a manchete de verdade",
           "%" in pub["manchete"] and "undefined" not in pub["manchete"], pub["manchete"])
-    check("a carga pública é bem menor que o mural inteiro (abre rápido no celular)",
-          bytes_pub < 0.45 * bytes_tudo, {"público": bytes_pub, "inteiro": bytes_tudo})
-    check("sem chave de conta configurada, o mural não tranca ninguém do lado de fora",
-          pub["trava"] is False, pub["trava"])
+    # O check que importa é a coerência entre as duas metades da trava, não um número fixo.
+    # A versão anterior exigia estados == 0 na página publicada e passou verde enquanto o mural
+    # no ar estava sem estados nem deputados, porque sem chave ninguém hidrata o que foi tirado
+    # (10/9/2026). Dividir a carga e trancar a página são a mesma decisão: se discordarem, o
+    # visitante perde metade do mural sem nem saber que existe cadastro.
+    check("dividir a carga e trancar a página são a mesma decisão, nunca duas",
+          pub["trava"] == (pub["estados"] == 0),
+          {"trava": pub["trava"], "estados": pub["estados"]})
+    if pub["trava"]:
+        check("com a trava ligada, a carga pública é bem menor que o mural inteiro",
+              bytes_pub < 0.45 * bytes_tudo, {"público": bytes_pub, "inteiro": bytes_tudo})
+    else:
+        check("sem chave de conta configurada, o mural não tranca ninguém do lado de fora",
+              pub["trava"] is False, pub["trava"])
+        # e "não tranca" tem de significar o mural inteiro de pé, disputa por disputa
+        aberto = page.evaluate("""() => {
+            trocarEscopo('uf');
+            const out = {};
+            for (const [uf, cargo] of [['RJ','depest'],['RJ','depfed'],['SP','depest'],
+                                       ['SP','depfed'],['MG','governador'],['BA','senador']]) {
+                trocarUF(uf); trocarCargoUF(cargo);
+                out[uf+'-'+cargo] = document.querySelectorAll('#e-wall .card').length;
+            }
+            return out;
+        }""")
+        check("sem trava, a página publicada mostra candidatura em toda disputa, deputado incluído",
+              all(n > 0 for n in aberto.values()), aberto)
     pol = (_P(__file__).resolve().parent.parent / "privacidade.html")
     check("a política de privacidade é gerada e o rodapé leva até ela",
           pol.exists() and page.evaluate("!!document.querySelector('a[href=\"privacidade.html\"]')"),

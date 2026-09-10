@@ -533,9 +533,6 @@ PROTEGIDO = ("estados", "geo", "wiki", "termos", "ig", "idx", "series", "vies", 
 VAZIO = {"estados": {}, "geo": None, "wiki": {}, "termos": {}, "ig": {}, "idx": {},
          "series": {}, "vies": [], "rej": [], "polls2t": []}
 
-publico = {k: (VAZIO[k] if k in PROTEGIDO else v) for k, v in data.items()}
-protegido = {k: data[k] for k in PROTEGIDO}
-
 tpl = io.open(os.path.join(AQUI, "_template.html"), encoding="utf-8").read()
 # As chaves do Supabase entram por ambiente (o workflow passa dos segredos do repositório).
 # São valores públicos por definição: a URL do projeto e a chave "anon", que só serve para
@@ -543,6 +540,16 @@ tpl = io.open(os.path.join(AQUI, "_template.html"), encoding="utf-8").read()
 SUPA_URL = _os.environ.get("MURAL_SUPABASE_URL", "")
 SUPA_ANON = _os.environ.get("MURAL_SUPABASE_ANON", "")
 CARGA_URL = _os.environ.get("MURAL_CARGA_URL", "mural-completo.json")
+
+# A divisão só acontece quando existe cadastro para devolver o que foi tirado. Sem as chaves
+# configuradas o template deixa TRAVA falsa, ninguém consegue entrar e ninguém hidrata a carga:
+# dividir aí não tranca a página, apaga a página. Foi exatamente o que aconteceu quando esta
+# condição não existia (bug do mural publicado sem estados nem deputados, 10/9/2026). Quem manda
+# na divisão é a mesma coisa que manda na trava, para os dois nunca discordarem.
+TRAVA = bool(SUPA_URL and SUPA_ANON)
+publico = ({k: (VAZIO[k] if k in PROTEGIDO else v) for k, v in data.items()}
+           if TRAVA else dict(data))
+protegido = {k: data[k] for k in PROTEGIDO}
 
 def montar(d):
     return (tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";")
