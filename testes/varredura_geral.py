@@ -12,7 +12,11 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
 
-URL = (Path(__file__).resolve().parent.parent / "mural" / "mural.html").as_uri()
+# mural-inteiro.html, e não mural.html: desde que a Visão geral virou a parte aberta e o resto
+# passou a pedir conta, mural.html é só a carga pública. O mural inteiro num arquivo só continua
+# sendo gerado para conferência e é contra ele que estes testes rodam, senão eles testariam a
+# tela de cadastro em vez do mural. A trava em si tem bloco próprio na regressão.
+URL = (Path(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").as_uri()
 ok, fail = [], []
 
 # Hosts de recurso externo que o mural pede (as fontes do Google). Num ambiente sem rede o

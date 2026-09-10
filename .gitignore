@@ -10,3 +10,8 @@ venv/
 # lixo já separado numa limpeza anterior (marcas antigas do logo); pode
 # apagar essa pasta quando quiser, ela só não foi removida à mão ainda
 _to_delete/
+
+# gerados a cada build, grandes e derivados dos CSVs que estão aqui:
+# a carga que o site serve depois do login e o mural inteiro num arquivo só (para os testes)
+/mural-completo.json
+mural/mural-inteiro.html

@@ -12,7 +12,11 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
 
-URL = (Path(__file__).resolve().parent.parent / "mural" / "mural.html").as_uri()
+# mural-inteiro.html, e não mural.html: desde que a Visão geral virou a parte aberta e o resto
+# passou a pedir conta, mural.html é só a carga pública. O mural inteiro num arquivo só continua
+# sendo gerado para conferência e é contra ele que estes testes rodam, senão eles testariam a
+# tela de cadastro em vez do mural. A trava em si tem bloco próprio na regressão.
+URL = (Path(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").as_uri()
 ok, fail = [], []
 
 # Hosts de recurso externo que o mural pede (as fontes do Google). Num ambiente sem rede o
@@ -971,6 +975,69 @@ with sync_playwright() as p:
           "Chico Alencar" in busca["cap"], busca["cap"][:110])
     check("deputados sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
+
+    # ---- cadastro: a Visão geral é de todo mundo, o resto pede conta (10/9/2026)
+    # A trava só é real porque a carga protegida não está na página pública. Estes checks olham
+    # os três estados: sem chave configurada o mural abre inteiro (falha segura), com chave a
+    # carga não vem junto e as abas ficam trancadas, e com a carga na sessão tudo volta.
+    from pathlib import Path as _P
+    PUB = (_P(__file__).resolve().parent.parent / "index.html").as_uri()
+    b, page, errs = novo_ctx(p)
+    page.route("**cdn.jsdelivr.net**", lambda r: r.abort())   # sem CDN o mural não pode quebrar
+    page.goto(PUB)
+    page.wait_for_timeout(900)
+    pub = page.evaluate("""() => ({trava: TRAVA, tudo: temTudo(),
+        manchete: document.querySelector('#manchete').textContent,
+        estados: Object.keys(DATA.estados || {}).length})""")
+    bytes_pub = (_P(__file__).resolve().parent.parent / "index.html").stat().st_size
+    bytes_tudo = (_P(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").stat().st_size
+    check("a página pública não carrega os estados (a trava é dado ausente, não CSS)",
+          pub["estados"] == 0, pub["estados"])
+    check("a aba principal funciona sem conta, com a manchete de verdade",
+          "%" in pub["manchete"] and "undefined" not in pub["manchete"], pub["manchete"])
+    check("a carga pública é bem menor que o mural inteiro (abre rápido no celular)",
+          bytes_pub < 0.45 * bytes_tudo, {"público": bytes_pub, "inteiro": bytes_tudo})
+    check("sem chave de conta configurada, o mural não tranca ninguém do lado de fora",
+          pub["trava"] is False, pub["trava"])
+    b.close()
+
+    # com as chaves configuradas: cadeado nas abas e cadastro no lugar da editoria vazia
+    import subprocess, os as _os
+    amb = dict(_os.environ, MURAL_SUPABASE_URL="https://exemplo.supabase.co",
+               MURAL_SUPABASE_ANON="chave-de-teste")
+    raiz = str(_P(__file__).resolve().parent.parent)
+    subprocess.run(["python3", "mural/_gerar_mural.py"], cwd=raiz, env=amb,
+                   capture_output=True, check=True)
+    try:
+        b, page, errs = novo_ctx(p)
+        page.route("**cdn.jsdelivr.net**", lambda r: r.abort())
+        page.goto(PUB)
+        page.wait_for_timeout(900)
+        com = page.evaluate("""() => ({trava: TRAVA,
+            cadeados: document.querySelectorAll('#tabs-editorias .cad').length,
+            botao: !document.querySelector('#b-conta').hidden})""")
+        check("com a chave configurada, as editorias fechadas ficam marcadas e o botão de conta aparece",
+              com["trava"] and com["cadeados"] >= 6 and com["botao"], com)
+        page.click('#tabs-editorias button[data-aba="pesquisas"]')
+        page.wait_for_timeout(400)
+        trancado = page.evaluate("""() => ({aba: abaAtual, dialogo: document.getElementById('conta').open})""")
+        check("clicar numa editoria fechada abre o cadastro e não sai da Visão geral",
+              trancado["aba"] == "geral" and trancado["dialogo"], trancado)
+        # a carga na sessão devolve o mural inteiro
+        carga = open(_os.path.join(raiz, "mural-completo.json"), encoding="utf-8").read()
+        page.evaluate("t => sessionStorage.setItem('mural.completo', t)", carga)
+        page.reload()
+        page.wait_for_timeout(1500)
+        depois = page.evaluate("""() => ({tudo: temTudo(), estados: Object.keys(UF).length,
+            cadeados: document.querySelectorAll('#tabs-editorias .cad').length})""")
+        check("com a carga na sessão, o mural volta inteiro e os cadeados somem",
+              depois["tudo"] and depois["estados"] == 27 and depois["cadeados"] == 0, depois)
+        check("cadastro sem erro de página, mesmo com o CDN fora do ar",
+              not [e for e in errs if e[0] == "pageerror"], errs)
+        b.close()
+    finally:
+        subprocess.run(["python3", "mural/_gerar_mural.py"], cwd=raiz,
+                       env={k: v for k, v in _os.environ.items()}, capture_output=True)
 
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")

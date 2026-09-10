@@ -431,6 +431,21 @@ dialog.share .msg .rot{font-family:Archivo,"Arial Narrow",sans-serif;font-variat
 dialog.share .msg p{margin:0;font-size:15px;line-height:1.5;white-space:pre-line;word-break:break-word}
 dialog.share .msg .acts{display:flex;flex-wrap:wrap;gap:8px}
 dialog.share .msg .acts .btn{min-height:36px}
+dialog.conta .campo{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+dialog.conta label{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+dialog.conta input,dialog.conta select{font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);min-height:42px}
+dialog.conta input:focus,dialog.conta select:focus{outline:2px solid var(--accent);outline-offset:1px}
+dialog.conta .btn.primary{width:100%;justify-content:center;min-height:44px;font-size:13px}
+dialog.conta .ou{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:12px;margin:14px 0;text-transform:uppercase;letter-spacing:.1em}
+dialog.conta .ou::before,dialog.conta .ou::after{content:"";flex:1;height:1px;background:var(--line)}
+dialog.conta .troca{margin:12px 0 0;font-size:13.5px;color:var(--ink-2)}
+dialog.conta .troca button{background:none;border:0;padding:0;font:inherit;color:var(--ink);font-weight:700;text-decoration:underline;cursor:pointer}
+dialog.conta .aviso{margin:10px 0 0;font-size:12.5px;color:var(--ink-3);line-height:1.45}
+dialog.conta .erro{margin:10px 0 0;font-size:13.5px;color:var(--crit);font-weight:600}
+dialog.conta .vantagens{margin:0 0 16px;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-size:14px}
+dialog.conta .vantagens li{display:flex;gap:8px;align-items:flex-start}
+dialog.conta .vantagens li::before{content:"→";color:var(--accent);font-weight:700}
+#tabs-editorias button .cad{font-size:9px;opacity:.55;margin-left:4px}
 @media (max-width:760px){
   dialog.share{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding-bottom:env(safe-area-inset-bottom)}
   dialog.share .sh{height:100dvh;max-height:100dvh}
@@ -908,7 +923,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   <div class="mast-r">
     <span class="ed"><span class="ed-l">Edição de </span><b id="stamp"></b><span class="ed-s" id="stamp-curto"></span></span>
     <button type="button" class="tema-btn" id="b-tema" data-modo="claro" aria-label="Mudar para o tema escuro" title="Mudar para o tema escuro"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><g class="lua"><path d="M9.6 1.6a6.4 6.4 0 1 0 4.8 8.6 5.2 5.2 0 0 1-4.8-8.6z" fill="currentColor"/></g><g class="sol" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.9" fill="currentColor" stroke="none"/><path d="M8 1.2v1.9M8 12.9v1.9M1.2 8h1.9M12.9 8h1.9M3.2 3.2l1.35 1.35M11.45 11.45l1.35 1.35M12.8 3.2l-1.35 1.35M4.55 11.45L3.2 12.8"/></g></svg></button>
-    <button type="button" class="btn" id="b-share" aria-label="Compartilhar" title="Compartilhar o mural"><span class="glyph" aria-hidden="true">↗</span><span class="lbl">Compartilhar</span></button><button type="button" class="btn" id="b-prefs" aria-label="Personalizar" title="Personalizar"><span class="glyph" aria-hidden="true">⚙</span><span class="lbl">Personalizar</span></button>
+    <button type="button" class="btn" id="b-conta" hidden><span class="glyph" aria-hidden="true">◍</span><span class="lbl">Entrar</span></button><button type="button" class="btn" id="b-share" aria-label="Compartilhar" title="Compartilhar o mural"><span class="glyph" aria-hidden="true">↗</span><span class="lbl">Compartilhar</span></button><button type="button" class="btn" id="b-prefs" aria-label="Personalizar" title="Personalizar"><span class="glyph" aria-hidden="true">⚙</span><span class="lbl">Personalizar</span></button>
   </div>
 </div></header>
 <div class="band nav-band" id="nav-band"><nav class="wrap tabs" id="tabs" aria-label="Editorias do mural">
@@ -1190,6 +1205,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 </div></footer>
 
 <dialog class="share" id="share" aria-labelledby="share-title"></dialog>
+<dialog class="share conta" id="conta" aria-labelledby="conta-title"></dialog>
 <dialog class="drawer" id="prefs" aria-labelledby="prefs-title"></dialog>
 <dialog class="dossie" id="dossie" aria-labelledby="dz-title"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1197,6 +1213,20 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 <script>
 /*__DATA__*/
+// ---- a carga que fica atrás do cadastro
+// A página pública traz só o que a Visão geral da Presidência precisa (uns 600 KB em vez de
+// 2,2 MB). O resto do mural, que é 80% do peso, vem depois do login e fica guardado na sessão
+// do navegador. Aqui em cima, antes de qualquer const que leia DATA, porque o mural monta
+// UF, UFLIST e companhia na hora em que o script é lido: se a carga chegasse depois, esses
+// valores já teriam sido calculados vazios.
+try{const _p=sessionStorage.getItem("mural.completo");if(_p)Object.assign(DATA,JSON.parse(_p));}catch(e){}
+const CONTA={url:"__SUPABASE_URL__",chave:"__SUPABASE_ANON__",carga:"__CARGA_URL__"};
+// Sem chave configurada o mural fica aberto, como sempre foi. Trancar todo mundo do lado de
+// fora por causa de uma variável de ambiente em branco seria o pior jeito de falhar.
+const TRAVA=!!(CONTA.url&&CONTA.chave&&!CONTA.url.startsWith("__"));
+const ABA_LIVRE="geral";
+const temTudo=()=>!!(DATA.estados&&Object.keys(DATA.estados).length);
+const precisaConta=id=>TRAVA&&!temTudo()&&id!==ABA_LIVRE;
 const $=(s,el=document)=>el.querySelector(s);
 const $$=(s,el=document)=>[...el.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1682,8 +1712,9 @@ let abaAtual="geral";
 function ajustarTabs(){const t=$("#tabs-editorias");t.classList.toggle("fim",t.scrollLeft+t.clientWidth>=t.scrollWidth-6);}
 function centrarAba(){const t=$("#tabs-editorias"),b=t.querySelector('[aria-selected="true"]');if(b)t.scrollLeft=Math.max(0,b.offsetLeft-(t.clientWidth-b.offsetWidth)/2);ajustarTabs();}
 $("#tabs-editorias").addEventListener("scroll",ajustarTabs,{passive:true});
-function pintarAbas(){$("#tabs-editorias").innerHTML=ABAS.map(([id,t])=>`<button type="button" role="tab" id="tab-${id}" aria-controls="v-${id}" aria-selected="${id===abaAtual}" data-aba="${id}">${t==="Visão geral"?`<span class="tl">Visão geral</span><span class="tc" aria-hidden="true">Geral</span>`:t}</button>`).join("");centrarAba();}
+function pintarAbas(){$("#tabs-editorias").innerHTML=ABAS.map(([id,t])=>`<button type="button" role="tab" id="tab-${id}" aria-controls="v-${id}" aria-selected="${id===abaAtual}" data-aba="${id}">${t==="Visão geral"?`<span class="tl">Visão geral</span><span class="tc" aria-hidden="true">Geral</span>`:t}</button>`).join("");if(typeof marcarAbas==="function")marcarAbas();centrarAba();}
 function trocarEscopo(e,push=true){
+  if(e==="uf"&&TRAVA&&!temTudo()){abrirConta("criar");return;}
   escopo=e==="uf"?"uf":"br"; prefs.escopo=escopo; salvar();
   ABAS = escopo==="uf"?ABAS_UF:ABAS_BR;
   $$("[data-escopo]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.escopo===escopo));
@@ -1695,6 +1726,8 @@ function trocarEscopo(e,push=true){
 }
 function irPara(id,push=true){
   if(!ABAS.some(a=>a[0]===id))id=ABAS[0][0];
+  // editoria que pede conta: em vez de mostrar uma página vazia, abre o cadastro e fica onde está
+  if(precisaConta(id)){abrirConta("criar");return;}
   abaAtual=id;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+id));
   $$("#tabs-editorias button").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===id));
@@ -2471,6 +2504,190 @@ function copiarTexto(txt,msg){
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>avisar(msg||"Mensagem copiada"),()=>avisar("Não consegui copiar; selecione o texto e copie à mão"));
 }
 $("#b-share").addEventListener("click",()=>{renderShare();sh.showModal();});
+
+// ---- conta
+// A aba principal é de todo mundo; o resto do mural pede cadastro. A trava é real porque a
+// carga protegida não está na página: ela é buscada depois do login e guardada na sessão do
+// navegador, e a página recarrega para o mural montar já com tudo (os globais do mural são
+// calculados na leitura do script, então não dá para injetar depois sem recarregar).
+// Com as chaves em branco, TRAVA é falso e nada disso acontece: o mural abre inteiro.
+const dlgConta=$("#conta");
+let supa=null, sessao=null, telaConta="entrar", ocupado=false, erroConta="";
+
+function carregarSupabase(){
+  if(window.supabase)return Promise.resolve(window.supabase);
+  return new Promise((ok,falha)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
+    sc.onload=()=>ok(window.supabase); sc.onerror=()=>falha(new Error("cdn"));
+    document.head.appendChild(sc);
+  });
+}
+async function cliente(){
+  if(supa)return supa;
+  const lib=await carregarSupabase();
+  supa=lib.createClient(CONTA.url,CONTA.chave,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  return supa;
+}
+// busca a carga protegida e recarrega a página com ela na sessão
+async function baixarCarga(){
+  const c=await cliente();
+  let url=CONTA.carga;
+  if(url.startsWith("storage:")){
+    const caminho=url.slice(8), i=caminho.indexOf("/");
+    const {data,error}=await c.storage.from(caminho.slice(0,i)).createSignedUrl(caminho.slice(i+1),3600);
+    if(error)throw error; url=data.signedUrl;
+  }
+  const r=await fetch(url,{cache:"no-store"});
+  if(!r.ok)throw new Error("carga "+r.status);
+  const txt=await r.text();
+  try{sessionStorage.setItem("mural.completo",txt);}
+  catch(e){throw new Error("o navegador não deixou guardar a carga; tente sem janela anônima");}
+}
+function nomeCurto(){
+  const u=sessao&&sessao.user;if(!u)return "";
+  const n=(u.user_metadata&&u.user_metadata.nome)||"";
+  return (n||u.email||"").split("@")[0].split(" ")[0];
+}
+function atualizarBotaoConta(){
+  const b=$("#b-conta");if(!b)return;
+  b.hidden=!TRAVA;
+  b.querySelector(".lbl").textContent=sessao?(nomeCurto()||"Minha conta"):"Entrar";
+  b.querySelector(".glyph").textContent=sessao?"●":"◍";
+  b.title=sessao?"Sua conta no mural":"Entrar ou criar conta";
+}
+function marcarAbas(){
+  if(!TRAVA)return;
+  $$("#tabs-editorias button[data-aba]").forEach(b=>{
+    const trava=precisaConta(b.dataset.aba);
+    b.classList.toggle("travada",trava);
+    const t=b.querySelector(".cad");
+    if(trava&&!t)b.insertAdjacentHTML("beforeend",'<span class="cad" aria-hidden="true">🔒</span>');
+    if(!trava&&t)t.remove();
+    b.setAttribute("aria-describedby",trava?"conta-title":"");
+  });
+}
+function renderConta(){
+  const logado=!!sessao;
+  const campos=(...c)=>c.join("");
+  const campo=(id,rot,tipo,extra="")=>`<div class="campo"><label for="${id}">${rot}</label><input id="${id}" type="${tipo}" ${extra}></div>`;
+  let corpo;
+  if(logado){
+    const u=sessao.user, md=u.user_metadata||{};
+    corpo=`<p class="cap">Você está com a conta <b>${esc(u.email||"")}</b>. O mural inteiro está liberado neste navegador.</p>
+      ${campo("c-nome","Nome","text",`value="${esc(md.nome||"")}"`)}
+      <div class="campo"><label for="c-area">Onde você trabalha</label><select id="c-area">
+        ${["","imprensa","assessoria ou campanha","pesquisa ou academia","empresa","órgão público","outra"].map(v=>`<option value="${v}" ${md.area===v?"selected":""}>${v||"prefiro não dizer"}</option>`).join("")}
+      </select></div>
+      <button type="button" class="btn primary" data-acao="salvar">Salvar</button>
+      <p class="troca"><button type="button" data-acao="sair">Sair desta conta</button></p>`;
+  }else if(telaConta==="recuperar"){
+    corpo=`<p class="cap">Digite o email da conta. Você recebe um link para escolher outra senha.</p>
+      ${campo("c-email","Email","email",'autocomplete="email"')}
+      <button type="button" class="btn primary" data-acao="recuperar">Enviar o link</button>
+      <p class="troca"><button type="button" data-acao="tela-entrar">Voltar para o login</button></p>`;
+  }else{
+    const criar=telaConta==="criar";
+    corpo=`${criar?`<ul class="vantagens">
+        <li>As 27 disputas de governo e Senado, com todas as pesquisas de cada estado</li>
+        <li>Deputado federal e estadual no Rio e em São Paulo</li>
+        <li>Busca no Google, Wikipédia e redes, nome a nome</li>
+        <li>Comparador lado a lado, dossiê de cada candidatura e exportação em planilha</li>
+      </ul>`:""}
+      ${criar?campo("c-nome","Nome","text",'autocomplete="name"'):""}
+      ${campo("c-email","Email","email",'autocomplete="email"')}
+      ${campo("c-senha","Senha",'password',`autocomplete="${criar?"new-password":"current-password"}"`)}
+      ${criar?`<div class="campo"><label for="c-area">Onde você trabalha</label><select id="c-area">
+        ${["","imprensa","assessoria ou campanha","pesquisa ou academia","empresa","órgão público","outra"].map(v=>`<option value="${v}">${v||"prefiro não dizer"}</option>`).join("")}
+      </select></div>`:""}
+      <button type="button" class="btn primary" data-acao="${criar?"criar":"entrar"}">${criar?"Criar conta":"Entrar"}</button>
+      <div class="ou">ou</div>
+      <button type="button" class="btn" data-acao="google" style="width:100%;justify-content:center;min-height:44px">Entrar com Google</button>
+      <p class="troca">${criar?`Já tem conta? <button type="button" data-acao="tela-entrar">Entrar</button>`
+        :`Ainda não tem conta? <button type="button" data-acao="tela-criar">Criar agora</button> · <button type="button" data-acao="tela-recuperar">Esqueci a senha</button>`}</p>
+      ${criar?`<p class="aviso">Guardamos seu email, e o nome e a área se você preencher, só para dar acesso ao mural e avisar de mudanças grandes. Nada de CPF, título de eleitor ou dado de voto. Você pode apagar a conta quando quiser, e os dados vão junto.</p>`:""}`;
+  }
+  dlgConta.innerHTML=`<div class="sh">
+    <div class="shead"><div><h2 id="conta-title" class="display">${logado?"Sua conta":(telaConta==="criar"?"Criar conta":telaConta==="recuperar"?"Recuperar acesso":"Entrar no mural")}</h2>
+      <p class="cap">${logado?"":"A Visão geral é aberta a todo mundo. O resto do mural pede uma conta, e ela é gratuita."}</p></div>
+      <button type="button" class="btn" data-acao="fechar" aria-label="Fechar">Fechar ✕</button></div>
+    <div class="sbody">${corpo}${erroConta?`<p class="erro">${esc(erroConta)}</p>`:""}${ocupado?`<p class="cap">Um instante…</p>`:""}</div>
+    <div class="sfoot">Feito pela INDICA. Nenhum número do mural entra sem data e fonte.</div></div>`;
+}
+function abrirConta(tela){
+  if(tela)telaConta=tela; erroConta="";
+  renderConta(); if(!dlgConta.open)dlgConta.showModal();
+}
+async function comOcupado(fn){
+  ocupado=true;erroConta="";renderConta();
+  try{await fn();}
+  catch(e){erroConta=(e&&e.message)||"não deu certo; tente de novo";}
+  ocupado=false;renderConta();
+}
+dlgConta.addEventListener("click",async e=>{
+  if(e.target===dlgConta){dlgConta.close();return;}
+  const b=e.target.closest("button[data-acao]");if(!b)return;
+  const a=b.dataset.acao;
+  if(a==="fechar"){dlgConta.close();return;}
+  if(a.startsWith("tela-")){telaConta=a.slice(5);erroConta="";renderConta();return;}
+  const email=()=>($("#c-email")||{}).value||"", senha=()=>($("#c-senha")||{}).value||"";
+  const nome=()=>($("#c-nome")||{}).value||"", area=()=>($("#c-area")||{}).value||"";
+  if(a==="entrar")return comOcupado(async()=>{
+    const c=await cliente();
+    const {error}=await c.auth.signInWithPassword({email:email(),password:senha()});
+    if(error)throw new Error(error.message==="Invalid login credentials"?"email ou senha não conferem":error.message);
+  });
+  if(a==="criar")return comOcupado(async()=>{
+    const c=await cliente();
+    if(senha().length<8)throw new Error("a senha precisa de pelo menos 8 caracteres");
+    const {error}=await c.auth.signUp({email:email(),password:senha(),
+      options:{data:{nome:nome(),area:area()},emailRedirectTo:urlBase()}});
+    if(error)throw error;
+    erroConta=""; avisar("Conta criada. Se pedirmos confirmação, o link está no seu email.");
+  });
+  if(a==="google")return comOcupado(async()=>{
+    const c=await cliente();
+    const {error}=await c.auth.signInWithOAuth({provider:"google",options:{redirectTo:urlBase()}});
+    if(error)throw error;
+  });
+  if(a==="recuperar")return comOcupado(async()=>{
+    const c=await cliente();
+    const {error}=await c.auth.resetPasswordForEmail(email(),{redirectTo:urlBase()});
+    if(error)throw error;
+    telaConta="entrar"; avisar("Se esse email tiver conta, o link acabou de sair");
+  });
+  if(a==="salvar")return comOcupado(async()=>{
+    const c=await cliente();
+    const {error}=await c.auth.updateUser({data:{nome:nome(),area:area()}});
+    if(error)throw error;
+    avisar("Salvo");
+  });
+  if(a==="sair")return comOcupado(async()=>{
+    const c=await cliente();
+    await c.auth.signOut();
+    try{sessionStorage.removeItem("mural.completo");}catch(e){}
+    location.reload();
+  });
+});
+$("#b-conta").addEventListener("click",()=>abrirConta(sessao?"perfil":"entrar"));
+// liga a conta assim que a página assenta; nada disso bloqueia a primeira pintura
+if(TRAVA){
+  atualizarBotaoConta();
+  (async()=>{
+    try{
+      const c=await cliente();
+      const {data}=await c.auth.getSession();
+      sessao=data.session||null;
+      atualizarBotaoConta(); marcarAbas();
+      if(sessao&&!temTudo()){await baixarCarga();location.reload();return;}
+      c.auth.onAuthStateChange(async(ev,ses)=>{
+        const antes=!!sessao; sessao=ses||null; atualizarBotaoConta();
+        if(sessao&&!temTudo()){try{await baixarCarga();location.reload();}catch(e){erroConta=e.message;renderConta();}}
+        else if(!sessao&&antes){try{sessionStorage.removeItem("mural.completo");}catch(e){}}
+      });
+    }catch(e){/* sem rede ou sem CDN: o mural segue com a aba pública */}
+  })();
+}
 sh.addEventListener("click",e=>{
   if(e.target===sh){sh.close();return;}
   const b=e.target.closest("button");if(!b)return;
@@ -3133,7 +3350,11 @@ function montarRodape(){
   // deputado ainda não existe em todo estado, então o atalho é montado a partir de quem tem
   // o mesmo atalho na primeira tela, com os estados que já têm deputado
   const hd=$("#home-dep");
-  if(hd){const comDep=UFLIST.filter(k=>["depfed","depest"].some(c=>(UF[k][CARGOS[c].lista]||[]).length));
+  if(hd&&TRAVA&&!temTudo()){   // sem a carga, o atalho vira convite em vez de sumir
+    hd.hidden=false; hd.removeAttribute("href"); hd.style.cursor="pointer";
+    hd.textContent="Deputado, governo e Senado nos 27 estados: crie uma conta →";
+    hd.onclick=ev=>{ev.preventDefault();abrirConta("criar");};
+  }else if(hd){const comDep=UFLIST.filter(k=>["depfed","depest"].some(c=>(UF[k][CARGOS[c].lista]||[]).length));
     hd.hidden=!comDep.length;
     if(comDep.length){hd.href=`#uf-${comDep[0].toLowerCase()}-federal-candidatos`;
       hd.textContent=`Deputado federal e estadual ${comDep.length===1?emUF(comDep[0]):"em "+comDep.map(k=>UF[k].nome).join(" e ")} →`;}}

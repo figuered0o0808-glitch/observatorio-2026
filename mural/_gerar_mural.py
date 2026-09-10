@@ -516,15 +516,53 @@ data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": 
         "ig": ig_serie, "series": {k: dict(v) for k, v in series_plat.items()}, "idx": idx_serie, "partidos": partidos, "timeline": timeline,
         "trends": trends_c, "termos": trends_t, "wiki": wiki, "vies": vies}
 
+# ---- o que a página pública carrega e o que fica atrás do cadastro
+# A aba principal (Visão geral da Presidência) é aberta a todo mundo; o resto do mural pede
+# conta. Isso só é de verdade se o dado não estiver na página: uma trava em JavaScript com os
+# 2,2 MB dentro do HTML é cortina, não parede. Então o gerador escreve duas cargas.
+#
+# A divisão foi medida, não chutada: com estas chaves de fora, a aba principal renderiza
+# idêntica à do mural inteiro (conferido linha a linha no texto da seção), e a página cai de
+# 2,2 MB para cerca de 600 KB, o que também a deixa mais rápida para quem chega pelo link.
+#
+# Aviso que precisa ficar escrito: o repositório é público, e os CSVs e este gerador estão
+# nele. Quem quiser refaz a carga protegida sozinho. A trava serve ao produto (cadastro,
+# personalização, exportação), não à proteção do dado; para ser proteção, o repositório teria
+# de ser privado.
+PROTEGIDO = ("estados", "geo", "wiki", "termos", "ig", "idx", "series", "vies", "rej", "polls2t")
+VAZIO = {"estados": {}, "geo": None, "wiki": {}, "termos": {}, "ig": {}, "idx": {},
+         "series": {}, "vies": [], "rej": [], "polls2t": []}
+
+publico = {k: (VAZIO[k] if k in PROTEGIDO else v) for k, v in data.items()}
+protegido = {k: data[k] for k in PROTEGIDO}
+
 tpl = io.open(os.path.join(AQUI, "_template.html"), encoding="utf-8").read()
-html = tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";")
+# As chaves do Supabase entram por ambiente (o workflow passa dos segredos do repositório).
+# São valores públicos por definição: a URL do projeto e a chave "anon", que só serve para
+# falar com o Supabase respeitando as regras de acesso por linha. Nada de chave de serviço aqui.
+SUPA_URL = _os.environ.get("MURAL_SUPABASE_URL", "")
+SUPA_ANON = _os.environ.get("MURAL_SUPABASE_ANON", "")
+CARGA_URL = _os.environ.get("MURAL_CARGA_URL", "mural-completo.json")
+
+def montar(d):
+    return (tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";")
+               .replace("__SUPABASE_URL__", SUPA_URL).replace("__SUPABASE_ANON__", SUPA_ANON)
+               .replace("__CARGA_URL__", CARGA_URL))
+
+html = montar(publico)
 io.open(os.path.join(AQUI, "mural.html"), "w", encoding="utf-8").write(html)
+# a carga protegida, que a página busca depois do login
+js_prot = json.dumps(protegido, ensure_ascii=False, separators=(",", ":"))
+io.open(os.path.join(AQUI, "..", "mural-completo.json"), "w", encoding="utf-8").write(js_prot)
+# o mural inteiro num arquivo só continua existindo para conferência e para os testes, que
+# precisam ver todas as abas sem passar por login
+io.open(os.path.join(AQUI, "mural-inteiro.html"), "w", encoding="utf-8").write(montar(data))
 # O GitHub Pages serve a raiz do repositório, então a mesma página também é
 # gravada em index.html lá em cima: assim o endereço publicado é a raiz do
 # site, e não /mural/mural.html. Os dois arquivos são idênticos e ambos são
 # gerados; mural.html continua sendo o canônico.
 io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
 ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.values())
-print("mural.html", len(html), "bytes |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
+print("mural.html", len(html), "bytes público +", len(js_prot), "bytes protegidos |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
       len(rej), "pontos rejeição |", len(polls_2t), "pontos 2T |", sum(len(v) for v in ig_serie.values()), "pontos IG |",
       len(timeline), "eventos |", meta)
