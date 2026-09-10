@@ -1,8 +1,8 @@
 {
-  "_leia": "Identificação de quem responde pelos dados, usada na política de privacidade. Enquanto os campos estiverem com PREENCHER, o cadastro não pode ir ao ar: a regressão barra a publicação com a trava ligada e a política incompleta.",
-  "nome": "PREENCHER: razão social da INDICA",
-  "cnpj": "PREENCHER: 00.000.000/0001-00",
-  "endereco": "PREENCHER: cidade e estado",
-  "email": "PREENCHER: email para pedidos de dados, ex. privacidade@indica.com.br",
-  "encarregado": "PREENCHER: nome de quem responde pelos pedidos (o encarregado da LGPD)"
+  "_leia": "Identificação de quem responde pelos dados, usada na política de privacidade. Enquanto os campos estiverem com PREENCHER, o cadastro não pode ir ao ar: a publicação é barrada com a trava ligada e a política incompleta.",
+  "nome": "Instituto Democracia e Sustentabilidade",
+  "cnpj": "67.881.323/0001-02",
+  "endereco": "Rua Roger C H Huthmacher, 501, sala 101, Banco Boa Vista, Miguel Pereira, RJ, CEP 26900-000",
+  "email": "indica.osc@gmail.com",
+  "encarregado": "Lauanny Brandão (representante legal do Instituto), pelo email indica.osc@gmail.com"
 }
