@@ -34,7 +34,10 @@ jobs:
       - name: Ler a pesquisa e resolver cada nome citado
         run: python3 coleta/pesquisa_deputados_rj.py | tee /tmp/saida.txt
 
-      - name: Commitar a proposta
+      # if: always() porque o valor desta coleta está tanto no que ela extrai quanto no HTML
+      # bruto: a primeira rodada morreu sem commitar o bruto e não houve como saber por quê.
+      - name: Commitar a proposta e o bruto
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

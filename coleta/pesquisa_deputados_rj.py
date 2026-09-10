@@ -31,14 +31,27 @@ RAIZ = os.path.dirname(AQUI)
 DEP = os.path.join(RAIZ, "dados", "rjsp")
 UA = "observatorio-2026/0.3 (coleta automática; contato: figuered0o0808@gmail.com)"
 
-# A matéria original e dois espelhos. O espelho não vira dado: serve para acusar divergência,
-# porque lista de nome lida de uma página só, sem ninguém conferindo, é fonte frágil demais
-# para carimbar a reputação de 60 candidatos.
+# Cada fonte diz o que ela é. Isso não é decoração: pesquisa registrada no TSE e ranking de
+# jornal são coisas de peso diferente, e o mural precisa dizer qual está mostrando. "registrada"
+# tem número de registro, ficha técnica e responsabilidade legal; "nao_oficial" é levantamento,
+# enquete ou lista de redação, sem registro, e entra marcada como tal.
 FONTES = [
-    "https://diariodorio.com/pesquisa-mostra-os-nomes-mais-citados-para-deputado-estadual-e-federal-do-rj-em-2026/",
-    "https://diariodorio.com/pesquisa-diario-do-rio-prefab-revela-os-candidatos-a-deputado-mais-citados-no-rio/",
-    "https://rlagosnoticias.com.br/politica/pesquisa-prefab-revela-os-nomes-mais-citados-para-deputado-federal-e-estadual-no-rio-em-2026-confira-a-lista/",
+    {"url": "https://diariodorio.com/pesquisa-mostra-os-nomes-mais-citados-para-deputado-estadual-e-federal-do-rj-em-2026/",
+     "uf": "RJ", "natureza": "registrada", "papel": "principal"},
+    {"url": "https://diariodorio.com/pesquisa-diario-do-rio-prefab-revela-os-candidatos-a-deputado-mais-citados-no-rio/",
+     "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
+    {"url": "https://rlagosnoticias.com.br/politica/pesquisa-prefab-revela-os-nomes-mais-citados-para-deputado-federal-e-estadual-no-rio-em-2026-confira-a-lista/",
+     "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
+    {"url": "https://errejotanoticias.com.br/pesquisa-revela-os-candidatos-a-deputados-mais-citados-no-rio/",
+     "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
+    {"url": "https://mancheterio.com.br/pesquisa-revela-os-candidatos-a-deputados-mais-citados-no-rio/",
+     "uf": "RJ", "natureza": "registrada", "papel": "espelho"},
 ]
+
+COLS = ["uf","cargo","nome_citado","partido_citado","id_tse","slug","nome_urna","status","motivo",
+        "natureza","medida","posicao","percentual","instituto","contratante","registro_tse",
+        "campo_inicio","campo_fim","entrevistas","margem","confianca","coleta","tipo","fonte",
+        "fonte_url","data_acesso"]
 
 FICHA = {
     "instituto": "Prefab Future",
@@ -153,59 +166,92 @@ def resolver(nome, sigla, cargo, univ):
     return None, "sem candidatura registrada correspondente"
 
 
+def diagnostico(url, txt, achados):
+    """O que a página realmente trouxe. Sem isto, extração vazia é um erro cego."""
+    alvo = sem_acento(txt)
+    return {
+        "url": url, "caracteres": len(txt),
+        "diz federal": "DEPUTADO FEDERAL" in alvo,
+        "diz estadual": "DEPUTADO ESTADUAL" in alvo,
+        "pares Nome (SIGLA)": len(re.findall(r"[A-ZÁÂÃÀÉÊÍÓÔÕÚÜÇ][^()\n]{1,48}\(([A-Za-zÇç ]{2,16})\)", txt)),
+        "citados federal": len(achados["depfed"]), "citados estadual": len(achados["depest"]),
+    }
+
+
 def main():
     univ = universo()
     hoje = datetime.now(timezone(timedelta(hours=-3))).date().isoformat()
-    paginas, erros = [], []
-    for url in FONTES:
+    lidas, erros = [], []
+    for f in FONTES:
         try:
-            html = baixar(url)
-            paginas.append((url, html))
+            lidas.append((f, baixar(f["url"])))
         except Exception as e:                                   # rede é rede
-            erros.append("%s -> %s" % (url, e))
-    if not paginas:
-        sys.exit("nenhuma fonte respondeu:\n  " + "\n  ".join(erros))
+            erros.append("%s -> %s" % (f["url"], e))
 
-    io.open(os.path.join(DEP, "_pesquisa-deputados-rj.html"), "w", encoding="utf-8").write(
-        "\n\n<!-- ===== %s ===== -->\n\n".join(h for _, h in paginas))
+    # O bruto é gravado antes de qualquer extração, e a extração não pode derrubar o trabalho
+    # de gravá-lo. A primeira rodada deste coletor morreu com "nenhum nome extraído" sem
+    # commitar o HTML, e aí não havia como saber por quê. Diagnóstico só serve se sobreviver.
+    if lidas:
+        io.open(os.path.join(DEP, "_pesquisa-deputados-rj.html"), "w", encoding="utf-8").write(
+            "\n\n".join("<!-- ===== %s ===== -->\n%s" % (f["url"], h) for f, h in lidas))
+    for e in erros:
+        print("AVISO fonte não respondeu:", e)
+    if not lidas:
+        sys.exit("nenhuma fonte respondeu")
 
-    por_fonte = [(url, citados(texto_de(html))) for url, html in paginas]
-    principal_url, principal = por_fonte[0]
+    por_fonte = [(f, citados(texto_de(h)), texto_de(h)) for f, h in lidas]
+    print("== o que cada fonte trouxe ==")
+    for f, achados, txt in por_fonte:
+        d = diagnostico(f["url"], txt, achados)
+        print("  " + " | ".join("%s=%s" % (k, v) for k, v in d.items() if k != "url"))
+        print("    " + f["url"])
 
-    # divergência entre matéria e espelho não é detalhe: é sinal de que o extrator leu errado
+    principais = [(f, a) for f, a, _ in por_fonte if f["papel"] == "principal" and (a["depfed"] or a["depest"])]
+    if not principais:
+        principais = [(f, a) for f, a, _ in por_fonte if a["depfed"] or a["depest"]]
+    if not principais:
+        # Sem nome extraído o CSV sai vazio e o arquivo bruto fica commitado para revisão.
+        # Não é sucesso, mas também não é motivo para jogar fora o que foi baixado.
+        io.open(os.path.join(DEP, "_pesquisa-deputados-rj.csv"), "w", encoding="utf-8").write(
+            ",".join(COLS) + "\r\n")
+        print("nenhum nome extraído de nenhuma fonte; o HTML bruto ficou salvo para revisão")
+        return
+    fonte, principal = principais[0]
+
+    # divergência entre a matéria e o espelho não é detalhe: é sinal de leitura errada
     avisos = []
-    for url, outro in por_fonte[1:]:
+    for f, outro, _ in por_fonte:
+        if f["url"] == fonte["url"]:
+            continue
         for cargo in ("depfed", "depest"):
             a = {sem_acento(n) for n, _ in principal[cargo]}
             b = {sem_acento(n) for n, _ in outro[cargo]}
             if a and b and (a - b or b - a):
                 avisos.append("%s (%s): só na principal %s | só no espelho %s"
-                              % (cargo, url, sorted(a - b)[:6], sorted(b - a)[:6]))
+                              % (cargo, f["url"], sorted(a - b)[:6], sorted(b - a)[:6]))
 
     saida = []
     for cargo in ("depfed", "depest"):
         for nome, sigla in principal[cargo]:
             achou, motivo = resolver(nome, sigla, cargo, univ)
             saida.append({
-                "uf": "RJ", "cargo": cargo,
+                "uf": fonte["uf"], "cargo": cargo,
                 "nome_citado": nome, "partido_citado": sigla,
                 "id_tse": achou["id_tse"] if achou else "",
                 "slug": achou["slug"] if achou else "",
                 "nome_urna": achou["nome_urna"] if achou else "",
                 "status": "resolvido" if achou else "conferir",
                 "motivo": motivo,
+                "natureza": fonte["natureza"],
                 "medida": "citado espontaneamente entre os mais lembrados",
                 "posicao": "",           # a matéria publica em ordem alfabética, sem classificação
                 "percentual": "",        # não publicado; célula vazia é indisponível, nunca zero
                 "fonte": "Prefab Future / Diário do Rio, registro TSE RJ-02770/2026",
-                "fonte_url": principal_url, "data_acesso": hoje, **FICHA,
+                "fonte_url": fonte["url"], "data_acesso": hoje, **FICHA,
             })
 
-    cols = ["uf","cargo","nome_citado","partido_citado","id_tse","slug","nome_urna","status","motivo",
-            "medida","posicao","percentual","instituto","contratante","registro_tse","campo_inicio",
-            "campo_fim","entrevistas","margem","confianca","coleta","tipo","fonte","fonte_url","data_acesso"]
     with io.open(os.path.join(DEP, "_pesquisa-deputados-rj.csv"), "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols, lineterminator="\r\n")
+        w = csv.DictWriter(f, fieldnames=COLS, lineterminator="\r\n")
         w.writeheader()
         w.writerows(saida)
 
@@ -214,10 +260,6 @@ def main():
           % (len(saida), len(principal["depfed"]), len(principal["depest"]), ok, len(saida) - ok))
     for a in avisos:
         print("AVISO divergência entre fontes:", a)
-    for e in erros:
-        print("AVISO fonte não respondeu:", e)
-    if not saida:
-        sys.exit("nenhum nome extraído: a matéria mudou de formato, o extrator precisa de revisão")
 
 
 if __name__ == "__main__":
