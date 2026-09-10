@@ -103,77 +103,84 @@ def ficha_de(txt):
     return f
 
 
-def percentuais(txt, cargo):
-    """Triplas (nome, sigla, percentual). Só entra quem tem número: sem número não é medida."""
-    achados, vistos = [], set()
-    padroes = [
-        rf"({NOME})\s*\(({SIGLA})\)[^\d%\n]{{0,24}}(\d{{1,2}}[,.]\d{{1,2}}|\d{{1,2}})\s*%",
-        rf"(\d{{1,2}}[,.]\d{{1,2}}|\d{{1,2}})\s*%[^\w\n]{{0,12}}({NOME})\s*\(({SIGLA})\)",
-    ]
-    for i, pad in enumerate(padroes):
-        for g in re.finditer(pad, txt):
-            if i == 0:
-                nome, sig, pct = g.group(1), g.group(2), g.group(3)
-            else:
-                pct, nome, sig = g.group(1), g.group(2), g.group(3)
-            nome = nome.strip(" .-–— ")
-            chave = sem_acento(nome)
-            if not nome or chave in vistos:
-                continue
-            try:
-                v = float(pct.replace(",", "."))
-            except ValueError:
-                continue
-            if not (0 < v <= 100):
-                continue
-            vistos.add(chave)
-            achados.append((nome, sig.strip().upper(), v))
-    return achados
+# NOME é não-guloso e tudo que vem depois dele é opcional, então sozinho ele casa uma letra
+# só e o filtro de tamanho descartava tudo. Para posição é preciso um padrão de nome próprio
+# de verdade: duas a quatro palavras capitalizadas, aceitando "de", "da", "dos" no meio.
+MAI = "A-ZÁÂÃÀÉÊÍÓÔÕÚÜÇ"
+MIN = "a-záâãàéêíóôõúüç"
+PALAVRA = rf"(?:[{MAI}][{MIN}'’]+|[{MAI}]{{2,4}})"
+NOME_PROPRIO = rf"{PALAVRA}(?:\s+(?:d[aeo]s?\s+)?{PALAVRA}){{1,3}}"
+
+# Maiúsculas que não são nome de gente e por isso não invalidam a leitura da posição.
+INSTITUCIONAIS = {"FEDERACAO", "PARTIDO", "UNIAO", "PROGRESSISTA", "ALERJ", "ASSEMBLEIA",
+                  "CAMARA", "SENADO", "REDE", "BAIXADA", "FLUMINENSE", "RIO", "JANEIRO",
+                  "ESTADO", "INSTITUTO", "VETOR", "ARROW", "NA", "NO", "ELE", "ELA", "OS",
+                  "REPUBLICANOS", "SOLIDARIEDADE", "AVANTE", "PODEMOS", "CIDADANIA"}
+
+ORDINAIS = {"primeiro":1,"primeira":1,"segundo":2,"segunda":2,"terceiro":3,"terceira":3,
+            "quarto":4,"quarta":4,"quinto":5,"quinta":5,"sexto":6,"sexta":6,"setimo":7,
+            "setima":7,"oitavo":8,"oitava":8,"nono":9,"nona":9,"decimo":10,"decima":10}
+POS_RE = (r"(?:em|no|na|ao|para\s+o|para\s+a)\s+(%s)\b(?!\s*(?:lugar|colocacao|posicao|posto)?\s*[a-z]{4,})"
+          r"|(?:o|a|na|no|em)?\s*(%s)\s*(?:lugar|colocacao|posicao|posto)") % ("|".join(ORDINAIS), "|".join(ORDINAIS))
 
 
-def imagens_da_pesquisa(html, base):
-    """Baixa os gráficos da matéria. Os números do Vetor Arrow saem em imagem, não em texto.
+def posicoes(txt):
+    """Posição no ranking, que é o que estas rodadas publicam para deputado.
 
-    A matéria traz o registro, a amostra e o instituto por escrito, e manda "confira os
-    pré-candidatos com maior intenção de votos" apontando para um JPG. Extrator de texto não
-    alcança isso, e OCR de gráfico eu não uso para publicar número atribuído a pessoa de
-    verdade: um dígito lido errado vira percentual falso no nome de um candidato, sem
-    segunda fonte para desmentir. Então o coletor guarda a imagem no repositório, com a URL
-    de origem, e a transcrição é feita por quem consegue olhar, conferindo contra o gráfico
-    que fica arquivado ao lado.
+    Descoberta que custou algumas tentativas: a série do Vetor Arrow publica PERCENTUAL para
+    governador e Senado ("Paes lidera com 28,9%") e apenas ORDEM para deputado ("consolidado
+    em primeiro lugar", "assumiu o terceiro lugar", "aparece na nona colocação"). Os espelhos
+    da rodada de agosto trazem zero por cento no texto inteiro. Então o dado do proporcional
+    aqui é ordinal, e ordinal é o que vai ser guardado: não se inventa percentual a partir de
+    posição, e o gráfico honesto disso é evolução de ranking, não barra de intenção de voto.
+
+    Só entra afirmação explícita, do tipo "<Nome> ... <ordinal> lugar", com o ordinal perto do
+    nome. Posição implícita ("seguido por fulano") NÃO é lida: inferir que o seguinte é o
+    próximo colocado parece óbvio e erra sempre que o texto cita alguém no meio da frase.
     """
-    pasta = os.path.join(DEP, "pesquisas-imagens")
-    os.makedirs(pasta, exist_ok=True)
-    salvas = []
-    for m in re.finditer(r'<img[^>]+src="([^"]+)"', html):
-        src = m.group(1).split("?")[0]
-        alvo = sem_acento(src)
-        if "WP-CONTENT/UPLOADS" not in alvo:
+    achados, conflitos = {}, []
+    limpo = re.sub(r"\s+", " ", txt)
+    alvo = sem_acento(limpo)
+    for m in re.finditer(rf"({NOME_PROPRIO})\s*(?:\(({SIGLA})\))?", limpo):
+        nome = m.group(1).strip(" .-–—")
+        if len(nome) < 5 or " " not in nome:
             continue
-        # Casar pedaço de palavra pegou "Tipografico" achando que era "grafico", e a primeira
-        # rodada guardou o logotipo de uma igreja. O nome do arquivo destes gráficos segue o
-        # padrão da casa, "DD-MM-2026-VETOR-ARROW-<disputa>", então o sinal forte é VETOR-ARROW;
-        # os outros termos só valem separados por hífen ou sublinhado, nunca no meio de palavra.
-        nomearq = alvo.rsplit("/", 1)[-1]
-        campos = re.split(r"[-_.]", nomearq)
-        if "VETOR" not in campos and not any(
-                c.startswith(k) for c in campos
-                for k in ("PESQUISA", "DEPUTAD", "INTENCAO", "GRAFICO", "SONDAGEM")):
+        # "Federação PSOL-Rede" casa o padrão de nome próprio e disputava o mesmo lugar com o
+        # candidato ao lado, fazendo os dois serem descartados pela regra de duplicado
+        if sem_acento(nome.split()[0]) in INSTITUCIONAIS:
             continue
-        nome = re.sub(r"[^A-Za-z0-9._-]", "-", src.rsplit("/", 1)[-1])[:80]
-        destino = os.path.join(pasta, nome)
-        if os.path.exists(destino):
-            salvas.append(nome); continue
-        try:
-            req = urllib.request.Request(src, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                dados = r.read()
-            if len(dados) > 400:
-                io.open(destino, "wb").write(dados)
-                salvas.append(nome)
-        except Exception as e:
-            print("    imagem não baixou:", src[:80], e)
-    return salvas
+        # sem_acento devolve MAIÚSCULAS, e a versão anterior comparava a janela já
+        # maiusculizada contra [A-Z]{2,}, o que barrava toda linha. A janela do ordinal é
+        # sem acento e minúscula; a de checar nome vizinho é o texto como veio.
+        crua = limpo[m.end(): m.end() + 130]
+        # o partido vem entre parênteses logo depois do nome, e "Federação União Progressista"
+        # é maiúscula sem ser gente. Tirar o parêntese e ignorar palavra institucional evita
+        # descartar metade dos citados por causa da pontuação da frase.
+        crua = re.sub(r"\([^)]*\)", " ", crua)
+        janela = sem_acento(crua).lower()
+        g = re.search(POS_RE, janela)
+        if not g:
+            continue
+        # o ordinal tem de vir antes de outro nome próprio, senão é a posição do vizinho
+        antes = crua[:g.start()]
+        vizinho = [w for w in re.findall(rf"\b[{MAI}][{MIN}]{{2,}}", antes)
+                   if sem_acento(w) not in INSTITUCIONAIS]
+        if vizinho:
+            continue
+        pos = ORDINAIS[g.group(1) or g.group(2)]
+        chave = sem_acento(nome)
+        if chave in achados and achados[chave][0] != pos:
+            conflitos.append((nome, achados[chave][0], pos))
+            continue
+        achados[chave] = (pos, nome, (m.group(2) or "").strip().upper())
+    porpos = {}
+    for pos, nome, sig in achados.values():
+        porpos.setdefault(pos, []).append((nome, sig))
+    # duas pessoas no mesmo lugar significa leitura errada, não empate: nenhuma das duas entra
+    saida = [(nome, sig, pos) for pos, lst in porpos.items() if len(lst) == 1
+             for nome, sig in lst]
+    dup = {p: [n for n, _ in l] for p, l in porpos.items() if len(l) > 1}
+    return sorted(saida, key=lambda x: x[2]), conflitos, dup
 
 
 def main():
@@ -205,11 +212,16 @@ def main():
     print("== o que cada fonte trouxe ==")
     for f, html in lidas:
         txt = texto_de(html)
-        fi, pc = ficha_de(txt), percentuais(txt, f["cargo"])
-        print("  %s | registro=%s campo=%s..%s n=%s margem=%s tipo=%s inst=%s | com percentual=%d"
+        fi = ficha_de(txt)
+        pc, conflitos, dup = posicoes(txt)
+        print("  %s | registro=%s campo=%s..%s n=%s margem=%s tipo=%s inst=%s | com posição=%d"
               % (f["cargo"], fi.get("registro", "-"), fi.get("de", "-"), fi.get("ate", "-"),
                  fi.get("n", "-"), fi.get("margem", "-"), fi.get("tipo", "-"),
                  fi.get("inst", "-"), len(pc)))
+        for n, a, b in conflitos:
+            print("    AVISO %s aparece em %dº e %dº na mesma matéria" % (n, a, b))
+        for p, ns in sorted(dup.items()):
+            print("    AVISO %dº lugar com mais de um nome (%s): nenhum entra" % (p, ", ".join(ns)))
         print("    " + f["url"])
         imgs = imagens_da_pesquisa(html, f["url"]) if "--offline" not in sys.argv else []
         if imgs:
@@ -219,7 +231,7 @@ def main():
             continue
         if not pc:
             continue
-        for nome, sig, v in pc:
+        for nome, sig, v in pc:   # v é a POSIÇÃO no ranking, não percentual
             achou, motivo = resolver(nome, sig, f["cargo"], univ)
             saida.append({
                 "uf": f["uf"], "cargo": f["cargo"], "registro_tse": fi["registro"],
@@ -229,7 +241,10 @@ def main():
                 "tipo": fi.get("tipo", ""), "natureza": "registrada",
                 "cumulativa": fi.get("cumulativa", ""), "acumulado": fi.get("acumulado", ""),
                 "coleta": fi.get("coleta", ""),
-                "nome_citado": nome, "partido_citado": sig, "percentual": ("%.2f" % v),
+                "nome_citado": nome, "partido_citado": sig,
+                "posicao": str(v),
+                "percentual": "",      # não publicado para deputado; vazio é indisponível
+                "medida": "posição no ranking de citações espontâneas",
                 "id_tse": achou["id_tse"] if achou else "",
                 "slug": achou["slug"] if achou else "",
                 "nome_urna": achou["nome_urna"] if achou else "",
@@ -240,8 +255,9 @@ def main():
             })
 
     cols = ["uf","cargo","registro_tse","campo_inicio","campo_fim","instituto","entrevistas",
-            "acumulado","cumulativa","coleta","margem","confianca","tipo","natureza","nome_citado","partido_citado","percentual",
-            "id_tse","slug","nome_urna","status","motivo","fonte_url","data_acesso"]
+            "acumulado","cumulativa","coleta","margem","confianca","tipo","natureza","medida",
+            "nome_citado","partido_citado","posicao","percentual","id_tse","slug","nome_urna",
+            "status","motivo","fonte_url","data_acesso"]
     with io.open(os.path.join(DEP, "_serie-deputados-rj.csv"), "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols, lineterminator="\r\n")
         w.writeheader()
