@@ -46,10 +46,11 @@ def main():
             try:
                 t = pedir({"action": "parse", "page": titulo, "prop": "wikitext", "section": s["index"]})
                 w = t["parse"]["wikitext"]
-                w = re.sub(r"<ref[^>]*>.*?</ref>", "", w, flags=re.S)
-                w = re.sub(r"<ref[^>]*/>", "", w)
-                linhas = [l for l in w.splitlines() if l.strip()][:40]
-                for l in linhas: print("     ", l[:150])
+                # o parágrafo em prosa, com as referências inteiras: é de lá que sai a URL
+                prosa = [l for l in w.splitlines() if l.strip() and not l.lstrip().startswith(("{|", "|", "!", "}"))]
+                for l in prosa[:12]:
+                    print("     ", l[:900])
+                    print()
             except Exception as e:
                 print("      falhou:", str(e)[:60])
             time.sleep(0.5)
