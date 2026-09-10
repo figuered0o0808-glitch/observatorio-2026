@@ -31,8 +31,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Ler a pesquisa e resolver cada nome citado
+      - name: Ler a pesquisa de lembrança (Prefab) e resolver cada nome citado
         run: python3 coleta/pesquisa_deputados_rj.py | tee /tmp/saida.txt
+
+      # A série do Vetor Arrow é a que traz percentual e várias rodadas. Roda mesmo se a
+      # anterior falhar: são pesquisas independentes e uma não deve derrubar a outra.
+      - name: Ler a série com percentual (Vetor Arrow / Agenda do Poder)
+        if: always()
+        run: python3 coleta/pesquisa_deputados_serie.py | tee /tmp/serie.txt
 
       # if: always() porque o valor desta coleta está tanto no que ela extrai quanto no HTML
       # bruto: a primeira rodada morreu sem commitar o bruto e não houve como saber por quê.
@@ -41,14 +47,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dados/rjsp/_pesquisa-deputados-rj.csv dados/rjsp/_pesquisa-deputados-rj.html
+          git add dados/rjsp/_pesquisa-deputados-rj.csv dados/rjsp/_pesquisa-deputados-rj.html \
+                  dados/rjsp/_serie-deputados-rj.csv dados/rjsp/_serie-deputados-rj.html
           # --cached, e não git diff: na primeira rodada os arquivos são novos, e para o git
           # arquivo que ainda não existe não tem diferença nenhuma
           if git diff --cached --quiet; then
             echo "nada mudou na proposta"
             exit 0
           fi
-          resumo=$(head -1 /tmp/saida.txt)
+          resumo=$(tail -8 /tmp/serie.txt 2>/dev/null | head -1)
           git commit -m "Proposta: pesquisa Prefab/Diário do Rio de deputado no RJ
 
           $resumo
