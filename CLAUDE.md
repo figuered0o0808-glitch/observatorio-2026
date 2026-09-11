@@ -73,7 +73,7 @@ testes antes de publicar qualquer edição nova.
   `mural/mural.html` a partir de `_template.html`.
 - `mural/mural.html` - o mural gerado, o que é publicado.
 - `index.html` - cópia idêntica do mural na raiz, gerada junto, é o que o
-  GitHub Pages serve em https://figuered0o0808-glitch.github.io/observatorio-2026/.
+  GitHub Pages serve em https://muraldoscandidatos.com/.
 - `mural/logo/` - marca "Apuração" (SVG/PNG prontos) e `_scripts/` que os
   geraram (precisa de `fonttools`, `uharfbuzz`, `playwright`; ver
   `mural/logo/LEIA-ME.md`).
@@ -220,7 +220,7 @@ home ficou na média antiga por uma passada e mostrava número diferente do plac
 ## Publicação
 
 O mural é publicado no GitHub Pages, em
-https://figuered0o0808-glitch.github.io/observatorio-2026/, a partir do
+https://muraldoscandidatos.com/, a partir do
 repositório https://github.com/figuered0o0808-glitch/observatorio-2026 (branch
 `main`). O Pages está no modo "GitHub Actions": quem publica é o workflow
 `.github/workflows/publicar.yml`, a cada push na `main` que mude o

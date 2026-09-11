@@ -25,7 +25,7 @@ propósito: variável de ambiente em branco não pode trancar o público do lado
    `https://<projeto>.supabase.co/auth/v1/callback`
 
 3. Em **Authentication > URL Configuration**, ponha em *Site URL* o endereço do mural
-   (`https://figuered0o0808-glitch.github.io/observatorio-2026/`) e a mesma URL em
+   (`https://muraldoscandidatos.com/`) e a mesma URL em
    *Redirect URLs*. Sem isso o link de recuperação de senha e o retorno do Google não voltam.
 
 4. Em **Authentication > Email Templates**, traduza os dois emails que o usuário recebe
