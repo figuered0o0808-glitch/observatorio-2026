@@ -949,6 +949,69 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 #og-card .cand-label{font-size:20px}
 #og-card .og-foot{display:flex;justify-content:space-between;align-items:baseline;font-size:17px;color:#494D54;border-top:2px solid #14161A;padding-top:12px;margin-top:6px}
 #og-card .og-url{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;color:#C8102E;letter-spacing:.02em;font-size:21px}
+
+/* ---- Visão geral redesenhada em 12/9/2026: o placar no alto, em bloco escuro, com os dois da frente
+   frente a frente em número grande; abaixo, oito tiles com sparkline, a corrida em largura cheia e a
+   régua como pista. As variáveis de cor de série dentro do bloco escuro são as do tema escuro, que
+   passaram no validador de paleta contra fundo escuro. */
+.hero2{background:var(--band);color:var(--band-ink);border-top:4px solid var(--red-deep);border-radius:4px;padding:24px 28px 20px;margin:0 0 18px;
+  --ink:var(--band-ink);--ink-2:#C9CCD2;--ink-3:var(--band-mut);--line:var(--band-line);--line-2:var(--band-line);--paper:var(--band-2);--paper-2:var(--band-2);--accent:var(--band-ink);--accent-ink:var(--band);
+  --c1:#F25757;--c2:#4F8BE8;--c3:#199e70;--c4:#c98500;--c5:#d55181;--c6:#23AD45;--c7:#9085e9;--c8:#E56A33}
+.hero2 .grid line{stroke:var(--band-line)}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap}
+.hero-top .eyebrow{padding-top:6px}
+.hero2 .count{background:var(--band-2);border-top:0;border-left:3px solid var(--red);border-radius:2px;padding:10px 14px;min-width:280px}
+.duelo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px 28px;align-items:end;margin:14px 0 6px}
+.duelo .dl{display:grid;gap:4px;min-width:0}
+.duelo .dl.dir{text-align:right;justify-items:end}
+.duelo .dl-nome{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);display:inline-flex;align-items:center;gap:10px}
+.duelo .dl-nome i{width:14px;height:14px;border-radius:3px;background:var(--cc);flex:none}
+.duelo .dl.dir .dl-nome{flex-direction:row-reverse}
+.duelo .dl-num{font-size:clamp(60px,9.2vw,132px);line-height:.88;letter-spacing:-.018em;color:var(--band-ink);font-variation-settings:"wdth" 72,"wght" 900;font-stretch:72%;font-weight:900}
+.duelo .dl-num small{font-size:.36em;color:var(--ink-3);font-variation-settings:"wdth" 82,"wght" 700;font-weight:700;margin-left:2px;letter-spacing:0}
+.duelo .dl-var{font-size:14px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.duelo .dl-meio{display:grid;justify-items:center;gap:8px;padding-bottom:10px;align-self:end}
+.duelo .dl-meio .dl-gap{font-size:44px;line-height:1;font-variation-settings:"wdth" 76,"wght" 900;font-stretch:76%;font-weight:900;color:var(--band-ink)}
+.duelo .dl-meio .dl-gap small{font-size:13px;color:var(--ink-3);letter-spacing:.1em;font-variation-settings:"wdth" 80,"wght" 700;font-weight:700;text-transform:uppercase}
+.duelo .dl-meio .dl-tag{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:5px 11px;border-radius:999px;border:1px solid var(--band-line);color:var(--ink-2);white-space:nowrap}
+.duelo .dl-meio .dl-tag.emp{border-color:var(--red);color:var(--red)}
+.hero2 h1.manchete{margin:12px 0 0;font-size:19px;line-height:1.25;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);text-wrap:balance}
+.hero2 .lede{margin:6px 0 0;color:var(--ink-3);font-size:14px;line-height:1.5}
+.hero2 .lede a{color:var(--band-ink);font-weight:600}
+#ch-hero{margin-top:12px}
+#ch-hero svg{display:block}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.tiles .lp{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--chipc,var(--ink-3));border-radius:3px;padding:10px 12px 8px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm nm" "v spark" "d spark";gap:1px 10px;align-items:end;transition:transform .15s ease,box-shadow .15s ease}
+.tiles .lp:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(20,22,26,.10)}
+.tiles .lp i{display:none}
+.tiles .lp .nm{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.tiles .lp .v{font-size:32px;line-height:1;margin-top:4px}
+.tiles .lp .d{font-size:12px}
+.tiles .lp .spark{grid-area:spark;width:88px;height:38px;display:block}
+.tiles .lp .spark path{fill:none;stroke:var(--chipc);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.tiles .lp .spark path.fill{fill:var(--chipc);opacity:.12;stroke:none}
+.tiles .lp[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--chipc)}
+.tiles .lp.dim{opacity:.45}
+#p-home,#p-regua{margin-bottom:18px}
+#strip{margin:0 0 18px}
+.pista #ch-regua{margin-top:6px}
+@media (max-width:760px){
+  .hero2{padding:16px 14px 14px}
+  .hero-top{flex-direction:column;gap:12px}
+  .hero2 .count{min-width:0;width:100%}
+  .duelo{grid-template-columns:1fr 1fr;gap:10px 12px}
+  .duelo .dl-meio{order:3;grid-column:1/-1;grid-template-columns:auto auto;align-items:center;justify-content:start;gap:12px;padding:6px 0 0}
+  .duelo .dl-meio .dl-gap{font-size:30px}
+  .duelo .dl-num{font-size:44px}
+  .duelo .dl{align-self:start}
+  .duelo .dl-nome{font-size:13px;letter-spacing:.08em}
+  .duelo .dl-var{font-size:12px}
+  .tiles .lp .d{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}
+  .hero2 h1.manchete{font-size:15px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tiles .lp .v{font-size:26px}
+  .tiles .lp .spark{width:64px;height:30px}
+}
 </style>
 </head>
 <body>
@@ -987,39 +1050,35 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 
 <main>
 <section class="view" id="v-geral" role="tabpanel" data-title="Visão geral">
-  <div class="lead hero">
-    <span class="eyebrow">Presidência · 1º turno · média móvel de <span class="sig-dias">4</span> dias até <span id="lead-ult"></span></span>
+  <div class="hero2">
+    <div class="hero-top">
+      <span class="eyebrow">Presidência · 1º turno · média móvel de <span class="sig-dias">4</span> dias até <span id="lead-ult"></span></span>
+      <div class="count" id="count" aria-live="polite"></div>
+    </div>
+    <div class="duelo" id="duelo"></div>
     <h1 class="manchete tagline display" id="manchete"></h1>
     <p class="lede" id="lede-dados"></p>
+    <div id="ch-hero"></div>
   </div>
-  <div class="home">
-    <div class="col">
-      <div class="panel main" id="p-home">
+  <div class="tiles" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
+  <div class="panel main" id="p-home">
         <div class="ph"><h3>A corrida</h3><span class="ztools"><span class="stamp-dt" id="home-ate"></span><span class="seg" role="group" aria-label="Janela do gráfico" id="home-seg"><button type="button" data-hj="90" aria-pressed="false">90 dias</button><button type="button" data-hj="ano" aria-pressed="true">2026</button></span></span></div>
-        <div class="eyebrow ch-kicker" id="k-home-a" hidden></div>
-        <div id="ch-home"></div>
-        <div class="eyebrow ch-kicker" id="k-home-b" hidden></div>
-        <div id="ch-home-b" hidden></div>
-        <div class="lg-placar" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
-        <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><a id="home-dep" hidden></a><span id="home-fonte"></span></div>
-      </div>
-    </div>
-    <aside class="rail">
-      <div class="rb" id="ult-rodada"></div>
-      <div class="count" id="count" aria-live="polite"></div>
-    </aside>
+    <div class="eyebrow ch-kicker" id="k-home-a" hidden></div>
+    <div id="ch-home"></div>
+    <div class="eyebrow ch-kicker" id="k-home-b" hidden></div>
+    <div id="ch-home-b" hidden></div>
+    <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><a id="home-dep" hidden></a><span id="home-fonte"></span></div>
+  </div>
+  <div class="panel pista" id="p-regua">
+    <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; o círculo vazio é a posição de 30 dias atrás</span></div>
+    <div id="ch-regua"></div>
+    <div class="regua-legend" id="lg-regua"></div>
   </div>
   <div class="placar" id="strip" role="list" aria-label="Placar da disputa"></div>
   <div class="home sec">
-    <div class="col">
-      <div class="panel" id="p-regua">
-        <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; o círculo vazio é a posição de 30 dias atrás</span></div>
-        <div id="ch-regua"></div>
-        <div class="regua-legend" id="lg-regua"></div>
-      </div>
-      <div class="hls" id="hls"></div>
-    </div>
+    <div class="col"><div class="hls" id="hls"></div></div>
     <aside class="rail">
+      <div class="rb" id="ult-rodada"></div>
       <div class="rb alerts" id="alerts"></div>
       <div class="rb eventos" id="eventos"></div>
     </aside>
@@ -1873,14 +1932,14 @@ function drawHome(){
   $("#ch-home-b").hidden=!dividir;$("#k-home-a").hidden=!dividir;$("#k-home-b").hidden=!dividir;
   if(!dividir){
     const series=nomes.map(mk);const [ymax,ticks]=escalaY(series,52,t0);
-    pinta("#ch-home",chartTempo({W:820,H:340,ml:44,mr:104,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw,Hm:MOBILE?260:undefined,aria:"Intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home",chartTempo({W:1180,H:360,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw,Hm:MOBILE?260:undefined,aria:"Intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
   }else{
     const sA=frente.map(mk),sB=pelotao.map(mk);
     const [yA,tA]=escalaY(sA,52,t0);
     const mB=Math.max(4,...sB.filter(x=>!x.dim).flatMap(x=>x.pts.filter(p=>p.t>=t0).map(p=>p.v)));
     const pB=mB>10?4:2,yB=Math.min(50,Math.ceil((mB+1.5)/pB)*pB),tB=[];for(let v=0;v<=yB;v+=pB)tB.push(v);
-    pinta("#ch-home",chartTempo({W:820,H:240,ml:44,mr:104,ymax:yA,ticks:tA,fmtY:v=>fPct(v)+"%",series:sA,marcos:[],t0,t1,cw,Hm:MOBILE?210:undefined,aria:"Os dois da frente: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
-    pinta("#ch-home-b",chartTempo({W:820,H:200,ml:44,mr:104,ymax:yB,ticks:tB,fmtY:v=>fPct(v)+"%",series:sB,marcos:[],t0,t1,cw,Hm:MOBILE?180:undefined,aria:"A disputa pelo terceiro lugar: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home",chartTempo({W:1180,H:260,ml:44,mr:120,ymax:yA,ticks:tA,fmtY:v=>fPct(v)+"%",series:sA,marcos:[],t0,t1,cw,Hm:MOBILE?210:undefined,aria:"Os dois da frente: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home-b",chartTempo({W:1180,H:220,ml:44,mr:120,ymax:yB,ticks:tB,fmtY:v=>fPct(v)+"%",series:sB,marcos:[],t0,t1,cw,Hm:MOBILE?180:undefined,aria:"A disputa pelo terceiro lugar: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
     $("#k-home-a").textContent=`Os dois da frente · ${frente.map(curto).join(" e ")}`;
     $("#k-home-b").textContent=`A disputa pelo terceiro lugar · escala própria, de 0 a ${yB}%`;
   }
@@ -1888,12 +1947,35 @@ function drawHome(){
   $$("#home-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hj===homeJanela));
   $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.institutos} institutos · média móvel de ${SIG} dias`;
   // legenda-placar: quadrado de cor, nome, média móvel de hoje e variação de 30 dias; clicar põe o candidato em foco
+  // tiles: nome, média de hoje, variação de 30 dias e a sparkline dos últimos 90 dias da média móvel.
+  // A sparkline tem escala própria por tile (é forma, não comparação entre candidatos; o número grande é que compara).
+  const spark=n=>{const L=(linhasH[n]||[]).filter(q=>q.t>=T1-93*864e5);if(L.length<3)return "";const vs=L.map(q=>q.v),lo=Math.min(...vs),hi=Math.max(...vs),rg=Math.max(hi-lo,.6),ta=L[0].t,tb=Math.max(ta+1,L[L.length-1].t);
+    const X=q=>(1+(q.t-ta)/(tb-ta)*118).toFixed(1),Y=q=>(33-(q.v-lo)/rg*27).toFixed(1);const d=L.map((q,ii)=>(ii?"L":"M")+X(q)+" "+Y(q)).join(" ");
+    return `<svg class="spark" viewBox="0 0 120 36" aria-hidden="true"><path class="fill" d="${d} L${X(L[L.length-1])} 35 L${X(L[0])} 35 Z"/><path d="${d}"/></svg>`;};
   $("#lg-home").innerHTML=OITO.map(n=>{const p=posicao(n);const on=prefs.foco.includes(n);
-    return `<button type="button" class="lp${dimDe(n)?" dim":""}" data-vig="${esc(n)}" aria-pressed="${on}" style="--chipc:${COR[n]}" title="${on?"Tirar do foco":"Pôr em foco em todos os gráficos"}"><i></i><span class="nm">${esc(CURTO[n])}</span><b class="v display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem série</small>"}</b><span class="d">${p&&p.delta!=null?`${p.delta>=1?"▲ ":p.delta<=-1?"▼ ":""}${fmtDelta(p.delta)} em 30 dias`:(p?"sem base há 30 dias":"menos de 3 rodadas")}</span></button>`;}).join("");
+    const dl=p&&p.delta!=null?`${p.delta>=1?"▲ ":p.delta<=-1?"▼ ":""}${fmtDelta(p.delta)} em 30 dias`:"sem base há 30 dias";
+    return `<button type="button" class="lp${dimDe(n)?" dim":""}" data-vig="${esc(n)}" aria-pressed="${on}" style="--chipc:${COR[n]}" title="${on?"Tirar do foco":"Pôr em foco em todos os gráficos"}"><i></i><span class="nm">${esc(CURTO[n])}</span><b class="v display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem série</small>"}</b><span class="d">${dl}</span>${spark(n)}</button>`;}).join("");
   // passar o mouse num nome da legenda isola a linha dele no gráfico em que ela está
   $$("#lg-home .lp").forEach(b=>{const n=b.dataset.vig;
-    b.addEventListener("mouseenter",()=>{$$("#p-home svg.tempo").forEach(svg=>{if(!svg.querySelector(`.ser[data-nome="${n.replace(/"/g,'\\"')}"]`))return;svg.classList.add("hover");svg.querySelectorAll(".ser").forEach(g=>g.classList.toggle("hot",g.dataset.nome===n));svg.querySelectorAll(".cand-label").forEach(l=>l.classList.toggle("hot",l.dataset.nome===n));});});
-    b.addEventListener("mouseleave",()=>{$$("#p-home svg.tempo").forEach(svg=>{svg.classList.remove("hover");svg.querySelectorAll(".hot").forEach(g=>g.classList.remove("hot"));});});});
+    b.addEventListener("mouseenter",()=>{$$("#v-geral svg.tempo").forEach(svg=>{if(!svg.querySelector(`.ser[data-nome="${n.replace(/"/g,'\\"')}"]`))return;svg.classList.add("hover");svg.querySelectorAll(".ser").forEach(g=>g.classList.toggle("hot",g.dataset.nome===n));svg.querySelectorAll(".cand-label").forEach(l=>l.classList.toggle("hot",l.dataset.nome===n));});});
+    b.addEventListener("mouseleave",()=>{$$("#v-geral svg.tempo").forEach(svg=>{svg.classList.remove("hover");svg.querySelectorAll(".hot").forEach(g=>g.classList.remove("hot"));});});});
+
+  // ---- o placar: os dois da frente frente a frente, a diferença no meio e se é empate técnico
+  const ord=ORDEM(),dz=$("#duelo");
+  if(dz&&ord.length>=2){const [A,B]=ord,gap=A.agora-B.agora;let emp=false;try{emp=empatam(rodadas1T(),OITO,SIG,Date.parse(ULT),A.nome,B.nome);}catch(e){}
+    const lado=(q,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[q.nome]}"><span class="dl-nome"><i></i>${esc(curto(q.nome))}</span><span class="dl-num display tnum" data-v="${q.agora}">${fPct(q.agora)}<small>%</small></span><span class="dl-var">${q.delta!=null?(q.delta>=1?"▲ ":q.delta<=-1?"▼ ":"")+fmtDelta(q.delta)+" pts em 30 dias":"sem base há 30 dias"}</span></div>`;
+    dz.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(gap)}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(A.nome))+" à frente"}</span></div>`+lado(B,true);
+    if(!drawHome._ja){drawHome._ja=true;contarDuelo();}}
+  // ---- a linha dos dois da frente no bloco escuro, sem pontos: é a curva da marca virando dado
+  if($("#ch-hero")){const base=(frente.length>=2?frente:nomes.slice(0,2)).map(mk).map(x=>({...x,r:0,lw:3,banda:null}));
+    const [yH,tH]=escalaY(base,52,Date.parse("2026-01-01"));
+    pinta("#ch-hero",chartTempo({W:1120,H:170,ml:44,mr:120,mt:10,mb:26,ymax:yH,ticks:tH.filter(v=>v%10===0),fmtY:v=>fPct(v)+"%",series:base,marcos:[],t0:Date.parse("2026-01-01"),t1:T1,cw:larguraDe("#ch-hero"),Hm:MOBILE?150:undefined,cross:false,aria:"Os dois da frente ao longo de 2026, média móvel de todos os institutos"}),{zoom:false});}
+}
+// os números do placar sobem do zero na primeira pintura; quem pede menos movimento não vê nada disso
+function contarDuelo(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  $$("#duelo .dl-num").forEach(el=>{const v=+el.dataset.v;if(!(v>0))return;const t0=performance.now();
+    const f=now=>{const k=Math.min(1,(now-t0)/900),e=1-Math.pow(1-k,3);el.innerHTML=fPct(v*e)+"<small>%</small>";if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);});
 }
 DRAW["#ch-home"]=drawHome;
 $$("#home-seg button").forEach(b=>b.addEventListener("click",()=>{homeJanela=b.dataset.hj;drawHome();}));
