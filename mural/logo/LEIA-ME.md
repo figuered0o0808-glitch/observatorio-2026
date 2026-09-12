@@ -18,6 +18,19 @@ mural-icone.svg: M com subida única, para ícones de 32 a 64 px. mural-favicon.
 
 PNG prontos: mural-marca-2400.png e mural-assinatura-2400.png (fundo transparente), as versões escuras com fundo #14161A, mural-avatar-1000.png e mural-avatar-400.png (círculo escuro), mural-icone-512.png, mural-icone-192.png, mural-favicon-32.png e mural-favicon-16.png.
 
+## Cartão de compartilhamento (og:image)
+
+`mural-og-1200x630.png` deixou de ser a marca parada em 12/9/2026. Agora é o mural em
+miniatura: a manchete com os três primeiros da média móvel, a curva do ano com esses três em
+destaque e os demais apagados, a data da edição e o endereço. É a imagem que o WhatsApp, o X e
+o LinkedIn mostram quando alguém cola o link, ou seja, a peça mais vista da divulgação.
+
+Não é desenhado à parte: é o bloco `#og-card` escondido dentro do próprio mural, preenchido
+por `montarOG()` com a mesma conta da manchete, e `mural/_gerar_og.py` abre o mural no
+Chromium, manda montar o bloco e o fotografa. Por isso nunca diverge da página. O workflow
+`atualizar.yml` regenera o cartão a cada rodada e o commita junto; se a geração falhar, o PNG
+anterior fica e a publicação segue.
+
 ## Regras de uso
 
 Não redesenhar a curva nem trocar sua proporção: é a mesma em toda aplicação. Não separar a curva da palavra (a exceção é o monograma, que a leva junto com o M). Largura mínima da marca sem subtítulo: 72 px; abaixo disso, monograma. Abaixo de 32 px, ícone ou favicon. Não aplicar sombra, contorno ou gradiente. Não usar o vermelho da marca como cor de candidato nos gráficos.

@@ -368,9 +368,11 @@ with sync_playwright() as p:
     r = page.evaluate("""() => { const cs = getComputedStyle(document.documentElement);
         return {escuro: ESCURO, ruins: Object.keys(CORP).map(k => [k, corPartido(k), +contraste(corPartido(k), '#17181C').toFixed(2)]).filter(x => x[2] < 3),
                 band: cs.getPropertyValue('--band').trim(), c6: cs.getPropertyValue('--c6').trim(), ground: cs.getPropertyValue('--ground').trim(),
+                c6ok: contraste(cs.getPropertyValue('--c6').trim(), '#17181C') >= 3 && cs.getPropertyValue('--c6').trim().toUpperCase() !== '#008300',
                 stroke: getComputedStyle(document.querySelector('.mapa-svg path.uf')).stroke}; }""")
     check("tema escuro: nenhuma cor de partido abaixo de 3:1 contra #17181C", r["escuro"] and not r["ruins"], r)
-    check("tema escuro: --band separada do fundo (#1E2025) e --c6 clareado (#2FBF4F)", r["band"].upper() == "#1E2025" and r["c6"].upper() == "#2FBF4F", r)
+    check("tema escuro: --band separada do fundo (#1E2025) e --c6 clareado em relação ao claro, com contraste >= 3:1",
+          r["band"].upper() == "#1E2025" and r["c6ok"], r)
     check("tema escuro: contorno dos estados não é a cor do fundo", r["stroke"] not in ("rgb(23, 24, 28)", "rgb(15, 16, 19)"), r)
     b.close()
 

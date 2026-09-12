@@ -172,6 +172,12 @@ jobs:
           MURAL_ATUALIZADO: ${{ steps.hora.outputs.atualizado }}
         run: python3 mural/_gerar_mural.py 2>&1 | tee "$RUNNER_TEMP/coleta/gerar-mural.log"
 
+      # O cartão og:image é fotografado do próprio mural, então sai com os números desta rodada.
+      # Se falhar, o PNG anterior fica e a publicação segue: vitrine não derruba dado.
+      - name: Cartão de compartilhamento com os números do dia
+        continue-on-error: true
+        run: python3 mural/_gerar_og.py
+
       - name: Conferir as regras de dado
         run: python3 testes/guarda_dados.py
 
@@ -229,7 +235,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dados/ index.html mural/mural.html
+          git add dados/ index.html mural/mural.html mural/logo/mural-og-1200x630.png
           python3 - <<'EOF' > "$RUNNER_TEMP/mensagem.txt"
           import os, re, subprocess, textwrap
 
