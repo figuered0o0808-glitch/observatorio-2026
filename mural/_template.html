@@ -170,7 +170,7 @@ button{font:inherit}
 @media (min-width:761px){.ufb-top{flex-wrap:nowrap}}
 @media (min-width:761px) and (max-width:1180px){#ufb-cap{display:none}#ufb-cap+.ufb-mapa{margin-left:auto}}
 @media (min-width:761px) and (max-width:900px){.ufb-top .lt{display:none}}
-.view{display:none;padding-top:30px}
+.view{display:none;padding-top:22px}
 .view.on{display:block}
 .focus[hidden]{display:none}
 .focus{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:14px 0 0;padding:9px 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;background:var(--paper);font-size:13px;color:var(--ink-2)}
@@ -204,7 +204,7 @@ section.block{margin-top:56px}
 .howto summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:12.5px;letter-spacing:.02em}
 .howto p{margin:8px 0 0}
 /* painéis sem cara de cartão: fundo transparente sobre a página, régua superior (2px --ink no principal da editoria, 1px --line nos demais), sem sombra nem raio */
-.panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:16px 0 8px;box-shadow:none;min-width:0}
+.panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0 6px;box-shadow:none;min-width:0}
 .panel.main{border-top:2px solid var(--ink)}
 .panel h3{margin:0;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 78,"wght" 800;font-stretch:78%;font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.02em}
 .panel .ph{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -502,12 +502,14 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:
   .dz .top .acts{grid-column:1/-1;justify-content:flex-start}
 }
 /* rodapé: faixa escura com filete vermelho, frase de método e quatro colunas */
-.foot-band{margin-top:64px;background:var(--foot-bg);color:var(--band-mut);border-top:3px solid var(--red-deep);box-shadow:inset 0 1px 0 var(--foot-line)}
-.foot{padding:40px 24px 48px;font-size:13.5px;line-height:1.5}
-.foot-lead{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--band-line);margin-bottom:28px}
-.foot-motto{font-size:22px;color:var(--band-ink);line-height:1.05}
+.foot-band{margin-top:36px;background:var(--foot-bg);color:var(--band-mut);border-top:3px solid var(--red-deep);box-shadow:inset 0 1px 0 var(--foot-line)}
+.foot{padding:24px 24px 28px;font-size:13px;line-height:1.45}
+.foot-lead{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--band-line);margin-bottom:16px}
+.foot-motto{font-size:19px;color:var(--band-ink);line-height:1.05}
 .foot-ed{font-size:12.5px;color:var(--band-mut)}
-.foot-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:32px}
+.foot-cols{display:grid;grid-template-columns:1.5fr .9fr 1.6fr .9fr;gap:24px;align-items:start}
+.foot-links{display:flex;gap:16px;margin-top:10px}
+.foot-links a{font-weight:600}
 .fc{min-width:0}
 .fc .fh{display:block;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--band-ink);margin-bottom:10px}
 .fc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
@@ -649,7 +651,7 @@ body.estreia svg.tempo .banda,body.estreia svg.tempo .ser circle{animation:surge
 .ztools{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 0 auto;max-width:100%}
 .ph .ztools{flex:0 1 auto}
 .ztools .stamp-dt{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-right:4px;white-space:nowrap}
-.zhint{margin:10px 0 0}
+.zhint{display:none}
 @media (hover:none){.zhint{display:none}}
 .zb{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 600;font-stretch:84%;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:3px;cursor:pointer}
 .zb.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -954,10 +956,19 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
    frente a frente em número grande; abaixo, oito tiles com sparkline, a corrida em largura cheia e a
    régua como pista. As variáveis de cor de série dentro do bloco escuro são as do tema escuro, que
    passaram no validador de paleta contra fundo escuro. */
-.hero2{background:var(--band);color:var(--band-ink);border-top:4px solid var(--red-deep);border-radius:4px;padding:24px 28px 20px;margin:0 0 18px;
+.hero2{background:var(--band);color:var(--band-ink);border-top:4px solid var(--red-deep);border-radius:4px;padding:20px 26px 16px;margin:0 0 14px;
   --ink:var(--band-ink);--ink-2:#C9CCD2;--ink-3:var(--band-mut);--line:var(--band-line);--line-2:var(--band-line);--paper:var(--band-2);--paper-2:var(--band-2);--accent:var(--band-ink);--accent-ink:var(--band);
   --c1:#F25757;--c2:#4F8BE8;--c3:#199e70;--c4:#c98500;--c5:#d55181;--c6:#23AD45;--c7:#9085e9;--c8:#E56A33}
 .hero2 .grid line{stroke:var(--band-line)}
+.hero-uf{padding-bottom:18px}
+.hero-uf .duelo{margin-top:10px}
+.hero-uf .dl-num{font-size:clamp(44px,5.8vw,84px)}
+.hero-uf .dl-meio{min-width:170px}
+.hero2{overflow:hidden}
+@media (max-width:1100px){.hero-uf .dl-num{font-size:clamp(40px,5.4vw,78px)}.hero-uf .dl-meio{min-width:0}.duelo .dl-num{font-size:clamp(48px,7.6vw,104px)}}
+.hero-uf .dl-nome{font-size:15px;letter-spacing:.08em}
+.hero-uf .duelo:empty{display:none}
+.hero-uf .duelo:empty+h1.manchete{font-size:34px;color:var(--band-ink);letter-spacing:.005em;margin-top:8px}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap}
 .hero-top .eyebrow{padding-top:6px}
 .hero2 .count{background:var(--band-2);border-top:0;border-left:3px solid var(--red);border-radius:2px;padding:10px 14px;min-width:280px}
@@ -980,7 +991,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 .hero2 .lede a{color:var(--band-ink);font-weight:600}
 #ch-hero{margin-top:12px}
 #ch-hero svg{display:block}
-.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
 .tiles .lp{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--chipc,var(--ink-3));border-radius:3px;padding:10px 12px 8px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm nm" "v spark" "d spark";gap:1px 10px;align-items:end;transition:transform .15s ease,box-shadow .15s ease}
 .tiles .lp:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(20,22,26,.10)}
 .tiles .lp i{display:none}
@@ -992,8 +1003,8 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 .tiles .lp .spark path.fill{fill:var(--chipc);opacity:.12;stroke:none}
 .tiles .lp[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--chipc)}
 .tiles .lp.dim{opacity:.45}
-#p-home,#p-regua{margin-bottom:18px}
-#strip{margin:0 0 18px}
+#p-home,#p-regua{margin-bottom:14px}
+#strip{margin:0 0 14px}
 .pista #ch-regua{margin-top:6px}
 @media (max-width:760px){
   .hero2{padding:16px 14px 14px}
@@ -1012,6 +1023,30 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   .tiles .lp .v{font-size:26px}
   .tiles .lp .spark{width:64px;height:30px}
 }
+
+/* destaques: o que antes era coluna lateral empilhada (928px) vira uma linha de quatro colunas */
+.destaques{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;align-items:stretch;margin-top:4px}
+.destaques .alerts .al:nth-of-type(n+3){display:none}
+.destaques .hl .big{font-size:26px}
+.destaques .rb li{font-size:12.5px}
+.destaques .hls{display:contents}
+.destaques .hl{border-top:1px solid var(--line);padding-top:12px}
+.destaques .rb{background:var(--paper-2);padding:12px 14px;border-radius:2px;min-width:0}
+.destaques .rb .eyebrow{display:block;margin-bottom:6px}
+.destaques .rb .ident{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.destaques .rb .src,.destaques .rb .ah .n,.destaques .rb li .dt,.destaques .rb .rfoot span{color:var(--ink-2)}
+.destaques .rb .rfoot{display:flex;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-top:10px}
+.destaques .rb .rfoot a{font-weight:600;color:var(--ink)}
+.destaques .hbars{gap:4px}
+.destaques .hb{grid-template-columns:minmax(64px,100px) 1fr 46px;font-size:12.5px}
+.destaques .hb .val{font-size:14px}
+.destaques .hb .bar{height:10px}
+.destaques .rb-col{display:grid;gap:12px;min-width:0}
+.destaques .al.first{font-size:13px}
+.marcos-fold{font-size:12.5px;color:var(--ink-2)}
+.marcos-fold summary{cursor:pointer;font-weight:600;color:var(--ink);padding:4px 0}
+@media (max-width:1000px){.destaques{grid-template-columns:1fr 1fr}.destaques .hls{display:contents}}
+@media (max-width:760px){.destaques{grid-template-columns:1fr;gap:12px}}
 </style>
 </head>
 <body>
@@ -1075,13 +1110,11 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
     <div class="regua-legend" id="lg-regua"></div>
   </div>
   <div class="placar" id="strip" role="list" aria-label="Placar da disputa"></div>
-  <div class="home sec">
-    <div class="col"><div class="hls" id="hls"></div></div>
-    <aside class="rail">
-      <div class="rb" id="ult-rodada"></div>
-      <div class="rb alerts" id="alerts"></div>
-      <div class="rb eventos" id="eventos"></div>
-    </aside>
+  <div class="destaques">
+    <div class="hls" id="hls"></div>
+    <div class="rb" id="ult-rodada"></div>
+    <div class="rb alerts" id="alerts"></div>
+    <div class="rb eventos" id="eventos"></div>
   </div>
 </section>
 
@@ -1205,8 +1238,9 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 </section>
 <section class="view" id="v-e-geral" role="tabpanel" data-title="Visão geral do estado">
   <div class="e-lead">
-    <div class="lead hero">
-      <span class="eyebrow" id="e-eyebrow"></span>
+    <div class="hero2 hero-uf">
+      <div class="hero-top"><span class="eyebrow" id="e-eyebrow"></span></div>
+      <div class="duelo" id="e-duelo"></div>
       <h1 class="manchete tagline display" id="e-tag"></h1>
       <p class="lede" id="e-lede"></p>
     </div>
@@ -1302,11 +1336,10 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <footer class="band foot-band"><div class="wrap foot">
   <div class="foot-lead"><span class="foot-motto display">Nenhum número entra sem data e fonte.</span><span class="foot-ed" id="foot-ed"></span></div>
   <div class="foot-cols">
-    <div class="fc fc-marca"><div class="brand-f" id="brand-f"></div><p class="slogan">Observatório do desempenho dos candidatos</p><p>Pesquisas, busca, redes e ficha do TSE das disputas de 2026, com data e fonte em cada número.</p><p class="credit">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></p></div>
+    <div class="fc fc-marca"><div class="brand-f" id="brand-f"></div><p class="credit">Desenvolvido pela <span class="indica"><svg class="marca-indica" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></p><p class="slogan">Observatório do desempenho dos candidatos</p><p class="foot-links"><a href="#metodo">Método e fontes →</a><a href="privacidade.html">Privacidade</a></p></div>
     <div class="fc"><span class="fh">Editorias</span><ul id="foot-editorias"></ul></div>
     <div class="fc fc-estados"><span class="fh">Estados</span><ul class="foot-ufs" id="foot-estados"></ul></div>
     <div class="fc" hidden><span class="fh">Deputados</span><ul id="foot-deputados"></ul></div>
-    <div class="fc"><span class="fh">Método e fontes</span><p>Pesquisas e acessos à Wikipédia entram sozinhos às 8h e às 20h de Brasília; Google Trends, seguidores e ficha do TSE entram a cada coleta do observatório.</p><p>Fontes: TSE DivulgaCandContas, fichas técnicas registradas das pesquisas, compilação pública da Wikipédia, Wikimedia REST API, Google Trends, perfis públicos no Instagram, imprensa e calendário oficial.</p><a class="go" href="#metodo" id="foot-metodo">Ler o método →</a><p style="margin-top:10px"><a href="privacidade.html">Privacidade</a></p></div>
   </div>
 </div></footer>
 
@@ -1932,14 +1965,14 @@ function drawHome(){
   $("#ch-home-b").hidden=!dividir;$("#k-home-a").hidden=!dividir;$("#k-home-b").hidden=!dividir;
   if(!dividir){
     const series=nomes.map(mk);const [ymax,ticks]=escalaY(series,52,t0);
-    pinta("#ch-home",chartTempo({W:1180,H:360,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw,Hm:MOBILE?260:undefined,aria:"Intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home",chartTempo({W:1180,H:320,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw,Hm:MOBILE?260:undefined,aria:"Intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
   }else{
     const sA=frente.map(mk),sB=pelotao.map(mk);
     const [yA,tA]=escalaY(sA,52,t0);
     const mB=Math.max(4,...sB.filter(x=>!x.dim).flatMap(x=>x.pts.filter(p=>p.t>=t0).map(p=>p.v)));
     const pB=mB>10?4:2,yB=Math.min(50,Math.ceil((mB+1.5)/pB)*pB),tB=[];for(let v=0;v<=yB;v+=pB)tB.push(v);
-    pinta("#ch-home",chartTempo({W:1180,H:260,ml:44,mr:120,ymax:yA,ticks:tA,fmtY:v=>fPct(v)+"%",series:sA,marcos:[],t0,t1,cw,Hm:MOBILE?210:undefined,aria:"Os dois da frente: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
-    pinta("#ch-home-b",chartTempo({W:1180,H:220,ml:44,mr:120,ymax:yB,ticks:tB,fmtY:v=>fPct(v)+"%",series:sB,marcos:[],t0,t1,cw,Hm:MOBILE?180:undefined,aria:"A disputa pelo terceiro lugar: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home",chartTempo({W:1180,H:232,ml:44,mr:120,ymax:yA,ticks:tA,fmtY:v=>fPct(v)+"%",series:sA,marcos:[],t0,t1,cw,Hm:MOBILE?196:undefined,aria:"Os dois da frente: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
+    pinta("#ch-home-b",chartTempo({W:1180,H:196,ml:44,mr:120,ymax:yB,ticks:tB,fmtY:v=>fPct(v)+"%",series:sB,marcos:[],t0,t1,cw,Hm:MOBILE?168:undefined,aria:"A disputa pelo terceiro lugar: intenção de voto no primeiro turno, média móvel de todos os institutos"}),{zoom:false});
     $("#k-home-a").textContent=`Os dois da frente · ${frente.map(curto).join(" e ")}`;
     $("#k-home-b").textContent=`A disputa pelo terceiro lugar · escala própria, de 0 a ${yB}%`;
   }
@@ -1969,7 +2002,7 @@ function drawHome(){
   // ---- a linha dos dois da frente no bloco escuro, sem pontos: é a curva da marca virando dado
   if($("#ch-hero")){const base=(frente.length>=2?frente:nomes.slice(0,2)).map(mk).map(x=>({...x,r:0,lw:3,banda:null}));
     const [yH,tH]=escalaY(base,52,Date.parse("2026-01-01"));
-    pinta("#ch-hero",chartTempo({W:1120,H:170,ml:44,mr:120,mt:10,mb:26,ymax:yH,ticks:tH.filter(v=>v%10===0),fmtY:v=>fPct(v)+"%",series:base,marcos:[],t0:Date.parse("2026-01-01"),t1:T1,cw:larguraDe("#ch-hero"),Hm:MOBILE?150:undefined,cross:false,aria:"Os dois da frente ao longo de 2026, média móvel de todos os institutos"}),{zoom:false});}
+    pinta("#ch-hero",chartTempo({W:1120,H:140,ml:44,mr:120,mt:8,mb:24,ymax:yH,ticks:tH.filter(v=>v%10===0),fmtY:v=>fPct(v)+"%",series:base,marcos:[],t0:Date.parse("2026-01-01"),t1:T1,cw:larguraDe("#ch-hero"),Hm:MOBILE?150:undefined,cross:false,aria:"Os dois da frente ao longo de 2026, média móvel de todos os institutos"}),{zoom:false});}
 }
 // os números do placar sobem do zero na primeira pintura; quem pede menos movimento não vê nada disso
 function contarDuelo(){
@@ -1983,7 +2016,7 @@ $$("#home-seg button").forEach(b=>b.addEventListener("click",()=>{homeJanela=b.d
 function drawUltimaRodada(){
   const ult=ultimaFicha();const el=$("#ult-rodada");
   if(!ult){el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="empty"><b>Nada apurado</b>Nenhuma ficha técnica nesta edição.</div>`;return;}
-  const pts=ult.pts.slice(0,8),max=Math.max(...pts.map(p=>p[3]),10);
+  const pts=ult.pts.slice(0,6),max=Math.max(...pts.map(p=>p[3]),10);
   el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="ident"><b>${esc(ult.inst)}</b> · ${dBR(ult.dt)}${ult.modo?" · "+esc(ult.modo):""} · ${ult.reg?"registro "+esc(ult.reg):"sem número de registro na fonte"}</div>`
    +`<div class="hbars">${pts.map(p=>{const n=p[2],c=byName[n];return `<div class="hb${dimDe(n)?" dim":""}"><span class="nm">${c?`<button type="button" class="nmbtn" data-dossie="${esc(n)}" title="Abrir dossiê"><b>${esc(curto(n))}</b></button>`:`<b>${esc(curto(n))}</b>`}</span><span class="bar"><i style="width:${Math.max(1.5,p[3]/max*100)}%;background:${COR[n]||"var(--neutro)"}"></i></span><span class="val display tnum">${fPct(p[3])}<small>%</small></span></div>`;}).join("")}</div>`
    +`<div class="rfoot"><span>${DATA.meta.rodadas}ª rodada do ano${ult.url?` · <a href="${esc(ult.url)}" target="_blank" rel="noopener">fonte</a>`:""}</span><a href="#pesquisas">ver todas →</a></div>`;
@@ -2002,7 +2035,7 @@ function drawDestaques(){
 }
 // ---- trilho: os últimos eventos datados
 function drawEventos(){
-  const evs=TL.filter(e=>e.data<=HOJE&&e.data.length>=10).slice(0,4);
+  const evs=TL.filter(e=>e.data<=HOJE&&e.data.length>=10).slice(0,3);
   $("#eventos").innerHTML=`<span class="eyebrow">Últimos eventos</span><ul>${evs.map(e=>`<li><span class="dt">${dBR(e.data)}</span><span><b>${esc(e.candidato==="todos"?"eleição":curto(e.candidato.split(",")[0]))}</b> ${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></li>`).join("")||`<li><span class="dt"></span><span>Nenhum evento datado até hoje.</span></li>`}</ul><a class="go" href="#tempo">Linha do tempo →</a>`;
 }
 function drawRegua(){
@@ -2010,7 +2043,7 @@ function drawRegua(){
   const lw=larguraDe("#ch-regua");
   if(MOBILE||lw<560){pinta("#ch-regua",reguaVertical(pos));legendaRegua(pos);return;}
   // faixa compacta na largura da coluna (820 no desktop): eixo a 86, rótulos dos líderes numa altura e os do grupo baixo (abaixo de 6%) alternando em duas
-  const W=lw,H=148,ml=24,mr=24,yAxis=100,max=50,iw=W-ml-mr;
+  const W=lw,H=134,ml=24,mr=24,yAxis=90,max=50,iw=W-ml-mr;
   const X=v=>ml+v/max*iw;
   // data-w0 acima da largura desenhada: quando a editoria aparece com outra largura (estimada com ela oculta), reajustarGraficos refaz a régua
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Régua da corrida: intenção de voto atual e de 30 dias atrás por candidato" data-w="${W}" data-w0="${Math.max(W,1180)}">`;
@@ -2028,7 +2061,7 @@ function drawRegua(){
   }
   baixo.sort((a,b)=>a.x-b.x);
   const fila1=[...alto,...baixo.filter((_,i)=>i%2===0)],fila2=baixo.filter((_,i)=>i%2===1);
-  s+=rotulosEmFila(fila1,62,W,10,12)+rotulosEmFila(fila2,32,W,10,12)+`</svg>`;
+  s+=rotulosEmFila(fila1,56,W,10,12)+rotulosEmFila(fila2,28,W,10,12)+`</svg>`;
   pinta("#ch-regua",s);
   legendaRegua(pos);
 }
@@ -2140,16 +2173,16 @@ function drawCorrida(){
   const linhas=linhaAgregada(emRodadas(bruto),nomes,SIG);
   const series=nomes.map(n=>{const pts=bruto[n];return {nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas[n],r:3.2,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
   const [ymax,ticks]=escalaY(series,52);
-  pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:400,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
+  pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:340,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
   const M=chartTempo.last.marcos;
-  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel de ${SIG} dias</span>`+(M.length?`<ol class="marcos" style="flex-basis:100%">${M.map((m,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(m.t))} ${esc(m.txt)}</span></li>`).join("")}</ol>`:"");
+  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel de ${SIG} dias</span>`+(M.length?`<details class="marcos-fold" style="flex-basis:100%"><summary>${M.length} marcos numerados no gráfico · ver a lista</summary><ol class="marcos">${M.map((m,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(m.t))} ${esc(m.txt)}</span></li>`).join("")}</ol></details>`:"");
 }
 DRAW["#ch-corrida"]=drawCorrida;DRAW["#ch-regua"]=()=>drawRegua();DRAW["#ch-bens"]=()=>drawBens();
 DRAW["#ch-2t"]=()=>draw2T();
 function draw2T(){
   const n2=["Lula","Flávio Bolsonaro"],linhas2=linhaAgregada(rodadas2T(),n2,SIG);
   const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
-  pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:250,ml:44,mr:74,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro",fs:11.5}));
+  pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:230,ml:44,mr:74,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro",fs:11.5}));
   const t2=Date.parse(DATA.meta.ultima),m2=agregarEm(rodadas2T(),n2,SIG,t2),inc=incertezaEm(rodadas2T(),n2,SIG,t2,"Lula","Flávio Bolsonaro");
   const el2=$("#cap-2t");
   if(m2["Lula"]==null||m2["Flávio Bolsonaro"]==null||!inc){el2.textContent="";}
@@ -2187,7 +2220,7 @@ DRAW["#ch-rej"]=()=>drawRej();
 function drawRej(){
   const series=OITO.filter(n=>!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:10,r:3,lw:1.8,pts:DATA.rej.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:`<b>${esc(n)}</b> · rejeição ${fPct(p.v)}%<br>${esc(p.inst)}, ${dBR(p.d)}`}))}));
   const [ymax,ticks]=escalaY(series,65);
-  pinta("#ch-rej",chartTempo({id:"#ch-rej",W:560,H:290,ml:44,mr:80,ymax,ticks,fmtY:v=>fPct(v)+"%",series,aria:"Rejeição por candidato ao longo de 2026",fs:11.5}));
+  pinta("#ch-rej",chartTempo({id:"#ch-rej",W:560,H:260,ml:44,mr:80,ymax,ticks,fmtY:v=>fPct(v)+"%",series,aria:"Rejeição por candidato ao longo de 2026",fs:11.5}));
 }
 const MODOS=[["presencial","var(--m1)"],["telefônica","var(--m2)"],["digital","var(--m3)"],["não informada","var(--ink-3)"]];
 const CORM=Object.fromEntries(MODOS);
@@ -2259,16 +2292,16 @@ function drawBusca(){
   const wk=OITO.filter(n=>DATA.wiki[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.wiki[n]).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fInt(p.v)} acessos<br>${dBR(dISO(p.t))}`}))}));
   const optT={ticks:[0,25,50,75,100],fmtY:v=>v}, optW={log:true,ymin:1,ymax:200000,ticks:[1,10,100,1000,10000,100000],fmtY:v=>v>=1000?(v/1000)+" mil":v};
   if(prefs.multi){multiplos("#ch-trends",tr,{...optT});multiplos("#ch-wiki",wk,{...optW});}
-  else{pinta("#ch-trends",chartTempo({id:"#ch-trends",H:340,ml:52,mr:110,series:tr.filter(s=>!some(s.nome)),...optT,aria:"Buscas no Google por candidato"}));
-       pinta("#ch-wiki",chartTempo({id:"#ch-wiki",W:560,H:290,ml:52,mr:96,series:wk.filter(s=>!some(s.nome)),...optW,aria:"Acessos ao verbete de cada candidato na Wikipédia",fs:11.5}));}
+  else{pinta("#ch-trends",chartTempo({id:"#ch-trends",H:300,ml:52,mr:110,series:tr.filter(s=>!some(s.nome)),...optT,aria:"Buscas no Google por candidato"}));
+       pinta("#ch-wiki",chartTempo({id:"#ch-wiki",W:560,H:260,ml:52,mr:96,series:wk.filter(s=>!some(s.nome)),...optW,aria:"Acessos ao verbete de cada candidato na Wikipédia",fs:11.5}));}
   const CORT={"Augusto Cury é de esquerda ou direita":"var(--c1)","propostas Augusto Cury":"var(--c2)","como votar":"var(--c3)","eleições 2026":"var(--c4)"};
   const NOMT={"Augusto Cury é de esquerda ou direita":"esquerda ou direita?","propostas Augusto Cury":"propostas Cury","como votar":"como votar","eleições 2026":"eleições 2026"};
-  pinta("#ch-termos",chartTempo({id:"#ch-termos",W:560,H:290,ml:52,mr:118,ticks:[0,25,50,75,100],fmtY:v=>v,fs:11.5,aria:"Termos de transbordamento no Google",series:Object.keys(CORT).filter(k=>DATA.termos[k]).map(k=>({nome:NOMT[k],cor:CORT[k],lw:1.7,r:5,pontoTransp:true,rotulo:`${NOMT[k]} ${sMMDD(DATA.termos[k]).pop().v}`,pts:sMMDD(DATA.termos[k]).map(p=>({...p,tip:`<b>${esc(NOMT[k])}</b> · índice ${p.v}<br>${dBR(dISO(p.t))}`}))}))}));
+  pinta("#ch-termos",chartTempo({id:"#ch-termos",W:560,H:260,ml:52,mr:118,ticks:[0,25,50,75,100],fmtY:v=>v,fs:11.5,aria:"Termos de transbordamento no Google",series:Object.keys(CORT).filter(k=>DATA.termos[k]).map(k=>({nome:NOMT[k],cor:CORT[k],lw:1.7,r:5,pontoTransp:true,rotulo:`${NOMT[k]} ${sMMDD(DATA.termos[k]).pop().v}`,pts:sMMDD(DATA.termos[k]).map(p=>({...p,tip:`<b>${esc(NOMT[k])}</b> · índice ${p.v}<br>${dBR(dISO(p.t))}`}))}))}));
   // instagram
   const ig=OITO.filter(n=>(DATA.ig[n]||[]).length).map(n=>{const raw=DATA.ig[n].map(p=>({t:Date.parse(p.d),v:p.v,big:/coleta própria/i.test(p.f),tip:`<b>${esc(n)}</b> · ${fInt(p.v)} seguidores em ${dBR(p.d)}<br>${esc(p.f)}`}));const por={};raw.forEach(p=>{(por[p.t]=por[p.t]||[]).push(p.v);});const med=Object.entries(por).map(([t,vs])=>({t:+t,v:vs.sort((a,b)=>a-b)[Math.floor(vs.length/2)]})).sort((a,b)=>a.t-b.t);return {nome:n,cor:COR[n],dim:dimDe(n),lw:1.8,r:2.8,pts:raw,linha:med};});
   const optI={ymax:16e6,ticks:[0,4e6,8e6,12e6,16e6],fmtY:v=>v/1e6+" mi"};
   if(prefs.multi)multiplos("#ch-ig",ig,{...optI,auto:true});
-  else pinta("#ch-ig",chartTempo({id:"#ch-ig",W:560,H:290,ml:52,mr:80,series:ig.filter(s=>!some(s.nome)).map(s=>({...s,rotulo:`${curto(s.nome)} ${fM(s.linha[s.linha.length-1].v)}`})),...optI,aria:"Seguidores no Instagram por candidato",fs:11.5}));
+  else pinta("#ch-ig",chartTempo({id:"#ch-ig",W:560,H:260,ml:52,mr:80,series:ig.filter(s=>!some(s.nome)).map(s=>({...s,rotulo:`${curto(s.nome)} ${fM(s.linha[s.linha.length-1].v)}`})),...optI,aria:"Seguidores no Instagram por candidato",fs:11.5}));
   // índices
   const dat=DATA.idx.datrix_idp||[],qu=DATA.idx.quaest_ipd||[];
   const sidx=OITO.filter(n=>dat.some(p=>p.c===n)&&!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.8,r:3,op:1,rotulo:curto(n),pts:dat.filter(p=>p.c===n).map(p=>({t:Date.parse(p.d),v:p.v,tip:`<b>${esc(n)}</b> · Datrix ${fPct(p.v)}<br>${dBR(p.d)}`}))}));
@@ -2438,7 +2471,7 @@ function renderLado(){
 // ---- linha do tempo (fluxo)
 const cats=[...new Set(TL.map(e=>e.categoria))].sort();
 const CATC={"justiça eleitoral":"var(--crit)","pesquisa":"var(--m3)","calendário":"var(--ink)","convenção":"var(--c4)","debate":"var(--c7)","declaração":"var(--c3)","contexto":"var(--ink-3)","cenário":"var(--c5)","entrevista":"var(--c2)","ataque":"var(--crit)","endosso":"var(--m2)","proposta":"var(--c2)","registro":"var(--ink)","rito de reclassificação":"var(--ink-3)"};
-let fCand="",fCat=new Set(),fTxt="",shown=40;
+let fCand="",fCat=new Set(),fTxt="",shown=24;
 $("#tl-sub").textContent=`${TL.length} eventos datados, do calendário oficial do TSE aos episódios de cada campanha, com fonte.`;
 $("#tl-tools").innerHTML=`<span id="tl-dia"></span><label class="sel">Candidato <select id="f-cand"><option value="">Todos</option><option value="__foco">Em foco (neste navegador)</option>${[...OITO,"todos",...C.filter(c=>c.grupo!=="principal").map(c=>c.nome)].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select></label><input type="search" id="f-txt" placeholder="Buscar palavra no evento" aria-label="Buscar palavra">`;
 $("#tl-cats").innerHTML=cats.map(k=>`<button type="button" class="chipbtn" data-cat="${esc(k)}" aria-pressed="true" style="--chipc:${CATC[k]||"var(--ink-3)"}"><i></i>${esc(k)}</button>`).join("");
@@ -3085,6 +3118,11 @@ function drawGeralUF(){
   // manchete numérica do estado: os três primeiros da última rodada da disputa escolhida, sem verbo
   {const l=liderDe(ufAtual,ufCargo),disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
     $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${l?`última rodada ${l.r.inst}, ${dBR(l.r.data)}`:(temPesquisa(ufCargo)?"sem pesquisa registrada":"sem pesquisa nominal")}`;
+    const ed=$("#e-duelo");
+    if(ed){if(l&&l.pts.length>=2){const [A,B]=l.pts,gap=A[4]-B[4],mg=+(l.r.margem||0),emp=mg>0&&Math.abs(gap)<2*mg;
+        const lado=(q,dir)=>{const c=candPorSlug(q[5]);return `<div class="dl${dir?" dir":""}" style="--cc:${corViva(q[6])}"><span class="dl-nome"><i></i>${esc(q[3])}</span><span class="dl-num display tnum">${fPct(q[4])}<small>%</small></span><span class="dl-var">${c?esc(c.partido):""}${c&&c.num?" · "+esc(c.num):""}</span></div>`;};
+        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A[3].split(" ")[0])+" à frente"}</span>${mg?`<span class="dl-var">margem de ${String(mg).replace(".",",")} pontos</span>`:""}</div>`+lado(B,true);}
+      else ed.innerHTML="";}
     $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · ")
       :(temPesquisa(ufCargo)?`Sem pesquisa registrada para ${cargoArt(ufCargo)} ${emUF(ufAtual)}`
         :`${pl(nDep,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargo)} ${emUF(ufAtual)}`);
@@ -3152,7 +3190,7 @@ function drawCorridaUF(){
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufCandVis.has(k)?ufCandVis.delete(k):ufCandVis.add(k);b.setAttribute("aria-pressed",ufCandVis.has(k));drawCorridaUF();}));
   if(!series.length){$("#e-ch-corrida").innerHTML=`<div class="empty"><b>${temPesquisa(cargo)?"Sem pontos":"Sem pesquisa nominal"}</b>${temPesquisa(cargo)?`Nenhuma rodada de ${cargoLabel(cargo)} com os filtros atuais.`:semPesq(cargo)}</div>`;return;}
   const [ymax,ticks]=escalaY(series,52);
-  pinta("#e-ch-corrida",chartTempo({id:"#e-ch-corrida",H:380,ml:44,mr:130,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],aria:`Intenção de voto para ${cargoLabel(cargo)} ${emUF(ufAtual)} ao longo de 2026`}));
+  pinta("#e-ch-corrida",chartTempo({id:"#e-ch-corrida",H:320,ml:44,mr:130,ymax,ticks,fmtY:v=>fPct(v)+"%",series,marcos:[],aria:`Intenção de voto para ${cargoLabel(cargo)} ${emUF(ufAtual)} ao longo de 2026`}));
 }
 DRAW["#e-ch-corrida"]=drawCorridaUF;
 function drawRodadaUF(){
@@ -3241,12 +3279,12 @@ function drawBuscaUF(){
   const ancora=(()=>{for(const c of cands){const n=B.trn&&B.trn[c.slug];const m=n&&n.match(/pela âncora ([^;]+)/);if(m)return m[1].trim();}return comTr[0]?comTr[0].nome:"";})();
   $("#e-cap-trends").textContent=nTr?`índice do Google dentro ${deUF(ufAtual)}, relativo ao pico de cada consulta; lotes ancorados por ${ancora}`:"";
   const mxT=Math.max(100,...tr.flatMap(s=>s.pts.map(p=>p.v))), yT=mxT>100?Math.ceil(mxT/50)*50:100;
-  if(tr.length)pinta("#e-ch-trends",chartTempo({id:"#e-ch-trends",H:340,ml:52,mr:120,ymax:yT,ticks:yT>100?[0,50,100,Math.round(yT/2),yT].filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b):[0,25,50,75,100],fmtY:v=>v,series:tr,aria:`Buscas no Google por candidato ${emUF(ufAtual)}`}));
+  if(tr.length)pinta("#e-ch-trends",chartTempo({id:"#e-ch-trends",H:300,ml:52,mr:120,ymax:yT,ticks:yT>100?[0,50,100,Math.round(yT/2),yT].filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b):[0,25,50,75,100],fmtY:v=>v,series:tr,aria:`Buscas no Google por candidato ${emUF(ufAtual)}`}));
   else $("#e-ch-trends").innerHTML=`<div class="empty"><b>Sem série de busca</b>${nTr?"Escolha ao menos um nome nos filtros.":"A coleta do Google Trends para esta disputa ainda não entrou."}</div>`;
   // ---- wikipedia
   const wk=ordem.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).slice(0,8).map(c=>({nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:1.7,r:5,pontoTransp:true,pts:sStr(B.wk[c.slug].pv).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · ${fInt(p.v)} acessos<br>verbete "${esc(B.wk[c.slug].t)}"<br>${dBR(dISO(p.t))}`}))}));
   $("#e-cap-wiki").textContent=nWk?`acessos diários, escala logarítmica; ${nWk} com verbete`:"";
-  if(wk.length)pinta("#e-ch-wiki",chartTempo({id:"#e-ch-wiki",W:560,H:290,ml:52,mr:96,log:true,ymin:1,ymax:100000,ticks:[1,10,100,1000,10000,100000],fmtY:v=>v>=1000?(v/1000)+" mil":v,series:wk,aria:"Acessos ao verbete na Wikipédia",fs:11.5}));
+  if(wk.length)pinta("#e-ch-wiki",chartTempo({id:"#e-ch-wiki",W:560,H:260,ml:52,mr:96,log:true,ymin:1,ymax:100000,ticks:[1,10,100,1000,10000,100000],fmtY:v=>v>=1000?(v/1000)+" mil":v,series:wk,aria:"Acessos ao verbete na Wikipédia",fs:11.5}));
   else $("#e-ch-wiki").innerHTML=`<div class="empty"><b>Sem verbete localizado</b>Nenhum candidato desta disputa tem verbete na Wikipédia localizado pela coleta.</div>`;
   // ---- instagram (snapshot em barras)
   const ig=ordem.filter(c=>B.ig&&B.ig[c.slug]&&B.ig[c.slug].n!=null).sort((a,b)=>B.ig[b.slug].n-B.ig[a.slug].n);

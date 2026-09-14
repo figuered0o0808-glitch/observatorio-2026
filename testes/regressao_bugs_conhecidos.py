@@ -290,8 +290,8 @@ with sync_playwright() as p:
     # não existe; o elemento é .tagline e ficava em 40px, quatro linhas)
     page.goto(URL + "#geral")
     page.wait_for_timeout(300)
-    fs = page.evaluate("parseFloat(getComputedStyle(document.querySelector('.hero .tagline')).fontSize)")
-    check(".hero .tagline abaixo de 32px a 390px", fs < 32, fs)
+    fs = page.evaluate("parseFloat(getComputedStyle(document.querySelector('#manchete')).fontSize)")
+    check("a manchete (#manchete) abaixo de 32px a 390px", fs < 32, fs)
 
     # ---- minigráficos "um por candidato" no celular (bug: "#ch-trends svg{min-width:860px}"
     # vencia a regra do .mini por especificidade de id, e cada mini saía com 860px numa coluna de 320)
