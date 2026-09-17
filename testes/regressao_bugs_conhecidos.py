@@ -760,9 +760,9 @@ with sync_playwright() as p:
     quem = max(mov, key=lambda n: abs(mov[n]["bruto"])) if mov else None
     m = mov.get(quem) if quem else None
     grande = m is not None and abs(m["bruto"]) >= 3
-    ok = (not grande) or (m["media"] is not None and (m["media"] > 0) == (m["bruto"] > 0) and abs(m["media"]) >= 0.6 * abs(m["bruto"]))
+    passa = (not grande) or (m["media"] is not None and (m["media"] > 0) == (m["bruto"] > 0) and abs(m["media"]) >= 0.6 * abs(m["bruto"]))
     check("a média não achata movimento real: quem mais se moveu nas rodadas brutas move a média no mesmo sentido, ao menos 60%",
-          ok, {"quem": quem, **({k: (round(v, 2) if isinstance(v, float) else v) for k, v in m.items()} if m else {})})
+          passa, {"quem": quem, **({k: (round(v, 2) if isinstance(v, float) else v) for k, v in m.items()} if m else {})})
     # o gráfico da home e a legenda-placar precisam mostrar o mesmo número (bug: o gráfico da home
     # ficou na média antiga quando a agregação entrou, e dizia 33,8% onde a legenda dizia 33,4%)
     page.goto(URL + "#geral")
