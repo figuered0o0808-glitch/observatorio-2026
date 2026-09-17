@@ -745,11 +745,24 @@ with sync_playwright() as p:
     check("o painel do segundo turno diz o que a conta diz, empate ou vantagem",
           diz_empate == empate and (diz_empate or "à frente de" in texto),
           {"empate": empate, "texto": texto[:120]})
-    # a média não pode achatar movimento real: a subida do Cury em agosto continua na linha
-    cury = page.evaluate("""() => { const p = posicao('Augusto Cury');
-        return {agora: p.agora, antes: p.antes, delta: p.delta}; }""")
-    check("a subida real do Cury em 30 dias continua na média (mais de 5 pontos)",
-          cury["delta"] is not None and cury["delta"] > 5, cury)
+    # A média não pode achatar movimento real. A versão anterior gravava o fato de um dia ("Cury
+    # subiu mais de 5 pontos") e barrou a rotina em 17/9, quando a subida, real, passou a medir 4,4:
+    # teste que grava resultado esperado em vez de regra passa a defender o defeito. A regra é: se as
+    # próprias rodadas brutas mostram um deslocamento grande em 30 dias (mediana dos últimos 12 dias
+    # contra a mediana de 30 a 42 dias atrás), a média móvel tem de mostrar o mesmo sentido e ao menos
+    # 60% do tamanho. Quem mais se moveu é escolhido pelo dado, não por nome.
+    mov = page.evaluate("""() => { const out = {}, med = a => { a = a.slice().sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; };
+        for (const n of OITO) { const pts = serieDe(n);
+            const rec = pts.filter(p => p.t > T1 - 12 * 864e5).map(p => p.v), ant = pts.filter(p => p.t > T1 - 42 * 864e5 && p.t <= T1 - 30 * 864e5).map(p => p.v);
+            if (rec.length < 3 || ant.length < 3) continue;
+            const p = posicao(n); out[n] = {bruto: med(rec) - med(ant), media: p && p.delta != null ? p.delta : null, nRec: rec.length, nAnt: ant.length}; }
+        return out; }""")
+    quem = max(mov, key=lambda n: abs(mov[n]["bruto"])) if mov else None
+    m = mov.get(quem) if quem else None
+    grande = m is not None and abs(m["bruto"]) >= 3
+    ok = (not grande) or (m["media"] is not None and (m["media"] > 0) == (m["bruto"] > 0) and abs(m["media"]) >= 0.6 * abs(m["bruto"]))
+    check("a média não achata movimento real: quem mais se moveu nas rodadas brutas move a média no mesmo sentido, ao menos 60%",
+          ok, {"quem": quem, **({k: (round(v, 2) if isinstance(v, float) else v) for k, v in m.items()} if m else {})})
     # o gráfico da home e a legenda-placar precisam mostrar o mesmo número (bug: o gráfico da home
     # ficou na média antiga quando a agregação entrou, e dizia 33,8% onde a legenda dizia 33,4%)
     page.goto(URL + "#geral")
