@@ -50,6 +50,7 @@ CURADOS = [
     ("RJ", "deputado estadual", "INÊS BRASIL", "B"),
     ("RJ", "deputado estadual", "MC SMITH", "B"),
     ("RJ", "deputado estadual", "CONRADO", "B"),
+    ("RJ", "deputado estadual", "WESLEY TEIXEIRA", "B"),
     # --- Rio de Janeiro, deputado federal ---
     ("RJ", "deputado federal", "CHICO ALENCAR", "A"),
     ("RJ", "deputado federal", "TALÍRIA PETRONE", "A"),
@@ -69,6 +70,7 @@ CURADOS = [
     ("RJ", "deputado federal", "ANDREA SORVETÃO", "B"),
     ("RJ", "deputado federal", "CRISTINA MEL", "B"),
     ("RJ", "deputado federal", "DARLAN PRAXEDES", "B"),
+    ("RJ", "deputado federal", "ELIAS JABBOUR", "B"),
     # --- São Paulo, deputado estadual ---
     ("SP", "deputado estadual", "ANA CAROLINA SERRA", "A"),
     ("SP", "deputado estadual", "CARLA MORANDO", "A"),
