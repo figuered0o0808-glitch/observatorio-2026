@@ -18,7 +18,6 @@
 name: Atualizar o mural
 
 on:
-  workflow_dispatch:
   schedule:
     # 8h e 20h de Brasília (UTC-3); a Wikimedia fecha a véspera por volta das 6h UTC.
     # São duas entradas, e não '0 11,23', porque github.event.schedule devolve a entrada inteira:

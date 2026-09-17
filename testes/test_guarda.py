@@ -103,6 +103,12 @@ class Repositorio:
                                os.path.join(RAIZ, "testes", "fixtures", "wikipedia",
                                             "pesquisas-estados-wiki-2026-09-02.csv.gz"))
         self._recorte_csv("dados/estados/pesquisas-estados-wiki.csv", lambda l, h: l[h.index("uf")] == "PA")
+        # Desde 17/9/2026 o parser recua o ano dessas linhas (pesquisa de dezembro de 2025 sem ano na
+        # célula), e a fixture congelada as traz certas, em 2025. O cenário "HEAD já tem data futura por
+        # erro da página e ela não pode virar linha nova ao deslocar a tabela" continua valendo, então o
+        # erro é reproduzido aqui de propósito, nas mesmas seis linhas, em vez de depender de a fixture
+        # estar errada.
+        self._envelhecer_ano("dados/estados/pesquisas-estados-wiki.csv", minimo=6)
         # HEAD do teste não pode conter os dias que os cenários vão acrescentar: a coleta automática
         # já traz ontem e anteontem, e a linha "nova" do teste viraria chave duplicada (7/9/2026)
         limite = (hoje_do_teste() - dt.timedelta(days=3)).isoformat()
@@ -120,6 +126,17 @@ class Repositorio:
         git(self.pasta, "init", "-q")
         git(self.pasta, "add", "-A")
         git(self.pasta, "commit", "-q", "-m", "recorte para o teste do guarda")
+
+    def _envelhecer_ano(self, rel, minimo):
+        """Reproduz o erro de ano da Wikipédia: pesquisas do fim de 2025 datadas em 2026."""
+        cab, linhas = ler_csv_bytes(self.ler(rel))
+        ci, cf = cab.index("campo_inicio"), cab.index("campo_fim")
+        n = 0
+        for l in linhas:
+            if l[cf].startswith(("2025-11", "2025-12")):
+                l[ci] = "2026" + l[ci][4:]; l[cf] = "2026" + l[cf][4:]; n += 1
+        assert n >= minimo, (rel, n)
+        self.escrever(rel, csv_bytes(cab, linhas))
 
     def _copiar_congelado(self, rel, origem_gz):
         import gzip
