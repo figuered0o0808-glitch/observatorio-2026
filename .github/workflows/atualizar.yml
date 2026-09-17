@@ -372,6 +372,8 @@ jobs:
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
           cp mural/logo/mural-favicon.ico site/favicon.ico
           cp privacidade.html site/privacidade.html
+          # o domínio próprio junto do artefato, pelo mesmo motivo comentado em publicar.yml
+          cp CNAME site/CNAME
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
           touch site/.nojekyll
 

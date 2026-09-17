@@ -69,6 +69,11 @@ jobs:
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
           cp mural/logo/mural-favicon.ico site/favicon.ico
           cp privacidade.html site/privacidade.html
+          # O domínio próprio vai junto do artefato. Publicando por Actions não existe branch de
+          # onde o Pages leia o CNAME, e artefato sem ele é o jeito conhecido de o domínio se
+          # perder numa publicação; quando isso acontece o certificado cai junto e o site volta a
+          # atender em http, que é o navegador dizendo "não seguro".
+          cp CNAME site/CNAME
           # a carga protegida só entra no site enquanto o bucket privado do Supabase não estiver
           # configurado; com MURAL_CARGA_URL apontando para storage:, ela deixa de ser servida aqui
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
