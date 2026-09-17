@@ -67,6 +67,7 @@ jobs:
           mkdir -p site/mural/logo
           cp index.html site/index.html
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          cp mural/logo/mural-favicon.ico site/favicon.ico
           cp privacidade.html site/privacidade.html
           # a carga protegida só entra no site enquanto o bucket privado do Supabase não estiver
           # configurado; com MURAL_CARGA_URL apontando para storage:, ela deixa de ser servida aqui

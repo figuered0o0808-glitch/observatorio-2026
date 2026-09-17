@@ -370,6 +370,7 @@ jobs:
           mkdir -p site/mural/logo
           cp index.html site/index.html
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
+          cp mural/logo/mural-favicon.ico site/favicon.ico
           cp privacidade.html site/privacidade.html
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
           touch site/.nojekyll
