@@ -371,6 +371,9 @@ jobs:
           cp index.html site/index.html
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
           cp mural/logo/mural-favicon.ico site/favicon.ico
+          # os ícones da guia e da busca como arquivo, pelo motivo comentado em publicar.yml
+          cp mural/logo/mural-icone.svg mural/logo/mural-favicon-32.png \
+             mural/logo/mural-icone-192.png mural/logo/mural-icone-180.png site/mural/logo/
           cp privacidade.html site/privacidade.html
           # o domínio próprio junto do artefato, pelo mesmo motivo comentado em publicar.yml
           cp CNAME site/CNAME

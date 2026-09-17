@@ -18,7 +18,8 @@ on:
       - privacidade.html
       - mural/_privacidade.html
       - notas/organizacao.json
-      - mural/logo/mural-og-1200x630.png
+      - mural/logo/**
+      - CNAME
       - .github/workflows/publicar.yml
   workflow_dispatch:
 
@@ -68,6 +69,10 @@ jobs:
           cp index.html site/index.html
           cp mural/logo/mural-og-1200x630.png site/mural/logo/
           cp mural/logo/mural-favicon.ico site/favicon.ico
+          # Os ícones da guia e da busca vão como arquivo, porque buscador só usa ícone que
+          # consegue rastrear numa URL; embutido em data: ele não busca.
+          cp mural/logo/mural-icone.svg mural/logo/mural-favicon-32.png \
+             mural/logo/mural-icone-192.png mural/logo/mural-icone-180.png site/mural/logo/
           cp privacidade.html site/privacidade.html
           # O domínio próprio vai junto do artefato. Publicando por Actions não existe branch de
           # onde o Pages leia o CNAME, e artefato sem ele é o jeito conhecido de o domínio se
