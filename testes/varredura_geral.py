@@ -88,21 +88,17 @@ with sync_playwright() as p:
     novos = [e for e in errs if ruim(e)]
     check(f"varredura de {len(por_combo)} combinações estado/cargo sem novo erro de console", len(novos) == 0, novos[:10])
 
-    # cada estado mostra exatamente os cargos que tem: dois nos 25, quatro no Rio e em São Paulo
+    # cada estado mostra exatamente as mesmas duas disputas: governo e Senado. Deputado estadual
+    # e federal saíram do site em 17/9/2026 (a pedido do Francisco); os dados e coletores
+    # continuam no repositório, só não entram na geração do mural.
     cargos_por_uf = page.evaluate("(ufs) => Object.fromEntries(ufs.map(u => [u, cargosDe(u)]))", ufs)
-    esperado = {"RJ": ["governador", "senador", "depfed", "depest"], "SP": ["governador", "senador", "depfed", "depest"]}
-    fora = {u: c for u, c in cargos_por_uf.items() if c != esperado.get(u, ["governador", "senador"])}
-    check("RJ e SP com quatro disputas, os outros 25 estados com duas", not fora, fora)
+    fora = {u: c for u, c in cargos_por_uf.items() if c != ["governador", "senador"]}
+    check("os 27 estados com as mesmas duas disputas (governo e Senado)", not fora, fora)
     # o seletor desenhado bate com a lista de cargos, e a troca de cargo nunca cai noutro
-    seletor = [(k, v) for k, v in por_combo.items()
-               if v["botoes"] != cargos_por_uf[k.rsplit("-", 1)[0] if k.rsplit("-", 1)[1] not in ("depfed", "depest") else k.split("-")[0]]]
+    seletor = [(k, v) for k, v in por_combo.items() if v["botoes"] != cargos_por_uf[k.rsplit("-", 1)[0]]]
     check("o seletor de disputa traz um botão por cargo do estado", not seletor, seletor[:4])
     trocou = [(k, v["cargoAtivo"]) for k, v in por_combo.items() if not k.startswith(v["cargoAtivo"]) and not k.endswith(v["cargoAtivo"])]
     check("trocar de disputa leva ao cargo pedido, em todos os estados", not trocou, trocou[:4])
-    # deputado é proporcional: entra com ficha do TSE, nunca com pesquisa
-    dep = {k: v for k, v in por_combo.items() if k.endswith("depfed") or k.endswith("depest")}
-    check("as quatro disputas de deputado listam candidatura", len(dep) == 4 and all(v["cards"] > 0 for v in dep.values()),
-          {k: v["cards"] for k, v in dep.items()})
 
     # segundo turno só deve abrir sozinho para governador com dados de 2º turno
     problema_2t = []

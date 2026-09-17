@@ -881,174 +881,6 @@ with sync_playwright() as p:
     check("compartilhar sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
-    # ---- deputado estadual e federal em RJ e SP: ficha do TSE, sem inventar pesquisa (9/9/2026)
-    b, page, errs = novo_ctx(p)
-    page.goto(URL + "#uf-rj-federal-candidatos")
-    page.wait_for_timeout(1200)
-    dep = page.evaluate("""() => ({
-        uf: ufAtual, cargo: ufCargo, aba: abaAtual,
-        cargos: cargosDe('RJ'), cargosAC: cargosDe('AC'),
-        botoes: [...document.querySelectorAll('#ufb-cargos button')].map(b => b.textContent),
-        cards: document.querySelectorAll('#e-wall .card').length,
-        lista: candsDe('RJ','depfed').length,
-        cat: [...document.querySelectorAll('#e-cat button')].map(b => b.dataset.cat),
-        sub: document.querySelector('#e-sub-cand').textContent,
-        rodadas: rodadasDe('RJ','depfed').length,
-        lider: liderDe('RJ','depfed'),
-        vazio: (document.querySelector('#e-ch-corrida') || {}).textContent || '',
-    })""")
-    check("a URL de deputado federal abre o Rio na disputa certa",
-          dep["uf"] == "RJ" and dep["cargo"] == "depfed" and dep["aba"] == "e-candidatos", dep["uf"] + "/" + dep["cargo"])
-    check("RJ tem quatro disputas e um estado sem deputado continua com duas",
-          dep["cargos"] == ["governador", "senador", "depfed", "depest"] and dep["cargosAC"] == ["governador", "senador"],
-          {"RJ": dep["cargos"], "AC": dep["cargosAC"]})
-    check("o seletor de disputa mostra os quatro botões do Rio",
-          dep["botoes"] == ["Governo", "Senado", "Dep. federal", "Dep. estadual"], dep["botoes"])
-    check("a editoria Candidatos lista as candidaturas curadas do cargo",
-          dep["cards"] == dep["lista"] and dep["cards"] > 0, {"cards": dep["cards"], "lista": dep["lista"]})
-    check("o filtro de perfil aparece na lista curada", dep["cat"] == ["todas", "A", "B"], dep["cat"])
-    check("o texto da lista diz que o grupo é curado, não o registro inteiro",
-          "não é o registro inteiro" in dep["sub"].lower(), dep["sub"][:100])
-    # proporcional não tem pesquisa nominal: nada de rodada, nada de líder, e o vazio explica por quê
-    check("deputado não tem rodada nem líder de pesquisa", dep["rodadas"] == 0 and dep["lider"] is None,
-          {"rodadas": dep["rodadas"], "lider": dep["lider"]})
-    check("o lugar da pesquisa explica que a disputa é proporcional",
-          "proporcional" in dep["vazio"], dep["vazio"][:100])
-    # o dossiê de um deputado abre com a ficha certa e sem linha de vice
-    page.click("#e-cat button[data-cat='A']")
-    page.wait_for_timeout(250)
-    slug = page.evaluate("candsDe('RJ','depfed').filter(c=>c.cat==='A')[0].slug")
-    page.click(f"[data-edossie='{slug}']")
-    page.wait_for_timeout(500)
-    dz = page.evaluate("""() => { const d = document.querySelector('#dossie .dz'); if (!d) return null;
-        const kv = {}; for (const e of d.querySelectorAll('.kv > div')) kv[e.querySelector('span').textContent] = e.querySelector('b').textContent;
-        return {kv, txt: d.textContent}; }""")
-    check("o dossiê do deputado abre", dz is not None)
-    check("a linha Disputa diz o cargo do deputado, não governo",
-          dz and dz["kv"].get("Disputa") == "Câmara dos Deputados", dz["kv"].get("Disputa") if dz else None)
-    check("o dossiê de deputado não traz linha de vice nem de suplentes",
-          dz and "Vice" not in dz["kv"] and "Suplentes" not in dz["kv"], list(dz["kv"]) if dz else None)
-    check("o dossiê de deputado cita a consulta de 7/9 e a curadoria",
-          dz and "7/9/2026" in dz["txt"] and "curadoria" in dz["txt"], None)
-    # a curadoria não pode contaminar as contagens que falam do registro inteiro
-    cont = page.evaluate("""() => ({
-        gov: UF.RJ.gov.length, sen: UF.RJ.sen.length,
-        depfed: (UF.RJ.depfed||[]).length, depest: (UF.RJ.depest||[]).length,
-        partidos: (() => { const t = [...UF.RJ.gov, ...UF.RJ.sen]; return new Set(t.map(c => c.partido)).size; })(),
-        todos: todosUF(UF.RJ).length,
-    })""")
-    check("os 75 curados entram nas listas de deputado, não nas de governo e Senado",
-          cont["depfed"] + cont["depest"] > 0 and cont["todos"] == cont["gov"] + cont["sen"] + cont["depfed"] + cont["depest"],
-          cont)
-    # o caminho até os deputados: atalho na primeira tela, no rodapé e o rótulo com a palavra
-    # "deputado" nos botões (a primeira versão escondia tudo atrás de "Câmara" e "Assembleia")
-    page.goto(URL)
-    page.wait_for_timeout(900)
-    atalhos = page.evaluate("""() => ({
-        home: (document.querySelector('#home-dep') || {}).textContent || '',
-        homeVisivel: !!document.querySelector('#home-dep') && !document.querySelector('#home-dep').hidden,
-        homeHref: (document.querySelector('#home-dep') || {}).getAttribute ? document.querySelector('#home-dep').getAttribute('href') : null,
-        rodape: [...document.querySelectorAll('#foot-deputados a')].map(a => a.textContent),
-    })""")
-    check("a primeira tela tem atalho para a cobertura de deputado",
-          atalhos["homeVisivel"] and "eputado" in atalhos["home"] and "-federal-" in (atalhos["homeHref"] or ""),
-          atalhos["home"])
-    check("o rodapé lista os atalhos de deputado por estado",
-          len(atalhos["rodape"]) == 4 and all("eputado" in t for t in atalhos["rodape"]), atalhos["rodape"])
-    for larg in (390, 768, 1280):
-        page.set_viewport_size({"width": larg, "height": 900})
-        page.goto(URL + "#uf-rj-federal-candidatos")
-        page.wait_for_timeout(900)
-        barra = page.evaluate("""() => ({
-            bt: [...document.querySelectorAll('#ufb-cargos button')].map(b => b.textContent),
-            h: Math.round(document.querySelector('.ufb-top').getBoundingClientRect().height),
-            sw: document.documentElement.scrollWidth, win: innerWidth })""")
-        check(f"a {larg}px o seletor tem as quatro disputas do Rio, numa linha de 44px, sem rolagem lateral",
-              barra["bt"] == ["Governo", "Senado", "Dep. federal", "Dep. estadual"]
-              and barra["h"] == 44 and barra["sw"] <= barra["win"], barra)
-    page.set_viewport_size({"width": 1400, "height": 900})
-    # busca e verbete dos deputados: a metodologia das majoritárias aplicada ao grupo curado
-    page.goto(URL + "#uf-rj-federal-busca")
-    page.wait_for_timeout(1200)
-    busca = page.evaluate("""() => {
-        const out = {};
-        for (const [uf, cargo] of [['RJ','depfed'],['RJ','depest'],['SP','depfed'],['SP','depest']]) {
-            const B = UF[uf].busca || {}, c = candsDe(uf, cargo);
-            const ab = c.filter(x => x.cat === 'A' || x.cat === 'B');
-            out[uf + '-' + cargo] = {n: c.length,
-                tr: c.filter(x => B.tr && B.tr[x.slug]).length,
-                wk: c.filter(x => B.wk && B.wk[x.slug]).length,
-                nAB: ab.length,
-                trAB: ab.filter(x => B.tr && B.tr[x.slug]).length,
-                wkAB: ab.filter(x => B.wk && B.wk[x.slug]).length};
-        }
-        return {por: out, nCand: candsDe(ufAtual, ufCargo).length,
-                cap: document.querySelector('#e-cap-trends').textContent,
-                sub: document.querySelector('#e-sub-busca').textContent}; }""")
-    # O corte de 70% vale para quem a coleta de busca já cobriu, isto é, a curadoria de imprensa
-    # (categorias A e B). Em 10/9 a lista ganhou 47 nomes vindos da pesquisa do RJ (categoria C),
-    # e coleta de Trends depende de navegador, então esses entram sem série. Medir os dois grupos
-    # com a mesma régua confundiria "deixamos de coletar" com "acabou de entrar", e a régua única
-    # só passaria se eu parasse de acrescentar nome, que é o contrário do que o mural quer.
-    # O que não pode é o mural mostrar um gráfico ralo sem dizer: por isso o denominador é cobrado
-    # logo abaixo, e some quando a coleta alcançar os nomes novos.
-    magros = {k: v for k, v in busca["por"].items()
-              if v["nAB"] and (v["trAB"] < 0.7 * v["nAB"] or v["wkAB"] < 0.7 * v["nAB"])}
-    check("nas quatro disputas, quem a coleta de busca já alcançou continua com série e verbete",
-          not magros, magros or busca["por"])
-    pend = {k: v["n"] - v["tr"] for k, v in busca["por"].items() if v["n"] - v["tr"] > 0}
-    check("a legenda diz de quantos nomes é a série, e avisa quantos ainda faltam",
-          ("de %d nomes" % busca["nCand"]) in busca["sub"]
-          and (not pend or "Faltam" in busca["sub"]), {"sub": busca["sub"][:150], "pendentes": pend})
-    check("a editoria de busca do deputado deixou de ser um vazio",
-          "ainda não entrou" not in busca["sub"], busca["sub"][:90])
-    # a âncora do gráfico é a real, a que reescala os lotes, não o primeiro da lista
-    check("o gráfico de busca nomeia a âncora que a reescala usou",
-          "Chico Alencar" in busca["cap"], busca["cap"][:110])
-    check("deputados sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
-    b.close()
-
-    # ---- pesquisa de deputado: lembrança não pode virar intenção de voto (10/9/2026)
-    # A disputa proporcional não tem pesquisa por nome com percentual. O que existe no RJ é UMA
-    # rodada que publica quem foi lembrado espontaneamente, em ordem alfabética, sem número. O
-    # risco desta seção não é sumir: é aparecer parecendo o painel das majoritárias e o leitor
-    # concluir que fulano "está na frente". Por isso o teste cobra o rótulo junto do selo.
-    b, page, errs = novo_ctx(p)
-    page.goto(URL)
-    page.wait_for_timeout(900)
-    cit = page.evaluate("""() => {
-        trocarEscopo('uf');
-        const out = {};
-        for (const [uf, cargo] of [['RJ','depest'],['RJ','depfed'],['SP','depest'],['SP','depfed']]) {
-            const l = (UF[uf] && UF[uf][cargo]) || [];
-            out[uf+'-'+cargo] = {total: l.length, citados: l.filter(c => c.cit).length};
-        }
-        const um = ((UF.RJ.depfed)||[]).find(c => c.cit);
-        out.ficha = um ? citFicha(um.cit) : "";
-        out.pct = um ? (um.cit.percentual || null) : "sem candidato citado";
-        return out;
-    }""")
-    check("a pesquisa do RJ chega aos dois cargos de deputado, e São Paulo não inventa citação",
-          cit["RJ-depest"]["citados"] > 0 and cit["RJ-depfed"]["citados"] > 0
-          and cit["SP-depest"]["citados"] == 0 and cit["SP-depfed"]["citados"] == 0, cit)
-    check("nenhum citado carrega percentual: a pesquisa não publica percentual",
-          cit["pct"] in (None, ""), cit["pct"])
-    check("a ficha da pesquisa vai junto do selo, com registro no TSE, campo e o aviso de que não há percentual",
-          "RJ-02770/2026" in cit["ficha"] and "sem percentual publicado" in cit["ficha"]
-          and "espontânea" in cit["ficha"], cit["ficha"][:150])
-    # e o dossiê tem de dizer em palavras o que o selo não é
-    page.evaluate("""() => { trocarEscopo('uf'); trocarUF('RJ'); trocarCargoUF('depfed'); }""")
-    page.wait_for_timeout(300)
-    alvo = page.evaluate("""() => { const c = (UF.RJ.depfed||[]).find(x => x.cit); return c ? c.slug : ""; }""")
-    if alvo:
-        page.evaluate("s => openDossieUF(s)", alvo)
-        page.wait_for_timeout(500)
-        txt = page.evaluate("() => (document.querySelector('.citbox') || {textContent: ''}).textContent")
-        check("o dossiê de quem foi citado diz, em palavras, que aquilo não é intenção de voto",
-              "Não é intenção de voto" in txt and "mais lembrados" in txt
-              and "RJ-02770/2026" in txt, txt[:120])
-    check("deputados com pesquisa sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
-    b.close()
 
     # ---- cadastro: a Visão geral é de todo mundo, o resto pede conta (10/9/2026)
     # A trava só é real porque a carga protegida não está na página pública. Estes checks olham
@@ -1069,7 +901,7 @@ with sync_playwright() as p:
           "%" in pub["manchete"] and "undefined" not in pub["manchete"], pub["manchete"])
     # O check que importa é a coerência entre as duas metades da trava, não um número fixo.
     # A versão anterior exigia estados == 0 na página publicada e passou verde enquanto o mural
-    # no ar estava sem estados nem deputados, porque sem chave ninguém hidrata o que foi tirado
+    # no ar estava sem estados, porque sem chave ninguém hidrata o que foi tirado
     # (10/9/2026). Dividir a carga e trancar a página são a mesma decisão: se discordarem, o
     # visitante perde metade do mural sem nem saber que existe cadastro.
     check("dividir a carga e trancar a página são a mesma decisão, nunca duas",
@@ -1085,14 +917,14 @@ with sync_playwright() as p:
         aberto = page.evaluate("""() => {
             trocarEscopo('uf');
             const out = {};
-            for (const [uf, cargo] of [['RJ','depest'],['RJ','depfed'],['SP','depest'],
-                                       ['SP','depfed'],['MG','governador'],['BA','senador']]) {
+            for (const [uf, cargo] of [['RJ','governador'],['RJ','senador'],['SP','governador'],
+                                       ['SP','senador'],['MG','governador'],['BA','senador']]) {
                 trocarUF(uf); trocarCargoUF(cargo);
                 out[uf+'-'+cargo] = document.querySelectorAll('#e-wall .card').length;
             }
             return out;
         }""")
-        check("sem trava, a página publicada mostra candidatura em toda disputa, deputado incluído",
+        check("sem trava, a página publicada mostra candidatura em toda disputa",
               all(n > 0 for n in aberto.values()), aberto)
     pol = (_P(__file__).resolve().parent.parent / "privacidade.html")
     check("a política de privacidade é gerada e o rodapé leva até ela",

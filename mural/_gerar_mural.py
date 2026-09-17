@@ -283,9 +283,16 @@ def pesquisa_dep():
         }
     return fora
 
+# Deputado estadual e federal saiu do site em 17/9/2026, a pedido do Francisco. O que sai é só a
+# publicação: a lista curada, a varredura do TSE, a pesquisa de lembrança e os coletores continuam
+# todos no repositório, e o leitor deste arquivo continua lendo. Virar isto para True devolve as
+# quatro disputas em RJ e SP sem mais nenhuma mudança: o seletor de disputa, o rodapé, o atalho da
+# capa e o parágrafo do Método saem todos da presença dessas listas, não de um "se é RJ".
+DEPUTADOS_NO_MURAL = False
+
 PESQ_DEP = pesquisa_dep()
 
-for c in ler_dep():
+for c in (ler_dep() if DEPUTADOS_NO_MURAL else []):
     u = ufs.get(c["uf"])
     if u is None:                      # estado sem ficha estadual: não se inventa um
         print("aviso: deputados de", c["uf"], "sem estado correspondente, linha ignorada")

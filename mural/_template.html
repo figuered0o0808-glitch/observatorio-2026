@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mural dos Candidatos</title>
-<meta name="description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis, das 510 candidaturas a governador e senador e dos principais nomes a deputado no Rio e em São Paulo. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
+<meta name="description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis e das 510 candidaturas a governador e senador nos 27 estados. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
 <meta name="theme-color" content="#F5F5F2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1013" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://muraldoscandidatos.com/">
@@ -16,12 +16,12 @@
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Mural dos Candidatos">
 <meta property="og:title" content="Mural dos Candidatos · Eleições 2026">
-<meta property="og:description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis, das 510 candidaturas a governador e senador e dos principais nomes a deputado no Rio e em São Paulo. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
+<meta property="og:description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis e das 510 candidaturas a governador e senador nos 27 estados. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
 <meta property="og:url" content="https://muraldoscandidatos.com/">
 <meta property="og:image" content="https://muraldoscandidatos.com/mural/logo/mural-og-1200x630.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mural dos Candidatos · Eleições 2026">
-<meta name="twitter:description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis, das 510 candidaturas a governador e senador e dos principais nomes a deputado no Rio e em São Paulo. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
+<meta name="twitter:description" content="Pesquisas, busca, redes e ficha do TSE dos treze presidenciáveis e das 510 candidaturas a governador e senador nos 27 estados. Nenhum número sem data e fonte. Observatório do desempenho dos candidatos, da INDICA.">
 <meta name="twitter:image" content="https://muraldoscandidatos.com/mural/logo/mural-og-1200x630.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1281,7 +1281,7 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 <section class="view" id="v-e-busca" role="tabpanel" data-title="Busca e redes do estado">
   <div class="blkhead"><span class="eyebrow">Coleta própria</span><h2 class="t display" id="e-t-busca">Busca e redes</h2></div>
   <p class="sub" id="e-sub-busca"></p>
-  <details class="howto"><summary>Como ler</summary><p>O Google Trends mede interesse de busca dentro do próprio estado (geografia BR-UF), em índice de 0 a 100 relativo ao pico da consulta; a linha é a média móvel de 7 dias e os pontos são o valor diário, que em disputas estaduais costuma ser esparso, com muitos zeros. Cada consulta compara até cinco nomes; os lotes de uma mesma disputa são ancorados por um nome que entra em todos eles, o que torna as escalas comparáveis mas não idênticas. Nas disputas de governo e Senado a âncora é o líder da última pesquisa; em deputado, que não tem pesquisa nominal, ela é escolhida à mão entre os nomes de busca estável, e está dita embaixo do gráfico. Nomes comuns ("Fábio", "Renan", "Marina") captam buscas por homônimos e vêm marcados. Os acessos à Wikipédia são diários e só existem para quem tem verbete; o verbete usado aparece no tooltip. Seguidores no Instagram são o número exato lido no perfil público informado ao TSE, na data indicada.</p></details>
+  <details class="howto"><summary>Como ler</summary><p>O Google Trends mede interesse de busca dentro do próprio estado (geografia BR-UF), em índice de 0 a 100 relativo ao pico da consulta; a linha é a média móvel de 7 dias e os pontos são o valor diário, que em disputas estaduais costuma ser esparso, com muitos zeros. Cada consulta compara até cinco nomes; os lotes de uma mesma disputa são ancorados por um nome que entra em todos eles, o que torna as escalas comparáveis mas não idênticas. Nas disputas de governo e Senado a âncora é o líder da última pesquisa. Nomes comuns ("Fábio", "Renan", "Marina") captam buscas por homônimos e vêm marcados. Os acessos à Wikipédia são diários e só existem para quem tem verbete; o verbete usado aparece no tooltip. Seguidores no Instagram são o número exato lido no perfil público informado ao TSE, na data indicada.</p></details>
   <div class="panel main"><div class="ph"><h3 id="e-h-trends">Buscas no Google dentro do estado</h3><span class="cap" style="margin:0" id="e-cap-trends"></span></div><div id="e-ch-trends"></div><div class="chips legenda" id="e-f-trends"></div></div>
   <div class="grid2">
     <div class="panel"><div class="ph"><h3>Acessos ao verbete na Wikipédia</h3><span class="cap" style="margin:0" id="e-cap-wiki"></span></div><div id="e-ch-wiki"></div></div>
@@ -2804,7 +2804,6 @@ function renderConta(){
     const criar=telaConta==="criar";
     corpo=`${criar?`<ul class="vantagens">
         <li>As 27 disputas de governo e Senado, com todas as pesquisas de cada estado</li>
-        <li>Deputado federal e estadual no Rio e em São Paulo</li>
         <li>Busca no Google, Wikipédia e redes, nome a nome</li>
         <li>Comparador lado a lado, dossiê de cada candidatura e exportação em planilha</li>
       </ul>`:""}
@@ -3526,10 +3525,10 @@ function drawMetodoUF(){
     return `<tr${k===ufAtual?' style="font-weight:600"':''}><td><a href="#" data-goto-uf="${k}">${esc(u.nome)}</a></td><td class="tot">${ok.filter(Boolean).length}/${ok.length}</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(ABR[i])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
   const nR=Object.values(UF).reduce((s,u)=>s+u.rodadas.length,0), nI=new Set(Object.values(UF).flatMap(u=>u.rodadas.map(r=>r.inst))).size, nReg=Object.values(UF).reduce((s,u)=>s+u.rodadas.filter(r=>r.reg).length,0), n2=Object.values(UF).reduce((s,u)=>s+(u.rodadas2||[]).length,0);
   $("#e-notes").innerHTML=`<p><b>Candidaturas.</b> Todas as 510 candidaturas a governo e Senado dos 27 estados vêm da API pública do TSE DivulgaCandContas (eleição 20322002026), consultada em 2 de setembro de 2026: nome de urna, nome completo, número, partido, coligação e situação do registro. A situação muda enquanto os tribunais julgam, então ela é relida a cada rodada de coleta.</p>
-<p><b>Deputado federal e estadual.</b> ${(()=>{const D=Object.entries(UF).filter(([k,u])=>(u.depfed||[]).length||(u.depest||[]).length);
-  if(!D.length)return "Ainda fora desta edição.";
+${(()=>{const D=Object.entries(UF).filter(([k,u])=>(u.depfed||[]).length||(u.depest||[]).length);
+  if(!D.length)return "";   // sem lista de deputado, o parágrafo inteiro não existe
   const n=D.reduce((s,[k,u])=>s+(u.depfed||[]).length+(u.depest||[]).length,0);
-  return `${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga. O que existe além da ficha é busca e verbete: ${(()=>{const T=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).tr&&u.busca.tr[x.slug]).length,0),0),W=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).wk&&u.busca.wk[x.slug]).length,0),0);return `${T} com série no Google Trends dentro do estado e ${W} com verbete na Wikipédia conferido um a um`;})()}. Seguidores no Instagram ainda não, porque essa leitura depende de navegador com sessão aberta e não roda na coleta automática.`;})()}</p>
+  return `<p><b>Deputado federal e estadual.</b> ${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga. O que existe além da ficha é busca e verbete: ${(()=>{const T=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).tr&&u.busca.tr[x.slug]).length,0),0),W=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).wk&&u.busca.wk[x.slug]).length,0),0);return `${T} com série no Google Trends dentro do estado e ${W} com verbete na Wikipédia conferido um a um`;})()}. Seguidores no Instagram ainda não, porque essa leitura depende de navegador com sessão aberta e não roda na coleta automática.</p>`;})()}
 <p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, mais ${n2} confrontos de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base; ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o que mais coincide com as candidaturas registradas; os demais ficam no seletor de cenário. Rodadas de institutos diferentes nunca são somadas nem ponderadas; a média móvel de cada candidato é só um guia de leitura.</p>
 <p><b>O que ainda falta.</b> Número de registro no TSE, modo de coleta e contratante da maior parte das rodadas, que a compilação não traz e que entram conforme as fichas forem localizadas; eventos de campanha por estado; série diária de seguidores, que começa nesta edição; TikTok e YouTube por candidato estadual. A rotina diária das 8h e das 20h passa a cobrir os estados na mesma varredura.</p>
 <p><b>Busca e redes.</b> ${(()=>{const T=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).tr||{}).length,0),W=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).wk||{}).length,0),I=Object.values(UF).reduce((s,u)=>s+Object.values((u.busca||{}).ig||{}).filter(x=>x.n!=null).length,0),H=Object.values(UF).reduce((s,u)=>s+[...u.gov,...u.sen].filter(c=>c.ext&&c.ext.ig).length,0);return `Google Trends dentro de cada estado para as 510 candidaturas, em lotes de até cinco nomes ancorados pelo líder da última pesquisa: ${T} nomes com algum sinal de busca em 2026, o resto zerado pelo próprio Google. Verbete na Wikipédia localizado e conferido para ${W} candidaturas, com acessos diários desde janeiro. ${H} candidaturas informaram perfil de Instagram ao TSE e ${I} tiveram o número de seguidores lido no perfil público. Perfis, bens e vices vêm do detalhe de cada candidatura no DivulgaCandContas.`;})()}</p>
@@ -3558,8 +3557,7 @@ function trocarUF(k,push=true){
   drawUFSel(); renderLadoUFControls(); renderLadoUF(); desenharUF();
   if(push&&escopo==="uf")rotaUF();
 }
-// os dois seletores de disputa saem dos cargos do estado: dois botões nos 25 estados que só
-// têm governo e Senado, quatro no Rio e em São Paulo, que também têm deputado
+// os dois seletores de disputa saem dos cargos do estado, um botão por cargo que ele tem
 function renderCargoSeg(){
   const cs=cargosDe(ufAtual);
   const el=$("#ufb-cargos");
@@ -3609,12 +3607,11 @@ function montarRodape(){
   const bf=$("#brand-f");if(bf){const svg=$(".brand svg.mark").cloneNode(true);svg.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));svg.removeAttribute("role");svg.setAttribute("aria-hidden","true");bf.innerHTML="";bf.appendChild(svg);bf.insertAdjacentHTML("beforeend",`<span class="m2f">dos Candidatos</span>`);}
   $("#foot-editorias").innerHTML=ABAS_BR.map(([id,t])=>`<li><a href="#${id}">${esc(t)}</a></li>`).join("");
   $("#foot-estados").innerHTML=UFLIST.map(k=>`<li><a href="#uf-${k.toLowerCase()}-governo" title="${esc(UF[k].nome)}">${k}</a></li>`).join("");
-  // deputado ainda não existe em todo estado, então o atalho é montado a partir de quem tem
-  // o mesmo atalho na primeira tela, com os estados que já têm deputado
+  // o atalho de deputado se monta a partir dos estados que têm a lista: sem nenhuma, ele não existe
   const hd=$("#home-dep");
   if(hd&&TRAVA&&!temTudo()){   // sem a carga, o atalho vira convite em vez de sumir
     hd.hidden=false; hd.removeAttribute("href"); hd.style.cursor="pointer";
-    hd.textContent="Deputado, governo e Senado nos 27 estados: crie uma conta →";
+    hd.textContent="Governo e Senado nos 27 estados: crie uma conta →";
     hd.onclick=ev=>{ev.preventDefault();abrirConta("criar");};
   }else if(hd){const comDep=UFLIST.filter(k=>["depfed","depest"].some(c=>(UF[k][CARGOS[c].lista]||[]).length));
     hd.hidden=!comDep.length;
