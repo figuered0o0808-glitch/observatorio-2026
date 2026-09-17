@@ -45,6 +45,18 @@ def cargo_turno(path):
     turno = 2 if "segundo turno" in p or "2.o turno" in p or "2o turno" in p or "2º turno" in norm(p) else 1
     return cargo, turno
 
+import datetime as _dt
+def _hoje_brasilia():
+    try:
+        from zoneinfo import ZoneInfo
+        return _dt.datetime.now(ZoneInfo("America/Sao_Paulo")).date()
+    except Exception:
+        return (_dt.datetime.utcnow() - _dt.timedelta(hours=3)).date()
+import os as _os
+_HOJE = _dt.date.fromisoformat(_os.environ["PARSE_WIKI_HOJE"]) if _os.environ.get("PARSE_WIKI_HOJE") else _hoje_brasilia()
+LIMITE_FUTURO = (_HOJE + _dt.timedelta(days=1)).isoformat()
+RECUADAS = []
+
 def ano_de(path):
     for seg in path:
         m = re.search(r"\b(20\d\d)\b", seg)
@@ -146,6 +158,13 @@ def parse_page(titulo, texto):
         m_ano = re.search(r"\b(20\d\d)\b", dt)
         if m_ano: ano = int(m_ano.group(1))
         ini, fim = datas(dt, ano)
+        # Ano herdado da seção, não escrito na célula, e a data cai no futuro: é linha de tabela de 2025
+        # (ou anterior) que a página guarda sem repetir o ano em cada célula. Pesquisa não tem campo depois
+        # de hoje; recua um ano e registra. Foi isso que travou a rotina de 15 a 17/9/2026: 131 linhas
+        # com campo em outubro, novembro e dezembro de 2026, barradas com razão pelo guarda de dados.
+        if fim and not m_ano and fim > LIMITE_FUTURO:
+            ini, fim = datas(dt, ano - 1)
+            RECUADAS.append((uf, dt, fim))
         if not fim:
             FALHAS.append((uf, dt)); continue
         am = amostra(cells[cols["amostra"]]) if cols["amostra"] is not None and cols["amostra"] < len(cells) else ""
@@ -219,6 +238,9 @@ def main():
     print("total:", len(rows), "->", OUT)
     import collections
     print("datas não lidas:", len(FALHAS), collections.Counter(FALHAS).most_common(12))
+    if RECUADAS:
+        print("datas recuadas um ano por cair no futuro sem ano na célula:", len(RECUADAS),
+              collections.Counter((uf, fim[:4]) for uf, _, fim in RECUADAS).most_common(12))
 
 if __name__ == "__main__":
     main()

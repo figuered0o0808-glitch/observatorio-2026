@@ -179,7 +179,8 @@ class ParseWiki(Base):
             with open(entrada, "w", encoding="utf-8") as f:
                 json.dump(abrir_dump(DUMP), f, ensure_ascii=False)
             saida = os.path.join(d, "pesquisas-estados-wiki.csv")
-            r = subprocess.run([sys.executable, PARSE_WIKI, entrada, saida], capture_output=True, text=True, cwd=d)
+            amb = dict(os.environ, PARSE_WIKI_HOJE="2026-09-02")
+            r = subprocess.run([sys.executable, PARSE_WIKI, entrada, saida], capture_output=True, text=True, cwd=d, env=amb)
             self.assertEqual(r.returncode, 0, r.stderr)
             with open(saida, "rb") as f:
                 gerado = f.read()
