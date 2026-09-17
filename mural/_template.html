@@ -11,11 +11,14 @@
 <!-- Ícones como arquivo de verdade, não data: embutido. O Google só usa em resultado de busca
      um ícone que o robô consiga buscar numa URL, e data: URI ele não busca. Os arquivos ficam
      em mural/logo/ e os dois workflows copiam para o site. -->
-<link rel="icon" type="image/svg+xml" href="/mural/logo/mural-icone.svg">
+<!-- A ordem importa na prática: o Safari costuma ficar sem ícone nenhum quando o SVG vem
+     declarado primeiro, então o .ico e os PNG vêm na frente e o SVG fica por último, para
+     quem o prefere. -->
+<link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/mural/logo/mural-favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/mural/logo/mural-icone-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/mural/logo/mural-icone-180.png">
-<link rel="shortcut icon" href="/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/mural/logo/mural-icone.svg">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Mural dos Candidatos">
