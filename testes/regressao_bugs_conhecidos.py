@@ -802,17 +802,27 @@ with sync_playwright() as p:
             const m = agregarEm(sem, n2, SIG, t); AG.tetoCasa = guarda; return m; })();
         const inc = incertezaEm(rodadas2T(), n2, SIG, t, 'Lula', 'Flávio Bolsonaro');
         const m = agregarEm(rodadas2T(), n2, SIG, t);
+        // a correção entra rodada a rodada: dentro da janela de peso, quantas rodadas chegam com o
+        // valor ajustado (r.casa) e quanto esse ajuste moveu, em módulo e ponderado. Em módulo
+        // porque institutos com vieses opostos podem se anular na média sem que nada esteja errado
+        // (foi o que derrubou a rodada automática de 21/9/2026: corrigida 44,52 contra crua 44,54)
+        const p2 = pesosEm(rodadas2T(), n2, SIG, t), tot = p2.peso.reduce((a, b) => a + b, 0);
+        const crus = new Map(cru.map(r => [r.inst + '|' + r.t, r.v]));
+        let corrigidas = 0, moveu = 0;
+        p2.dentro.forEach((x, i) => { if (!x.r.casa || !(p2.peso[i] > 0)) return; corrigidas++;
+            const c = crus.get(x.r.inst + '|' + x.r.t); if (c && c['Lula'] != null && x.r.v['Lula'] != null) moveu += Math.abs(x.r.v['Lula'] - c['Lula']) * p2.peso[i] / tot; });
         return {gerp: marg('Gerp'), atlas: marg('AtlasIntel/Bloomberg'),
                 erro: inc.erro, parteCasa: inc.casa,
-                mediaL: m['Lula'], brutoL: bruto['Lula'],
+                mediaL: m['Lula'], brutoL: bruto['Lula'], corrigidas, moveu,
                 pontosCrus: DATA.polls2t.filter(p => p[0] === 'Gerp' && p[2] === 'Lula').map(p => p[3])};
     }""")
     check("o instituto que mede sempre para o mesmo lado é corrigido, e no sentido medido",
           casa["gerp"] is not None and casa["gerp"] < -1 and casa["atlas"] > 0.5,
           {"Gerp": casa["gerp"], "AtlasIntel": casa["atlas"]})
-    check("a correção de viés entra na média (o valor corrigido difere do cru)",
-          abs(casa["mediaL"] - casa["brutoL"]) > 0.05,
-          {"corrigida": round(casa["mediaL"], 2), "crua": round(casa["brutoL"], 2)})
+    check("a correção de viés entra na média: rodadas da janela chegam ajustadas e o ajuste tem peso",
+          casa["corrigidas"] >= 1 and casa["moveu"] > 0.05,
+          {"rodadas corrigidas na janela": casa["corrigidas"], "ajuste ponderado em módulo": round(casa["moveu"], 3),
+           "corrigida": round(casa["mediaL"], 2), "crua": round(casa["brutoL"], 2)})
     check("a incerteza soma o erro da própria estimativa do viés, e não fica estreita de mentira",
           casa["parteCasa"] is not None and casa["parteCasa"] > 0 and casa["erro"] > casa["parteCasa"],
           {"erro": round(casa["erro"], 2), "parte de viés": round(casa["parteCasa"], 2)})
