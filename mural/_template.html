@@ -2038,7 +2038,7 @@ function drawHome(){
   const ord=ORDEM(),dz=$("#duelo");
   if(dz&&ord.length>=2){const [A,B]=ord,gap=A.agora-B.agora;let emp=false;try{emp=empatam(rodadas1T(),OITO,SIG,Date.parse(ULT),A.nome,B.nome);}catch(e){}
     const lado=(q,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[q.nome]}"><span class="dl-nome"><i></i>${esc(curto(q.nome))}</span><span class="dl-num display tnum" data-v="${q.agora}">${fPct(q.agora)}<small>%</small></span><span class="dl-var">${q.delta!=null?(q.delta>=1?"▲ ":q.delta<=-1?"▼ ":"")+fmtDelta(q.delta)+" pts em 30 dias":"sem base há 30 dias"}</span></div>`;
-    dz.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(gap)}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(A.nome))+" à frente"}</span></div>`+lado(B,true);
+    dz.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(gap)}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(A.nome))+" à frente"}</span></div>`+lado(B,true);
     if(!drawHome._ja){drawHome._ja=true;contarDuelo();}}
   // ---- a linha dos dois da frente no bloco escuro, sem pontos: é a curva da marca virando dado
   if($("#ch-hero")){const base=(frente.length>=2?frente:nomes.slice(0,2)).map(mk).map(x=>({...x,r:0,lw:3,banda:null}));
@@ -2048,12 +2048,14 @@ function drawHome(){
 }
 // ---- segundo turno na capa (desde 21/9/2026): o mesmo placar dos dois da frente, com a média do confronto
 // e as simulações na janela da capa. Antes ele morava só num painel pequeno da editoria Pesquisas.
+// "1 ponto", "1,1 pontos": a concordância segue o número já formatado
+function pts(v){return fPct(Math.abs(+v))==="1"?"ponto":"pontos";}
 function texto2T(m2,inc){
   if(m2["Lula"]==null||m2["Flávio Bolsonaro"]==null||!inc)return "";
   const d=m2["Lula"]-m2["Flávio Bolsonaro"],frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
   return Math.abs(d)<inc.erro
     ? `<b>Empate técnico</b> na média: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média (${fPct(inc.erro)} ponto). Nenhum dos dois está à frente.`
-    : `Na média, <b>${esc(curto(frente))}</b> aparece ${fPct(Math.abs(d))} pontos à frente de ${esc(curto(atras))}, contra ${fPct(inc.erro)} de incerteza da média.`;
+    : `Na média, <b>${esc(curto(frente))}</b> aparece ${fPct(Math.abs(d))} ${pts(d)} à frente de ${esc(curto(atras))}, contra ${fPct(inc.erro)} de incerteza da média.`;
 }
 function drawHome2T(){
   const el=$("#p-home-2t");if(!el)return;
@@ -2065,7 +2067,7 @@ function drawHome2T(){
   if(m2["Lula"]!=null&&m2["Flávio Bolsonaro"]!=null){
     const d=m2["Lula"]-m2["Flávio Bolsonaro"],emp=!!inc&&Math.abs(d)<inc.erro,frente=d>=0?"Lula":"Flávio Bolsonaro";
     const lado=(n,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[n]}"><span class="dl-nome"><i></i>${esc(curto(n))}</span><span class="dl-num display tnum">${fPct(m2[n])}<small>%</small></span><span class="dl-var">média móvel de ${SIG} dias</span></div>`;
-    dz.innerHTML=lado("Lula",false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(d))}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(frente))+" à frente"}</span></div>`+lado("Flávio Bolsonaro",true);
+    dz.innerHTML=lado("Lula",false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(d))}<small>${pts(d)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(frente))+" à frente"}</span></div>`+lado("Flávio Bolsonaro",true);
   }else dz.innerHTML="";
   const linhas2=linhaAgregada(R,n2,SIG);
   const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:MOBILE?2.2:2.8,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
@@ -2750,7 +2752,7 @@ function msgsShare(){
     const frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
     out.push(["O segundo turno",emp
       ? `Segundo turno em empate técnico, ${dia}: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média.\n\nA conta de como a média é feita está no mural:\n${url}`
-      : `Segundo turno, ${dia}: ${curto(frente)} ${fPct(Math.max(m2["Lula"],m2["Flávio Bolsonaro"]))}% contra ${fPct(Math.min(m2["Lula"],m2["Flávio Bolsonaro"]))}% de ${curto(atras)}, ${fPct(Math.abs(d))} pontos de diferença na média das rodadas mais recentes.\n\nA conta está aberta no mural:\n${url}`]);
+      : `Segundo turno, ${dia}: ${curto(frente)} ${fPct(Math.max(m2["Lula"],m2["Flávio Bolsonaro"]))}% contra ${fPct(Math.min(m2["Lula"],m2["Flávio Bolsonaro"]))}% de ${curto(atras)}, ${fPct(Math.abs(d))} ${pts(d)} de diferença na média das rodadas mais recentes.\n\nA conta está aberta no mural:\n${url}`]);
   }
   const sobe=o.filter(p=>p.delta!=null).sort((a,b)=>b.delta-a.delta)[0];
   if(sobe&&sobe.delta>=1&&sobe.antes!=null)
@@ -3184,7 +3186,7 @@ function drawGeralUF(){
     const ed=$("#e-duelo");
     if(ed){if(l&&l.pts.length>=2){const [A,B]=l.pts,gap=A[4]-B[4],mg=+(l.r.margem||0),emp=mg>0&&Math.abs(gap)<2*mg;
         const lado=(q,dir)=>{const c=candPorSlug(q[5]);return `<div class="dl${dir?" dir":""}" style="--cc:${corViva(q[6])}"><span class="dl-nome"><i></i>${esc(q[3])}</span><span class="dl-num display tnum">${fPct(q[4])}<small>%</small></span><span class="dl-var">${c?esc(c.partido):""}${c&&c.num?" · "+esc(c.num):""}</span></div>`;};
-        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A[3].split(" ")[0])+" à frente"}</span>${mg?`<span class="dl-var">margem de ${String(mg).replace(".",",")} pontos</span>`:""}</div>`+lado(B,true);}
+        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A[3].split(" ")[0])+" à frente"}</span>${mg?`<span class="dl-var">margem de ${String(mg).replace(".",",")} ${pts(mg)}</span>`:""}</div>`+lado(B,true);}
       else ed.innerHTML="";}
     $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · ")
       :(temPesquisa(ufCargo)?`Sem pesquisa registrada para ${cargoArt(ufCargo)} ${emUF(ufAtual)}`
@@ -3202,10 +3204,10 @@ function drawGeralUF(){
     const l=liderDe(ufAtual,cargo); if(!l)continue;
     const vagas=VAGAS(cargo), p=l.pts[0], q=l.pts[vagas]||null, ant=l.pts[vagas-1];
     const me=margemDe(l.r), dif=l.pts[1]?Math.abs(p[4]-l.pts[1][4]):null;
-    if(cargo==="governador"&&dif!=null&&me!=null&&dif<=2*me)A.push({s:"warn",k:"Empate técnico",t:dif===0?`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> aparecem com ${fPct(p[4])}% cada na disputa pelo governo`:`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> separados por ${fPct(dif)} ponto${dif===1?"":"s"} na disputa pelo governo, menos que o dobro da margem de erro`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} pontos`});
-    else if(cargo==="governador"&&l.pts[1]&&p[4]-l.pts[1][4]>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p[3])}</b> abre ${fPct(p[4]-l.pts[1][4])} pontos sobre <b>${esc(l.pts[1][3])}</b> na disputa pelo governo (${fPct(p[4])}% a ${fPct(l.pts[1][4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} pontos`});
+    if(cargo==="governador"&&dif!=null&&me!=null&&dif<=2*me)A.push({s:"warn",k:"Empate técnico",t:dif===0?`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> aparecem com ${fPct(p[4])}% cada na disputa pelo governo`:`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> separados por ${fPct(dif)} ponto${dif===1?"":"s"} na disputa pelo governo, menos que o dobro da margem de erro`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
+    else if(cargo==="governador"&&l.pts[1]&&p[4]-l.pts[1][4]>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p[3])}</b> abre ${fPct(p[4]-l.pts[1][4])} pontos sobre <b>${esc(l.pts[1][3])}</b> na disputa pelo governo (${fPct(p[4])}% a ${fPct(l.pts[1][4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
     if(cargo==="governador"&&p[4]>=50)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p[3])}</b> aparece com ${fPct(p[4])}% no primeiro turno, acima da faixa de vitória em turno único`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)}`});
-    if(cargo==="senador"&&ant&&q&&me!=null&&Math.abs(ant[4]-q[4])<=2*me)A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant[3])}</b> e <b>${esc(q[3])}</b> disputam a segunda vaga do Senado dentro da margem (${fPct(ant[4])}% e ${fPct(q[4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} pontos`});
+    if(cargo==="senador"&&ant&&q&&me!=null&&Math.abs(ant[4]-q[4])<=2*me)A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant[3])}</b> e <b>${esc(q[3])}</b> disputam a segunda vaga do Senado dentro da margem (${fPct(ant[4])}% e ${fPct(q[4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
   }
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
   for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${esc(cargoLabel(c.cargo))}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
