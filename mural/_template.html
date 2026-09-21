@@ -1000,6 +1000,17 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 .hero2 .lede a{color:var(--band-ink);font-weight:600}
 #ch-hero{margin-top:12px}
 #ch-hero svg{display:block}
+/* reta final nos gráficos de tempo: faixa sombreada de 4/9 em diante, com rótulo pequeno no canto */
+svg.tempo .reta{fill:var(--ink);opacity:.055;pointer-events:none}
+svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 700;font-stretch:80%;font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;fill:var(--ink-3);pointer-events:none}
+/* segundo turno na capa: o mesmo placar do bloco escuro, em painel claro e um pouco menor */
+#p-home-2t .duelo{margin:6px 0 2px}
+#p-home-2t .duelo .dl-num,#p-home-2t .duelo .dl-meio .dl-gap{color:var(--ink)}
+#p-home-2t .duelo .dl-num{font-size:clamp(40px,5.6vw,76px)}
+#p-home-2t .duelo .dl-meio .dl-gap{font-size:32px}
+#p-home-2t .duelo .dl-meio .dl-tag{border-color:var(--line)}
+#p-home-2t .duelo .dl-meio .dl-tag.emp{border-color:var(--red);color:var(--red)}
+#p-home-2t>.cap{margin-top:8px}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
 .tiles .lp{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--chipc,var(--ink-3));border-radius:3px;padding:10px 12px 8px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm nm" "v spark" "d spark";gap:1px 10px;align-items:end;transition:transform .15s ease,box-shadow .15s ease}
 .tiles .lp:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(20,22,26,.10)}
@@ -1106,12 +1117,19 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   </div>
   <div class="tiles" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
   <div class="panel main" id="p-home">
-        <div class="ph"><h3>A corrida</h3><span class="ztools"><span class="stamp-dt" id="home-ate"></span><span class="seg" role="group" aria-label="Janela do gráfico" id="home-seg"><button type="button" data-hj="90" aria-pressed="false">90 dias</button><button type="button" data-hj="ano" aria-pressed="true">2026</button></span></span></div>
+        <div class="ph"><h3>A corrida</h3><span class="ztools"><span class="stamp-dt" id="home-ate"></span><span class="seg" role="group" aria-label="Janela do gráfico" id="home-seg"><button type="button" data-hj="30" aria-pressed="false">30 dias</button><button type="button" data-hj="90" aria-pressed="true">90 dias</button><button type="button" data-hj="ano" aria-pressed="false">2026</button></span></span></div>
     <div class="eyebrow ch-kicker" id="k-home-a" hidden></div>
     <div id="ch-home"></div>
     <div class="eyebrow ch-kicker" id="k-home-b" hidden></div>
     <div id="ch-home-b" hidden></div>
     <div class="pfoot"><a href="#pesquisas">Ver a editoria Pesquisas →</a><a id="home-dep" hidden></a><span id="home-fonte"></span></div>
+  </div>
+  <div class="panel main" id="p-home-2t">
+    <div class="ph"><h3>Segundo turno: Lula x Flávio Bolsonaro</h3><span class="ztools"><span class="stamp-dt" id="home-2t-ate"></span></span></div>
+    <div class="duelo" id="duelo-2t"></div>
+    <div id="ch-home-2t"></div>
+    <p class="cap" id="cap-home-2t"></p>
+    <div class="pfoot"><a href="#pesquisas">Todas as simulações, rodada a rodada, em Pesquisas →</a><span id="home-2t-fonte"></span></div>
   </div>
   <div class="panel pista" id="p-regua">
     <div class="ph"><h3>A régua da corrida</h3><span class="cap" style="margin:0">média móvel de <span class="sig-dias">4</span> dias, todos os institutos; o círculo vazio é a posição de 30 dias atrás</span></div>
@@ -1393,7 +1411,7 @@ const MMDD2T=md=>Date.parse(`2026-${md.slice(0,2)}-${md.slice(2)}`);
 const curto=n=>CURTO[n]||n.split(" ")[0];
 
 // ---- preferências (guardadas só neste navegador)
-const PREF_KEY="mural.prefs", DEF={foco:[],modo:"destacar",janela:"ano",tema:"sistema",dens:"confortavel",textos:"on",aba:"geral",multi:0,marcos:true,escopo:"br",uf:"SP",ufCargo:"governador",focoUF:[],mapa:null};
+const PREF_KEY="mural.prefs", DEF={foco:[],modo:"destacar",janela:"90",tema:"sistema",dens:"confortavel",textos:"on",aba:"geral",multi:0,marcos:true,escopo:"br",uf:"SP",ufCargo:"governador",focoUF:[],mapa:null};
 let prefs={...DEF};
 try{const p=JSON.parse(localStorage.getItem(PREF_KEY)||"{}");prefs={...DEF,...p};
   if(!p.foco){const v=JSON.parse(localStorage.getItem("mural.vigilancia")||"[]");if(Array.isArray(v))prefs.foco=v.filter(n=>byName[n]);}
@@ -1453,6 +1471,9 @@ const T1=Date.parse(ULT)+3*864e5;let T0=Date.parse("2026-01-01");
 // a janela chegar a 1 dia exatamente em 4/10 (3 dias de 14/9, 2 de 24/9).
 // Calculada pelo calendário de Brasília ao abrir a página, sem regeneração.
 const REGUA={inicio:"2026-09-04",sigma0:4,passo:10,minimo:1};
+// Reta final: de 4/9 (quando a régua começa a encurtar) até a eleição. Nos gráficos de tempo esse trecho
+// ganha fundo sombreado e o que vem antes fica mais apagado, para o olho pesar o recente.
+const RETA0=Date.parse(REGUA.inicio);
 function sigmaRegua(dia){const d=Math.floor((Date.parse(dia||HOJE)-Date.parse(REGUA.inicio))/864e5);return Math.max(REGUA.minimo,REGUA.sigma0-Math.floor(Math.max(0,d)/REGUA.passo));}
 const SIG=sigmaRegua(HOJE);
 document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
@@ -1513,6 +1534,10 @@ function chartTempo(o){
   s+=`<g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmtY(v)}</text>`).join("")+eixoTempo(X,mt,mt+ih,t0,t1)+`</g>`;
   s+=`<clipPath id="${cpid}"><rect x="${ml-1}" y="${mt-8}" width="${iw+2}" height="${ih+8}"/></clipPath>`;
   s+=`<rect class="plotbg" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  // reta final: só quando a janela começa antes de 4/9; janela toda dentro da reta não precisa de faixa
+  const reta=o.reta!==false&&RETA0>t0+864e5&&RETA0<t1;
+  if(reta){const xr=X(RETA0);s+=`<rect class="reta" x="${xr.toFixed(1)}" y="${mt}" width="${(W-mr-xr).toFixed(1)}" height="${ih}"/>`;
+    if(W-mr-xr>72)s+=`<text class="reta-l" x="${(xr+6).toFixed(1)}" y="${mt+11}">reta final</text>`;}
   // marcos (eventos) no eixo do tempo
   const M=marcos.filter(m=>m.t>=t0&&m.t<=t1).sort((a,b)=>a.t-b.t);
   if(M.length){
@@ -1529,8 +1554,13 @@ function chartTempo(o){
     const nm=esc(sr.nome);
     s+=`<g class="ser${sr.dim?" dim":""}" data-nome="${nm}" clip-path="url(#${cpid})">`;
     if(sr.banda&&sr.banda.length>2){const B=sr.banda.filter(b=>b.t>=t0-2*864e5&&b.t<=t1+2*864e5);if(B.length>2)s+=`<path class="banda" d="${B.map((b,i)=>(i?"L":"M")+X(b.t).toFixed(1)+" "+Y(b.hi).toFixed(1)).join(" ")} ${B.slice().reverse().map(b=>"L"+X(b.t).toFixed(1)+" "+Y(b.lo).toFixed(1)).join(" ")} Z" fill="${sr.cor}" opacity=".13" stroke="none"/>`;}
-    if(lv.length>1)s+=`<path class="linha" pathLength="1" d="${lv.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")}" fill="none" stroke="${sr.cor}" stroke-width="${sr.lw||lw}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    if(pontos&&sr.r!==0)for(const p of vis){const r=sr.r||3;s+=sr.sq?`<rect x="${(X(p.t)-r).toFixed(1)}" y="${(Y(p.v)-r).toFixed(1)}" width="${2*r}" height="${2*r}" rx="1.5" fill="${sr.cor}" stroke="var(--ink)" stroke-width="1" data-tip="${esc(p.tip||"")}"/>`:`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${p.big?r*1.6:r}" fill="${sr.pontoTransp?"transparent":sr.cor}" opacity="${sr.pontoTransp?1:(p.big?1:(sr.op||.55))}" ${p.big?'stroke="var(--paper)" stroke-width="1.5"':""} data-tip="${esc(p.tip||"")}"/>`;}
+    if(lv.length>1){const dpath=P=>P.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ");
+      const traco=`fill="none" stroke="${sr.cor}" stroke-width="${sr.lw||lw}" stroke-linejoin="round" stroke-linecap="round"`;
+      const i0=reta?lv.findIndex(p=>p.t>=RETA0):-1;
+      if(i0>0){s+=`<path class="linha antes" pathLength="1" d="${dpath(lv.slice(0,i0+1))}" ${traco} opacity=".42"/>`;
+        if(lv.length-i0>1)s+=`<path class="linha" pathLength="1" d="${dpath(lv.slice(i0))}" ${traco}/>`;}
+      else s+=`<path class="linha" pathLength="1" d="${dpath(lv)}" ${traco}/>`;}
+    if(pontos&&sr.r!==0)for(const p of vis){const r=sr.r||3;const op=(sr.pontoTransp||p.big)?1:(sr.op||.55),opf=reta&&p.t<RETA0?op*.45:op;s+=sr.sq?`<rect x="${(X(p.t)-r).toFixed(1)}" y="${(Y(p.v)-r).toFixed(1)}" width="${2*r}" height="${2*r}" rx="1.5" fill="${sr.cor}" stroke="var(--ink)" stroke-width="1"${reta&&p.t<RETA0?' opacity=".5"':""} data-tip="${esc(p.tip||"")}"/>`:`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${p.big?r*1.6:r}" fill="${sr.pontoTransp?"transparent":sr.cor}" opacity="${+opf.toFixed(3)}" ${p.big?'stroke="var(--paper)" stroke-width="1.5"':""} data-tip="${esc(p.tip||"")}"/>`;}
     s+=`</g>`;
     if(lv.length>1)s+=`<path class="hit" data-nome="${nm}" d="${lv.map((p,i)=>(i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")}" fill="none" stroke="transparent" stroke-width="16" pointer-events="stroke" clip-path="url(#${cpid})"><title>${nm}</title></path>`;
     const fim=(lv.length?lv:vis)[(lv.length?lv:vis).length-1];
@@ -1956,10 +1986,12 @@ function drawManchete(){
   $("#manchete").textContent=o.slice(0,3).map(p=>`${curto(p.nome)} ${fPct(p.agora)}%`).join(" · ");
   $("#lede-dados").innerHTML=`${M.rodadas} rodadas de ${M.institutos} institutos desde ${dBR(M.primeira)}. Última: ${esc(ult.inst)}, ${dBR(ult.dt)}${ult.modo?", "+esc(ult.modo):""}. <a href="#metodo">Como a média é feita →</a>`;
 }
-// ---- o gráfico da corrida na home: oito séries, todos os institutos, sem marcos, janela própria (90 dias ou 2026)
-let homeJanela="ano";
+// ---- o gráfico da corrida na home: oito séries, todos os institutos, sem marcos, janela própria (30 dias, 90 dias ou 2026).
+// Nasce em 90 dias desde 21/9/2026, a pedido do Francisco: na reta final o recente vale mais que janeiro.
+let homeJanela="90";
+const janelaHome=()=>homeJanela==="30"?T1-33*864e5:homeJanela==="90"?T1-93*864e5:Date.parse("2026-01-01");
 function drawHome(){
-  const t1=T1,t0=homeJanela==="90"?t1-93*864e5:Date.parse("2026-01-01");
+  const t1=T1,t0=janelaHome();
   const nomes=OITO.filter(n=>!some(n)),linhasH=linhaAgregada(rodadas1T(),nomes,SIG);
   const mk=n=>{const pts=serieDe(n);return {nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhasH[n],r:MOBILE?2.2:2.8,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};};
   const cw=larguraDe("#ch-home");
@@ -1987,7 +2019,7 @@ function drawHome(){
   }
   $("#home-ate").textContent=`até ${dBR(DATA.meta.ultima)}`;
   $$("#home-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hj===homeJanela));
-  $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.institutos} institutos · média móvel de ${SIG} dias`;
+  $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.institutos} institutos · média móvel de ${SIG} dias${t0<RETA0-864e5?" · faixa sombreada: reta final, desde 4/9":""}`;
   // legenda-placar: quadrado de cor, nome, média móvel de hoje e variação de 30 dias; clicar põe o candidato em foco
   // tiles: nome, média de hoje, variação de 30 dias e a sparkline dos últimos 90 dias da média móvel.
   // A sparkline tem escala própria por tile (é forma, não comparação entre candidatos; o número grande é que compara).
@@ -2012,6 +2044,35 @@ function drawHome(){
   if($("#ch-hero")){const base=(frente.length>=2?frente:nomes.slice(0,2)).map(mk).map(x=>({...x,r:0,lw:3,banda:null}));
     const [yH,tH]=escalaY(base,52,Date.parse("2026-01-01"));
     pinta("#ch-hero",chartTempo({W:1120,H:140,ml:44,mr:120,mt:8,mb:24,ymax:yH,ticks:tH.filter(v=>v%10===0),fmtY:v=>fPct(v)+"%",series:base,marcos:[],t0:Date.parse("2026-01-01"),t1:T1,cw:larguraDe("#ch-hero"),Hm:MOBILE?150:undefined,cross:false,aria:"Os dois da frente ao longo de 2026, média móvel de todos os institutos"}),{zoom:false});}
+  drawHome2T();
+}
+// ---- segundo turno na capa (desde 21/9/2026): o mesmo placar dos dois da frente, com a média do confronto
+// e as simulações na janela da capa. Antes ele morava só num painel pequeno da editoria Pesquisas.
+function texto2T(m2,inc){
+  if(m2["Lula"]==null||m2["Flávio Bolsonaro"]==null||!inc)return "";
+  const d=m2["Lula"]-m2["Flávio Bolsonaro"],frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
+  return Math.abs(d)<inc.erro
+    ? `<b>Empate técnico</b> na média: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média (${fPct(inc.erro)} ponto). Nenhum dos dois está à frente.`
+    : `Na média, <b>${esc(curto(frente))}</b> aparece ${fPct(Math.abs(d))} pontos à frente de ${esc(curto(atras))}, contra ${fPct(inc.erro)} de incerteza da média.`;
+}
+function drawHome2T(){
+  const el=$("#p-home-2t");if(!el)return;
+  const n2=["Lula","Flávio Bolsonaro"],R=rodadas2T();
+  if(!DATA.polls2t.length||!R.length){el.hidden=true;return;}el.hidden=false;
+  const t1=T1,t0=janelaHome(),t2=Date.parse(DATA.meta.ultima);
+  const m2=agregarEm(R,n2,SIG,t2),inc=incertezaEm(R,n2,SIG,t2,"Lula","Flávio Bolsonaro");
+  const dz=$("#duelo-2t");
+  if(m2["Lula"]!=null&&m2["Flávio Bolsonaro"]!=null){
+    const d=m2["Lula"]-m2["Flávio Bolsonaro"],emp=!!inc&&Math.abs(d)<inc.erro,frente=d>=0?"Lula":"Flávio Bolsonaro";
+    const lado=(n,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[n]}"><span class="dl-nome"><i></i>${esc(curto(n))}</span><span class="dl-num display tnum">${fPct(m2[n])}<small>%</small></span><span class="dl-var">média móvel de ${SIG} dias</span></div>`;
+    dz.innerHTML=lado("Lula",false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(d))}<small>pontos</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(frente))+" à frente"}</span></div>`+lado("Flávio Bolsonaro",true);
+  }else dz.innerHTML="";
+  const linhas2=linhaAgregada(R,n2,SIG);
+  const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:MOBILE?2.2:2.8,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
+  pinta("#ch-home-2t",chartTempo({W:1180,H:232,ml:44,mr:120,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw:larguraDe("#ch-home-2t"),Hm:MOBILE?196:undefined,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro, média móvel de todos os institutos"}),{zoom:false});
+  $("#cap-home-2t").innerHTML=texto2T(m2,inc);
+  $("#home-2t-ate").textContent=`até ${dBR(DATA.meta.ultima)}`;
+  $("#home-2t-fonte").textContent=`Fonte: fichas técnicas registradas no TSE · ${pl(R.length,"simulação","simulações")} do confronto em 2026 · média móvel de ${SIG} dias`;
 }
 // os números do placar sobem do zero na primeira pintura; quem pede menos movimento não vê nada disso
 function contarDuelo(){
@@ -2118,9 +2179,10 @@ function montarOG(){
     const o=ORDEM(),M=DATA.meta;if(o.length<3)return false;
     const card=$("#og-card"),mark=$(".brand .mark");
     card.querySelector(".og-brand").innerHTML=(mark?mark.outerHTML:"")+`<span class="sub">dos candidatos</span>`;
-    card.querySelector(".og-ed").innerHTML=`Edição de <b>${esc(dBR(M.ultima))}</b> · 1º turno · média móvel de ${SIG} dias`;
+    card.querySelector(".og-ed").innerHTML=`Edição de <b>${esc(dBR(M.ultima))}</b> · 1º turno · últimos 90 dias · média móvel de ${SIG} dias`;
     card.querySelector(".og-head").innerHTML=o.slice(0,3).map(p=>`<div class="og-h"><i style="background:${COR[p.nome]}"></i><span class="n">${esc(curto(p.nome))}</span><span class="v">${fPct(p.agora)}<small>%</small></span><span class="d">${p.delta!=null?(p.delta>=1?"▲ ":p.delta<=-1?"▼ ":"")+fmtDelta(p.delta)+" em 30 dias":"&nbsp;"}</span></div>`).join("");
-    const t0=Date.parse("2026-01-01"),t1=T1,linhas=linhaAgregada(rodadas1T(),OITO,SIG);
+    // o cartão mostra os últimos 90 dias, a mesma janela em que a capa nasce: é a reta final que circula
+    const t0=T1-93*864e5,t1=T1,linhas=linhaAgregada(rodadas1T(),OITO,SIG);
     const tres=new Set(o.slice(0,3).map(p=>p.nome));
     const series=OITO.map(n=>({nome:n,cor:COR[n],sigma:SIG,linha:linhas[n],pts:serieDe(n),r:0,lw:tres.has(n)?3.2:2,dim:!tres.has(n),rotulo:tres.has(n)?undefined:false}));
     const [ymax,ticks]=escalaY(series,52,t0);
@@ -2193,14 +2255,7 @@ function draw2T(){
   const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
   pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:230,ml:44,mr:74,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro",fs:11.5}));
   const t2=Date.parse(DATA.meta.ultima),m2=agregarEm(rodadas2T(),n2,SIG,t2),inc=incertezaEm(rodadas2T(),n2,SIG,t2,"Lula","Flávio Bolsonaro");
-  const el2=$("#cap-2t");
-  if(m2["Lula"]==null||m2["Flávio Bolsonaro"]==null||!inc){el2.textContent="";}
-  else{
-    const d=m2["Lula"]-m2["Flávio Bolsonaro"],frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
-    el2.innerHTML=Math.abs(d)<inc.erro
-      ? `<b>Empate técnico</b> na média: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média (${fPct(inc.erro)} ponto). Nenhum dos dois está à frente.`
-      : `Na média, <b>${esc(curto(frente))}</b> aparece ${fPct(Math.abs(d))} pontos à frente de ${esc(curto(atras))}, contra ${fPct(inc.erro)} de incerteza da média.`;
-  }
+  $("#cap-2t").innerHTML=texto2T(m2,inc);
 }
 DRAW["#tb-casa"]=()=>drawCasa();
 // a correção de efeito casa muda a média, então ela precisa estar visível e conferível: quem é
@@ -2663,7 +2718,7 @@ function renderPrefs(){
   pr.innerHTML=`<div class="dr"><div class="dhead"><h2 id="prefs-title" class="display">Personalizar</h2><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
   <div class="dbody">
     <fieldset><legend>Candidatos em foco</legend><div class="opts">${OITO.map(n=>`<label class="ck${prefs.foco.includes(n)?" on":""}"><input type="checkbox" data-foco="${esc(n)}" ${prefs.foco.includes(n)?"checked":""}><i style="background:${COR[n]}"></i>${esc(n)}</label>`).join("")}</div><p class="hint">Os demais registrados entram pela estrela da ficha. Vale para todos os gráficos, o comparador e a linha do tempo.</p>${seg("modo",[["destacar","Destacar"],["so","Só eles"]])}<p class="hint">"Destacar" esmaece os demais; "Só eles" tira os demais dos gráficos.</p></fieldset>
-    <fieldset><legend>Janela de tempo</legend>${seg("janela",[["ano","O ano"],["90","90 dias"],["30","30 dias"]])}<p class="hint">Vale para todos os gráficos de série temporal.</p></fieldset>
+    <fieldset><legend>Janela de tempo</legend>${seg("janela",[["30","30 dias"],["90","90 dias"],["ano","O ano"]])}<p class="hint">Vale para todos os gráficos de série temporal. A faixa sombreada é a reta final, desde 4/9.</p></fieldset>
     <fieldset><legend>Busca e redes</legend>${seg("multi",[["0","Sobrepostos"],["1","Um por candidato"]])}</fieldset>
     <fieldset><legend>Tema</legend>${seg("tema",[["sistema","Sistema"],["claro","Claro"],["escuro","Escuro"]])}</fieldset>
     <fieldset><legend>Densidade</legend>${seg("dens",[["confortavel","Confortável"],["compacta","Compacta"]])}</fieldset>

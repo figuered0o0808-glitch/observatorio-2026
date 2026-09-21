@@ -119,10 +119,12 @@ with sync_playwright() as p:
         for (const uf of ['AL','AP','PI']) {
             trocarUF(uf); trocarCargoUF('governador');
             let cap = null;
-            escalaY = function(series, cheio) { const r = orig(series, cheio); cap = {series, cheio, r}; return r; };
+            // o eixo cobre o que está na janela desenhada (o padrão passou a 90 dias em 21/9/2026);
+            // ponto antigo fora da janela não aparece, então não conta
+            escalaY = function(series, cheio, t0) { const r = orig(series, cheio, t0); cap = {series, cheio, r, t0: t0 ?? T0}; return r; };
             drawCorridaUF();
             escalaY = orig;
-            const mx = Math.max(...cap.series.flatMap(s => s.pts.map(p => p.v)));
+            const mx = Math.max(...cap.series.filter(s => !s.dim).flatMap(s => s.pts.filter(p => p.t >= cap.t0).map(p => p.v)));
             out.push([uf, mx, cap.r[0], cap.r[0] >= mx]);
         }
         return out;
@@ -984,6 +986,53 @@ with sync_playwright() as p:
     finally:
         subprocess.run(["python3", "mural/_gerar_mural.py"], cwd=raiz,
                        env={k: v for k, v in _os.environ.items()}, capture_output=True)
+
+    # ---- reta final e segundo turno na capa (21/9/2026): a janela padrão passa a 90 dias, os gráficos de
+    # tempo sombreiam o trecho de 4/9 em diante com o anterior apagado, e o placar de segundo turno sai
+    # da editoria Pesquisas para a capa, dizendo o mesmo que o painel de lá
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => ({
+        janelaPref: prefs.janela, homeJanela,
+        seg: [...document.querySelectorAll('#home-seg button')].map(b => [b.dataset.hj, b.getAttribute('aria-pressed')]),
+        retaHome: !!document.querySelector('#ch-home svg.tempo .reta'),
+        antesHome: document.querySelectorAll('#ch-home svg.tempo .linha.antes').length,
+        rotulo: document.querySelector('#ch-home svg.tempo text.reta-l')?.textContent,
+        p2t: !document.querySelector('#p-home-2t').hidden,
+        nums: [...document.querySelectorAll('#duelo-2t .dl-num')].map(e => e.textContent),
+        tag: document.querySelector('#duelo-2t .dl-tag')?.textContent,
+        cap: document.querySelector('#cap-home-2t').textContent,
+        svg2t: !!document.querySelector('#ch-home-2t svg.tempo'),
+        antes2t: document.querySelectorAll('#ch-home-2t svg.tempo .linha.antes').length
+    })""")
+    check("janela padrão de 90 dias, na capa e nas preferências",
+          r["janelaPref"] == "90" and r["homeJanela"] == "90" and ["90", "true"] in r["seg"], r)
+    check("gráfico da capa com a faixa da reta final rotulada e o trecho anterior apagado",
+          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"] == "reta final", r)
+    check("segundo turno na capa: painel visível com dois números, selo e gráfico",
+          r["p2t"] and len(r["nums"]) == 2 and all("%" in n for n in r["nums"]) and r["tag"] and r["svg2t"] and r["antes2t"] >= 1, r)
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(600)
+    cap_pesq = page.evaluate("() => document.querySelector('#cap-2t').textContent")
+    check("o texto do segundo turno na capa é o mesmo da editoria Pesquisas", r["cap"] and r["cap"] == cap_pesq,
+          {"capa": r["cap"][:90], "pesquisas": cap_pesq[:90]})
+    # em 30 dias a faixa só existe se a janela começar antes de 4/9 (a janela termina na última rodada
+    # mais três dias, não na eleição, então até 4/10 ela ainda pega dias anteriores à reta); o que se
+    # exige é coerência: faixa e trecho apagado andam juntos, e o 2º turno segue a mesma janela
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(600)
+    page.click('#home-seg button[data-hj="30"]')
+    page.wait_for_timeout(500)
+    r30 = page.evaluate("""() => ({esperado: RETA0 > janelaHome() + 864e5, reta: !!document.querySelector('#ch-home svg.tempo .reta'),
+        antes: document.querySelectorAll('#ch-home svg.tempo .linha.antes').length, pts: document.querySelectorAll('#ch-home svg.tempo .ser circle').length,
+        reta2t: !!document.querySelector('#ch-home-2t svg.tempo .reta'), seg2t: !!document.querySelector('#ch-home-2t svg.tempo'),
+        pressed: document.querySelector('#home-seg button[data-hj="30"]').getAttribute('aria-pressed')})""")
+    check("em 30 dias a faixa aparece só se a janela começa antes de 4/9, o trecho apagado acompanha, e o 2º turno segue a mesma janela",
+          r30["pressed"] == "true" and r30["reta"] == r30["esperado"] and (r30["antes"] > 0) == r30["esperado"]
+          and r30["pts"] > 0 and r30["seg2t"] and r30["reta2t"] == r30["esperado"], r30)
+    check("reta final e 2º turno na capa sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
 
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
