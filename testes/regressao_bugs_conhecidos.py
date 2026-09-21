@@ -1029,7 +1029,19 @@ with sync_playwright() as p:
     check("janela padrão de 90 dias, na capa e nas preferências",
           r["janelaPref"] == "90" and r["homeJanela"] == "90" and ["90", "true"] in r["seg"], r)
     check("gráfico da capa com a faixa da reta final rotulada e o trecho anterior apagado",
-          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"] == "reta final", r)
+          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"].startswith("reta final"), r)
+    # a reta final tem escala própria (21/9/2026): ocupa RETA_FRAC da largura, a data volta certa pelo
+    # caminho inverso (mouse e zoom por arrasto), e o eixo de datas tem rótulos dos dois lados sem colidir
+    esc_ = page.evaluate("""() => {
+        chartTempo({W: 1180, H: 300, series: [], t0: T1 - 93 * 864e5, t1: T1, mobile: false});
+        const m = chartTempo.last, x = m.X(RETA0), idaVolta = [T1 - 80 * 864e5, RETA0 + 5 * 864e5, T1 - 864e5].map(t => Math.abs(m.tOf(m.X(t)) - t));
+        const svg = document.querySelector('#ch-home svg.tempo'), W = +svg.dataset.w;
+        const labs = [...svg.querySelectorAll('text.axis')].filter(t => /\\d\\d\\/\\d\\d/.test(t.textContent)).map(t => t.getBBox()).sort((a, b) => a.x - b.x);
+        let colide = 0; for (let i = 1; i < labs.length; i++) if (labs[i].x < labs[i - 1].x + labs[i - 1].width + 4) colide++;
+        const xr = +svg.querySelector('.reta').getAttribute('x');
+        return {frac: (m.ml + m.iw - x) / m.iw, idaVolta: Math.max(...idaVolta), antes: labs.filter(l => l.x + l.width / 2 < xr).length, depois: labs.filter(l => l.x + l.width / 2 >= xr).length, colide}; }""")
+    check("a reta final ocupa 58% da largura, a data volta certa pelo inverso, e o eixo tem datas dos dois lados sem colisão",
+          abs(esc_["frac"] - 0.58) < 0.01 and esc_["idaVolta"] < 1000 and esc_["antes"] >= 2 and esc_["depois"] >= 2 and esc_["colide"] == 0, esc_)
     check("segundo turno na capa: painel visível com dois números, selo e gráfico",
           r["p2t"] and len(r["nums"]) == 2 and all("%" in n for n in r["nums"]) and r["tag"] and r["svg2t"] and r["antes2t"] >= 1, r)
     page.goto(URL + "#pesquisas")

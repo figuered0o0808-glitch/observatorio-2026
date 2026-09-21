@@ -1474,6 +1474,8 @@ const REGUA={inicio:"2026-09-04",sigma0:4,passo:10,minimo:1};
 // Reta final: de 4/9 (quando a régua começa a encurtar) até a eleição. Nos gráficos de tempo esse trecho
 // ganha fundo sombreado e o que vem antes fica mais apagado, para o olho pesar o recente.
 const RETA0=Date.parse(REGUA.inicio);
+// fração da largura do gráfico reservada à reta final quando a janela começa antes dela
+const RETA_FRAC=0.58;
 function sigmaRegua(dia){const d=Math.floor((Date.parse(dia||HOJE)-Date.parse(REGUA.inicio))/864e5);return Math.max(REGUA.minimo,REGUA.sigma0-Math.floor(Math.max(0,d)/REGUA.passo));}
 const SIG=sigmaRegua(HOJE);
 document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
@@ -1490,15 +1492,31 @@ $("#foot-ed").textContent=`Edição de ${DATA.atualizado} · próxima às ${EDIC
 function mediaMovel(pts,sigma){const s2=2*(sigma*864e5)**2;return pts.map(p=>{let sw=0,sv=0;for(const q of pts){const w=Math.exp(-((q.t-p.t)**2)/s2);sw+=w;sv+=w*q.v;}return {t:p.t,v:sv/sw};});}
 function smoothAt(pts,sigma,t){const s2=2*(sigma*864e5)**2;let sw=0,sv=0;for(const q of pts){const w=Math.exp(-((q.t-t)**2)/s2);sw+=w;sv+=w*q.v;}return sw?sv/sw:null;}
 function empilhar(labels,top,bottom,gap=14){labels.sort((a,b)=>a.y-b.y);for(let i=0;i<labels.length;i++){labels[i].y=Math.max(labels[i].y,top+(i?gap:0));if(i)labels[i].y=Math.max(labels[i].y,labels[i-1].y+gap);}for(let i=labels.length-1;i>=0;i--){labels[i].y=Math.min(labels[i].y,bottom-(labels.length-1-i)*gap);if(i<labels.length-1)labels[i].y=Math.min(labels[i].y,labels[i+1].y-gap);}return labels;}
-function eixoTempo(X,Y0,Y1,t0=T0,t1=T1){
+// eixo de datas. Com cortes (a reta final), cada trecho calcula o próprio passo pela própria escala,
+// e o rótulo de um trecho não invade o começo do seguinte.
+function eixoTempo(X,Y0,Y1,t0=T0,t1=T1,cortes=[]){
   const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];let out="";
-  const dias=(t1-t0)/864e5;
-  if(dias>130){const curto=X(t0+30*864e5)-X(t0)<34;for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t<t0||t>t1)continue;const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>${curto&&m%2?"":`<text class="axis" x="${x+4}" y="${Y1+16}">${meses[m]}</text>`}`;}}
-  else{const passo=dias>50?7:dias>20?3:1;
-    for(let t=t1-((t1-t0)%(passo*864e5));t>=t0;t-=passo*864e5){const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>`;}
-    // rótulos "dd/mm" só onde cabem (uns 40px cada: 30 de texto e 10 de respiro): na largura do celular isso vira um rótulo a cada 7 ou 14 dias, com a grade no passo fino
-    const pxDia=X(t0+864e5)-X(t0);const passoR=[passo,2,3,7,14,21,28].filter(p=>p>=passo).find(p=>p*pxDia>=40)||28;
-    for(let t=t1-((t1-t0)%(passoR*864e5));t>=t0;t-=passoR*864e5){const x=X(t);out+=`<text class="axis" x="${x}" y="${Y1+16}" text-anchor="middle">${dBR(dISO(t))}</text>`;}}
+  const bordas=[t0,...cortes.filter(c=>c>t0&&c<t1),t1];
+  const marcas=[];   // rótulos candidatos de todos os trechos, filtrados juntos no fim
+  for(let k=0;k+1<bordas.length;k++){
+    const a=bordas[k],b=bordas[k+1],primeiro=k===0;
+    const dias=(b-a)/864e5;
+    if(dias>130){const curto=X(a+30*864e5)-X(a)<34;for(let m=0;m<12;m++){const t=Date.parse(`2026-${String(m+1).padStart(2,"0")}-01`);if(t<a||t>b||(!primeiro&&t<=a))continue;const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>`;if(!(curto&&m%2))marcas.push({x,txt:meses[m],mes:true});}}
+    else{const passo=dias>50?7:dias>20?3:1;
+      for(let t=b-((b-a)%(passo*864e5));t>=a;t-=passo*864e5){if(!primeiro&&t<=a)break;const x=X(t);out+=`<line class="subl" x1="${x}" x2="${x}" y1="${Y0}" y2="${Y1}"/>`;}
+      // rótulos "dd/mm" só onde cabem (uns 40px cada: 30 de texto e 10 de respiro): na largura do celular isso vira um rótulo a cada 7 ou 14 dias, com a grade no passo fino
+      const pxDia=X(a+864e5)-X(a);const passoR=[passo,2,3,7,14,21,28].filter(p=>p>=passo).find(p=>p*pxDia>=40)||28;
+      for(let t=b-((b-a)%(passoR*864e5));t>=a;t-=passoR*864e5){if(!primeiro&&t<=a)break;marcas.push({x:X(t),txt:dBR(dISO(t))});}}
+  }
+  // da direita para a esquerda, para as datas recentes nunca cederem lugar às antigas; entre trechos
+  // de escalas diferentes a folga é medida entre rótulos vizinhos, não até a borda
+  marcas.sort((p,q)=>q.x-p.x);let ultimo=null;
+  for(const m of marcas){
+    if(ultimo!=null&&ultimo-m.x<40)continue;
+    ultimo=m.x;
+    out+=m.mes?`<text class="axis" x="${m.x+4}" y="${Y1+16}">${m.txt}</text>`
+              :`<text class="axis" x="${m.x}" y="${Y1+16}" text-anchor="middle">${m.txt}</text>`;
+  }
   return out;
 }
 function rotulosEmFila(items,yLabel,W,gapMin=10,fs=0){
@@ -1527,17 +1545,22 @@ function chartTempo(o){
     mr=maxLen?Math.min(Math.round(W*0.42),Math.max(56,Math.round(maxLen*fs*0.56+16))):Math.min(mr,20);}
   const z=id&&ZOOM[id];const t0=o.t0??(z?z[0]:T0), t1=o.t1??(z?z[1]:T1);
   const iw=W-ml-mr,ih=H-mt-mb;
-  const X=t=>ml+(t-t0)/(t1-t0)*iw;
+  // Reta final com escala própria (pedido do Francisco em 21/9/2026): quando a janela começa antes de
+  // 4/9, o eixo do tempo tem dois trechos lineares, o passado comprimido à esquerda e a reta final
+  // ampliada à direita, com RETA_FRAC da largura. A faixa sombreada começa exatamente onde a escala
+  // muda, e o eixo de datas é calculado por trecho. Janela toda dentro da reta usa a escala única.
+  const reta=o.reta!==false&&RETA0>t0+864e5&&RETA0<t1;
+  const xr=reta?ml+iw*(1-RETA_FRAC):null;
+  const X=reta?(t=>t<RETA0?ml+(t-t0)/(RETA0-t0)*(xr-ml):xr+(t-RETA0)/(t1-RETA0)*(ml+iw-xr)):(t=>ml+(t-t0)/(t1-t0)*iw);
+  const Xinv=reta?(x=>x<xr?t0+(x-ml)/(xr-ml)*(RETA0-t0):RETA0+(x-xr)/(ml+iw-xr)*(t1-RETA0)):(x=>t0+(x-ml)/iw*(t1-t0));
   const Y=v=>{const a=log?Math.log10(Math.max(v,1)):v,lo=log?Math.log10(ymin):ymin,hi=log?Math.log10(ymax):ymax;return mt+ih-(a-lo)/(hi-lo)*ih;};
   const cpid="cp"+(++cpN);
   let s=`<svg class="tempo" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}" data-cp="${cpid}" data-w="${W}" data-w0="${W0}">`;
-  s+=`<g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmtY(v)}</text>`).join("")+eixoTempo(X,mt,mt+ih,t0,t1)+`</g>`;
+  s+=`<g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmtY(v)}</text>`).join("")+eixoTempo(X,mt,mt+ih,t0,t1,reta?[RETA0]:[])+`</g>`;
   s+=`<clipPath id="${cpid}"><rect x="${ml-1}" y="${mt-8}" width="${iw+2}" height="${ih+8}"/></clipPath>`;
   s+=`<rect class="plotbg" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/>`;
-  // reta final: só quando a janela começa antes de 4/9; janela toda dentro da reta não precisa de faixa
-  const reta=o.reta!==false&&RETA0>t0+864e5&&RETA0<t1;
-  if(reta){const xr=X(RETA0);s+=`<rect class="reta" x="${xr.toFixed(1)}" y="${mt}" width="${(W-mr-xr).toFixed(1)}" height="${ih}"/>`;
-    if(W-mr-xr>72)s+=`<text class="reta-l" x="${(xr+6).toFixed(1)}" y="${mt+11}">reta final</text>`;}
+  if(reta){s+=`<rect class="reta" x="${xr.toFixed(1)}" y="${mt}" width="${(W-mr-xr).toFixed(1)}" height="${ih}"/>`;
+    const lw2=W-mr-xr;if(lw2>72)s+=`<text class="reta-l" x="${(xr+6).toFixed(1)}" y="${mt+11}">${lw2>210?"reta final · escala ampliada":"reta final"}</text>`;}
   // marcos (eventos) no eixo do tempo
   const M=marcos.filter(m=>m.t>=t0&&m.t<=t1).sort((a,b)=>a.t-b.t);
   if(M.length){
@@ -1570,7 +1593,7 @@ function chartTempo(o){
   for(const l of empilhar(rot,mt+8,mt+ih))s+=`<text class="cand-label${l.dim?" dim":""}" data-nome="${l.nome}" x="${W-mr+8}" y="${l.y.toFixed(1)}" style="fill:${l.cor}${fs?";font-size:"+fs+"px":""}">${l.txt}</text>`;
   if(cross)s+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 3" opacity="0" pointer-events="none"/><rect class="brush" x="0" y="${mt}" width="0" height="${ih}" fill="var(--ink)" opacity="0" pointer-events="none"/>`;
   s+=`</svg>`;
-  chartTempo.last={W,H,ml,iw,mt,ih,t0,t1,fmtY,series:meta,id,marcos:M};
+  chartTempo.last={W,H,ml,iw,mt,ih,t0,t1,fmtY,series:meta,id,marcos:M,X,tOf:Xinv,reta,xr};
   return s;
 }
 function pinta(id,svg,o={}){
@@ -1628,7 +1651,7 @@ function wire(el,meta,toolsEl){
   const svg=el.querySelector("svg.tempo");if(!svg)return;el._chart=meta;const tools=toolsEl||el;
   const xh=svg.querySelector(".xh"),brush=svg.querySelector(".brush");
   const pxOf=e=>{const r=svg.getBoundingClientRect();return (e.clientX-r.left)/r.width*meta.W;};
-  const tOf=px=>meta.t0+(px-meta.ml)/meta.iw*(meta.t1-meta.t0);
+  const tOf=meta.tOf||(px=>meta.t0+(px-meta.ml)/meta.iw*(meta.t1-meta.t0));
   let drag=null;
   const fmt=v=>meta.fmtY(Math.round(v*10)/10);
   svg.addEventListener("mousemove",e=>{
