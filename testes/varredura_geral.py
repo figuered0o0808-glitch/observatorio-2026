@@ -42,8 +42,18 @@ def ruim(e):
     return "ERR_TUNNEL" not in e[1] and "ERR_NAME_NOT_RESOLVED" not in e[1] and "fonts.google" not in e[1]
 
 
+def lancar(p):
+    # o Chromium do runner do GitHub às vezes morre com SIGSEGV ao abrir (21/9/2026, antes de
+    # qualquer verificação); uma segunda tentativa resolve, e a rodada não derruba a publicação
+    try:
+        return p.chromium.launch(headless=True)
+    except Exception as e:
+        print("aviso: o navegador caiu ao abrir (%s); tentando de novo" % type(e).__name__)
+        return p.chromium.launch(headless=True)
+
+
 def novo_ctx(p, viewport=(1400, 900), color_scheme=None):
-    b = p.chromium.launch(headless=True)
+    b = lancar(p)
     kw = {"viewport": {"width": viewport[0], "height": viewport[1]}}
     if color_scheme:
         kw["color_scheme"] = color_scheme

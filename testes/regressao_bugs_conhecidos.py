@@ -37,8 +37,18 @@ def check(nome, cond, detalhe=""):
     print(("OK  " if cond else "FAIL"), nome, ("-", detalhe) if detalhe else "")
 
 
+def lancar(p):
+    # o Chromium do runner do GitHub às vezes morre com SIGSEGV ao abrir (21/9/2026, antes de
+    # qualquer verificação); uma segunda tentativa resolve, e a rodada não derruba a publicação
+    try:
+        return p.chromium.launch(headless=True)
+    except Exception as e:
+        print("aviso: o navegador caiu ao abrir (%s); tentando de novo" % type(e).__name__)
+        return p.chromium.launch(headless=True)
+
+
 def novo_ctx(p, tz=None, viewport=(1400, 900)):
-    b = p.chromium.launch(headless=True)
+    b = lancar(p)
     kw = {"viewport": {"width": viewport[0], "height": viewport[1]}}
     if tz:
         kw["timezone_id"] = tz
@@ -234,7 +244,7 @@ with sync_playwright() as p:
     # gerador escreve <text class="axis">, então o seletor nunca casava e o eixo saía preto
     # e com 15px; no escuro, praticamente invisível)
     for tema in ("light", "dark"):
-        b = p.chromium.launch(headless=True)
+        b = lancar(p)
         ctx = b.new_context(viewport={"width": 1400, "height": 900}, color_scheme=tema)
         page = ctx.new_page()
         for padrao in ("**/fonts.googleapis.com/**", "**/fonts.gstatic.com/**"):
@@ -360,7 +370,7 @@ with sync_playwright() as p:
 
     # ---- tema escuro: cores de partido do mapa com contraste >= 3:1 contra o papel, faixas
     # separadas do fundo e verde de série mais claro (bug: PL #1F3B8C dava 1,7:1 no escuro)
-    b = p.chromium.launch(headless=True)
+    b = lancar(p)
     ctx = b.new_context(viewport={"width": 1400, "height": 900}, color_scheme="dark")
     page = ctx.new_page()
     for padrao in ("**/fonts.googleapis.com/**", "**/fonts.gstatic.com/**"):
@@ -473,7 +483,7 @@ with sync_playwright() as p:
 
     # alvo de toque do nome-botão das barras (bug: o .nmbtn tinha 17px de altura sob ponteiro grosso,
     # e no celular ele é o único caminho para o dossiê ali, já que o botão FICHA some)
-    b = p.chromium.launch(headless=True)
+    b = lancar(p)
     ctx = b.new_context(viewport={"width": 390, "height": 844})
     page = ctx.new_page()
     for padrao in ("**/fonts.googleapis.com/**", "**/fonts.gstatic.com/**"):
