@@ -1007,9 +1007,9 @@ with sync_playwright() as p:
         subprocess.run(["python3", "mural/_gerar_mural.py"], cwd=raiz,
                        env={k: v for k, v in _os.environ.items()}, capture_output=True)
 
-    # ---- reta final e segundo turno na capa (21/9/2026): a janela padrão passa a 90 dias, os gráficos de
-    # tempo sombreiam o trecho de 4/9 em diante com o anterior apagado, e o placar de segundo turno sai
-    # da editoria Pesquisas para a capa, dizendo o mesmo que o painel de lá
+    # ---- reta final e segundo turno na capa (21/9/2026): a janela padrão é de 30 dias, com 7, 90 e tudo
+    # a um clique; os gráficos de tempo sombreiam o trecho de 4/9 em diante com o anterior apagado; e o
+    # placar de segundo turno sai da editoria Pesquisas para a capa, dizendo o mesmo que o painel de lá
     b, page, errs = novo_ctx(p)
     page.goto(URL + "#geral")
     page.wait_for_timeout(900)
@@ -1026,22 +1026,39 @@ with sync_playwright() as p:
         svg2t: !!document.querySelector('#ch-home-2t svg.tempo'),
         antes2t: document.querySelectorAll('#ch-home-2t svg.tempo .linha.antes').length
     })""")
-    check("janela padrão de 90 dias, na capa e nas preferências",
-          r["janelaPref"] == "90" and r["homeJanela"] == "90" and ["90", "true"] in r["seg"], r)
+    check("janela padrão de 30 dias, na capa e nas preferências, com 7, 90 e tudo à disposição",
+          r["janelaPref"] == "30" and r["homeJanela"] == "30" and ["30", "true"] in r["seg"]
+          and [k for k, _ in r["seg"]] == ["7", "30", "90", "tudo"], r)
     check("gráfico da capa com a faixa da reta final rotulada e o trecho anterior apagado",
-          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"].startswith("reta final"), r)
-    # a reta final tem escala própria (21/9/2026): ocupa RETA_FRAC da largura, a data volta certa pelo
-    # caminho inverso (mouse e zoom por arrasto), e o eixo de datas tem rótulos dos dois lados sem colidir
+          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"] == "reta final", r)
+    # o tempo tem uma escala só: distância no eixo é proporcional a dias em qualquer trecho, inclusive
+    # atravessando a faixa da reta final. Escala partida foi tentada em 21/9/2026 e desfeita no mesmo dia.
     esc_ = page.evaluate("""() => {
-        chartTempo({W: 1180, H: 300, series: [], t0: T1 - 93 * 864e5, t1: T1, mobile: false});
-        const m = chartTempo.last, x = m.X(RETA0), idaVolta = [T1 - 80 * 864e5, RETA0 + 5 * 864e5, T1 - 864e5].map(t => Math.abs(m.tOf(m.X(t)) - t));
-        const svg = document.querySelector('#ch-home svg.tempo'), W = +svg.dataset.w;
+        const svg = document.querySelector('#ch-home svg.tempo'), m = chartTempo.last;
+        const dia = m.X(m.t0 + 864e5) - m.X(m.t0);
+        const passos = [0.2, 0.5, 0.8].map(f => { const t = m.t0 + (m.t1 - m.t0) * f; return (m.X(t + 864e5) - m.X(t)) / dia; });
         const labs = [...svg.querySelectorAll('text.axis')].filter(t => /\\d\\d\\/\\d\\d/.test(t.textContent)).map(t => t.getBBox()).sort((a, b) => a.x - b.x);
         let colide = 0; for (let i = 1; i < labs.length; i++) if (labs[i].x < labs[i - 1].x + labs[i - 1].width + 4) colide++;
-        const xr = +svg.querySelector('.reta').getAttribute('x');
-        return {frac: (m.ml + m.iw - x) / m.iw, idaVolta: Math.max(...idaVolta), antes: labs.filter(l => l.x + l.width / 2 < xr).length, depois: labs.filter(l => l.x + l.width / 2 >= xr).length, colide}; }""")
-    check("a reta final ocupa 58% da largura, a data volta certa pelo inverso, e o eixo tem datas dos dois lados sem colisão",
-          abs(esc_["frac"] - 0.58) < 0.01 and esc_["idaVolta"] < 1000 and esc_["antes"] >= 2 and esc_["depois"] >= 2 and esc_["colide"] == 0, esc_)
+        return {passos, uniforme: passos.every(p => Math.abs(p - 1) < 1e-6), datas: labs.length, colide,
+                atravessa: m.reta && m.X(RETA0) > m.ml && m.X(RETA0) < m.ml + m.iw}; }""")
+    check("uma escala só para o tempo: o dia mede o mesmo em qualquer ponto do eixo, sem rótulos colidindo",
+          esc_["uniforme"] and esc_["atravessa"] and esc_["datas"] >= 3 and esc_["colide"] == 0, esc_)
+    # cada janela cobre exatamente os dias de dado que promete, contados da última rodada, e o eixo
+    # nunca desenha o futuro (a folga da direita não passa de amanhã)
+    janelas = page.evaluate("""async () => {
+        const out = {};
+        for (const k of ['7', '30', '90', 'tudo']) {
+            document.querySelector(`#home-seg button[data-hj="${k}"]`).click();
+            await new Promise(r => setTimeout(r, 250));
+            out[k] = Math.round((Date.parse(ULT) - chartTempo.last.t0) / 864e5);
+        }
+        document.querySelector('#home-seg button[data-hj="30"]').click();
+        out.folga = Math.round((T1 - Date.parse(ULT)) / 864e5);
+        out.futuro = Math.round((T1 - Date.parse(HOJE)) / 864e5);
+        return out; }""")
+    check("as quatro janelas cobrem os dias que prometem e o eixo não entra no futuro",
+          janelas["7"] == 7 and janelas["30"] == 30 and janelas["90"] == 90 and janelas["tudo"] > 200
+          and 0 < janelas["folga"] <= 3 and janelas["futuro"] <= 1, janelas)
     check("segundo turno na capa: painel visível com dois números, selo e gráfico",
           r["p2t"] and len(r["nums"]) == 2 and all("%" in n for n in r["nums"]) and r["tag"] and r["svg2t"] and r["antes2t"] >= 1, r)
     page.goto(URL + "#pesquisas")
