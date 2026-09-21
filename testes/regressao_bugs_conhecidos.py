@@ -487,8 +487,19 @@ with sync_playwright() as p:
     check("nome-botão das barras com >= 40px sob pointer:coarse", r["coarse"] and r["alturas"] and min(r["alturas"]) >= 40, r)
     page.goto(URL + "#geral")
     page.wait_for_timeout(700)
-    r = page.evaluate("() => [...document.querySelectorAll('.view.on .al .src a')].map(a => Math.round(a.getBoundingClientRect().height)).filter(h => h > 0)")
-    check("links 'ver'/'dossiê' dos alertas com >= 40px sob pointer:coarse", r and min(r) >= 40, r)
+    # o painel de alertas é do dia: num dia sem sinal ele fica vazio, e isso é estado legítimo, não bug
+    # (foi o que derrubou a rotina de 19 a 20/9/2026, três dias depois da última rodada presidencial).
+    # O que este teste guarda é a regra de CSS do alvo de toque; quando não há alerta real, ele desenha
+    # um de amostra pela própria função da página e mede esse.
+    r = page.evaluate("""() => {
+      let links = [...document.querySelectorAll('.view.on .al .src a')], amostra = false;
+      if (!links.length) {
+        renderAlertas(document.querySelector('#alerts'), [{s: 'info', k: 'Amostra', t: 'alerta desenhado pelo teste', src: 'teste', go: 'pesquisas', n: 'Lula'}], 'Alertas (amostra do teste)', '#tempo');
+        links = [...document.querySelectorAll('.view.on .al .src a')]; amostra = true;
+      }
+      return {amostra, alturas: links.map(a => Math.round(a.getBoundingClientRect().height)).filter(h => h > 0)};
+    }""")
+    check("links 'ver'/'dossiê' dos alertas com >= 40px sob pointer:coarse", r["alturas"] and min(r["alturas"]) >= 40, r)
     check("rotas do bloco (toque) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
