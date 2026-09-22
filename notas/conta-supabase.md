@@ -35,6 +35,13 @@ propósito: variável de ambiente em branco não pode trancar o público do lado
    morar. Enquanto ele não existir, a carga fica em `mural-completo.json` na raiz do site, que
    é público: funciona igual, mas sem a parte de "não está na página".
 
+   **Atenção:** hoje nenhum workflow envia a carga para o bucket. O mural regenera
+   `mural-completo.json` a cada rodada, e quem serve esse arquivo é o próprio site. Se você
+   apontar `MURAL_CARGA_URL` para `storage:` sem antes automatizar o envio, o bucket fica vazio
+   ou com dado velho, e quem se cadastrar não recebe carga nenhuma. Comece com
+   `MURAL_CARGA_URL` em branco; o envio automático é um passo a construir depois, e ele exige
+   guardar a chave *service_role* nos segredos do GitHub, decisão que ainda não foi tomada.
+
 6. Em **SQL Editor**, rode o conteúdo de `notas/conta-supabase.sql`.
 
 7. Em **Project Settings > API**, copie *Project URL* e a chave *anon public*. No GitHub, em
@@ -54,7 +61,13 @@ propósito: variável de ambiente em branco não pode trancar o público do lado
 Email, e o nome e a área de trabalho se a pessoa preencher. Nada de CPF, título de eleitor ou
 qualquer dado de voto, o que segue a mesma regra que já vale para os candidatos.
 
-A conta é apagável pelo próprio usuário. Como isso é dado pessoal de brasileiro, a LGPD se
-aplica: uma página de política de privacidade precisa existir antes da divulgação, dizendo o
-que é guardado, para quê, por quanto tempo e como pedir exclusão. **Isso ainda não está
-escrito**, e é o que falta para o cadastro poder ir ao ar.
+A conta é apagável pelo próprio usuário, de dentro do mural, pela função `apagar_minha_conta()`
+(LGPD art. 18, VI).
+
+Como isso é dado pessoal de brasileiro, a LGPD se aplica: a política de privacidade precisa
+existir antes da divulgação, dizendo o que é guardado, para quê, por quanto tempo e como pedir
+exclusão. **Isso já está pronto**: `privacidade.html` é gerada a cada publicação a partir de
+`mural/_privacidade.html` e de `notas/organizacao.json`, que identifica o Instituto Democracia
+e Sustentabilidade como controlador, com CNPJ, endereço, email e encarregado. Os dois workflows
+se recusam a publicar se as chaves estiverem configuradas e a política ainda tiver campos por
+preencher, então não há como o cadastro ir ao ar sem ela.
