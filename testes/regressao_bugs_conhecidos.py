@@ -1083,6 +1083,39 @@ with sync_playwright() as p:
     check("reta final e 2º turno na capa sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- o estado fala pela média, não pela rodada mais recente (22/9/2026). Antes, a manchete, o
+    # placar, os alertas, o mapa e a tira de números do estado saíam de UMA rodada, enquanto o gráfico
+    # ao lado desenhava média: dois números diferentes para a mesma disputa na mesma tela. E a
+    # manchete de um estado inteiro podia ser de um instituto só (a Veritá assinava a de seis).
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#uf-pa-governo")
+    page.wait_for_timeout(1200)
+    est = page.evaluate("""() => {
+        const uf = 'PA', cargo = 'governador';
+        const l = liderDe(uf, cargo), M = mediaUF(uf, cargo);
+        const num = t => (t.match(/-?\\d+[,.]?\\d*/g) || []).map(x => +x.replace(',', '.'));
+        return {rodadaTop: l.pts[0][4], mediaTop: M.lista[0].valor, rodadas: M.rs.length, insts: M.insts,
+                tag: document.querySelector('#e-tag').textContent,
+                tagNums: num(document.querySelector('#e-tag').textContent),
+                eyebrow: document.querySelector('#e-eyebrow').textContent,
+                duelo: [...document.querySelectorAll('#e-duelo .dl-num')].map(e => +e.textContent.match(/-?\\d+[,.]?\\d*/)[0].replace(',', '.')),
+                mapaLider: liderPartido(uf, cargo).p.valor}; }""")
+    # o primeiro número da manchete é o da média, e não o da rodada (no PA a diferença passa de 15 pontos)
+    check("a manchete do estado traz a média, não a rodada mais recente",
+          abs(est["tagNums"][0] - est["mediaTop"]) < 0.11 and abs(est["tagNums"][0] - est["rodadaTop"]) > 1, est)
+    check("o placar do estado traz a média", est["duelo"] and abs(est["duelo"][0] - est["mediaTop"]) < 0.11, est)
+    check("o mapa colore o estado pela média", abs(est["mapaLider"] - est["mediaTop"]) < 0.11, est)
+    check("o carimbo do estado diz de quantas rodadas e institutos a média é feita",
+          "média de" in est["eyebrow"] and str(est["rodadas"]) in est["eyebrow"] and str(est["insts"]) in est["eyebrow"], est["eyebrow"])
+    # nenhum estado pode ter a manchete decidida por um instituto só
+    solo = page.evaluate("""() => {
+        const out = [];
+        for (const uf of UFLIST) { const M = mediaUF(uf, 'governador'); if (M && M.insts < 2) out.push([uf, M.insts]); }
+        return out; }""")
+    check("nenhuma manchete estadual sai de um instituto só", not solo, solo)
+    check("estado pela média sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

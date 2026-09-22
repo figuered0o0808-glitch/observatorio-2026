@@ -3108,6 +3108,38 @@ function pontosRodada(u,r,cen){
   return (UF[u].polls||[]).filter(p=>p[0]===r.cargo&&p[1]===r.inst&&p[2]===r.data).sort((a,b)=>b[4]-a[4]);}
 function ultimaRodadaUF(u,cargo){const r=rodadasDe(u,cargo);return r.length?r[0]:null;}
 function liderDe(u,cargo){const r=ultimaRodadaUF(u,cargo);if(!r)return null;const pts=pontosRodada(u,r);return pts.length?{r,pts}:null;}
+// ---- a média do estado: a mesma conta da corrida presidencial, aplicada à disputa estadual.
+// Até 22/9/2026 a manchete, o placar e os alertas do estado saíam de UMA rodada, a mais recente,
+// enquanto o gráfico ao lado desenhava média: davam números diferentes na mesma tela. Pior, num
+// estado a manchete inteira podia ser de um instituto só, o que a média nacional nunca permite.
+// A janela é de 14 dias (a mesma do gráfico do estado), maior que a nacional porque rodada
+// estadual é esparsa; as defesas contra rodada discrepante são as mesmas, e valem para todo
+// instituto pelo mesmo critério: uma rodada por instituto na janela, a janela alarga até juntar
+// cinco institutos, quem destoa do conjunto pesa menos e ninguém passa de 15% do peso.
+const SIG_UF=14;
+function agregUF(u,cargo){
+  const rs=rodadasDe(u,cargo);if(!rs.length)return null;
+  const porNome={},meta={};
+  for(const r of rs)for(const p of pontosRodada(u,r)){
+    const n=p[3];(porNome[n]=porNome[n]||[]).push({t:Date.parse(r.data),v:p[4],inst:r.inst});
+    if(!meta[n])meta[n]={slug:p[5],cor:p[6],partido:p[7]};
+  }
+  const nomes=Object.keys(porNome);if(!nomes.length)return null;
+  const rods=emRodadas(porNome),t=Math.max(...rods.map(r=>r.t));
+  return {rods,nomes,porNome,meta,t,rs,insts:new Set(rs.map(r=>r.inst)).size};
+}
+// lista ordenada pela média, no formato que a manchete e o placar do estado consomem
+function mediaUF(u,cargo){
+  const a=agregUF(u,cargo);if(!a)return null;
+  const m=agregarEm(a.rods,a.nomes,SIG_UF,a.t);
+  const lista=a.nomes.filter(n=>m[n]!=null)
+    .map(n=>({nome:n,valor:m[n],n:a.porNome[n].length,...a.meta[n]}))
+    .sort((x,y)=>y.valor-x.valor);
+  return lista.length?{...a,lista,media:m}:null;
+}
+// empate técnico pela incerteza da própria média, como no painel presidencial, e não pela margem
+// declarada de uma rodada só
+function empateUF(a,x,y){try{return empatam(a.rods,a.nomes,SIG_UF,a.t,x,y);}catch(e){return false;}}
 // disputa proporcional não tem pesquisa nominal: o mercado não publica por nome. Onde o resto
 // do mural mostraria uma rodada, esses dois cargos mostram essa frase, não um vazio sem motivo.
 const semPesq=c=>temPesquisa(c)
@@ -3146,7 +3178,11 @@ function evolucaoUF(u,cargo){
   return chartTempo({W:1180,H:300,ml:44,mr:120,ymax,ticks,fmtY:v=>fPct(v)+"%",series,t0:Math.min(...ts)-4*864e5,t1:Math.max(...ts)+4*864e5,aria:"Evolução das pesquisas no estado"});
 }
 // mapa geográfico
-function liderPartido(k,cargo){const l=liderDe(k,cargo);if(!l)return null;const p=l.pts[0];const c=todosUF(UF[k]).find(x=>x.slug===p[5]);return {l,p,c,partido:c?c.partido:""};}
+// quem lidera o estado no mapa sai da média, não da rodada mais recente: pintar 27 estados pela
+// última rodada deixava a cor do mapa na mão de um instituto só por estado
+function liderPartido(k,cargo){const M=temPesquisa(cargo)?mediaUF(k,cargo):null;if(!M)return null;
+  const p=M.lista[0];const c=todosUF(UF[k]).find(x=>x.slug===p.slug);
+  return {M,p,c,partido:c?c.partido:(p.partido||"")};}
 function drawMapa(){
   const G=DATA.geo; if(!G){$("#mapa-svg").innerHTML="";return;}
   const [vx,vy,vw,vh]=G.viewBox.split(" ").map(Number);
@@ -3155,10 +3191,11 @@ function drawMapa(){
   for(const k of UFLIST){
     const g=G.ufs[k]; if(!g)continue;
     const L=liderPartido(k,ufCargo);
-    const seg=L&&L.l.pts[1]?L.l.pts[1]:null, marg=L&&seg?L.p[4]-seg[4]:null, me=L?margemDe(L.l.r):null, tec=marg!=null&&me!=null&&marg<=2*me;
+    const seg=L&&L.M.lista[1]?L.M.lista[1]:null, marg=L&&seg?L.p.valor-seg.valor:null;
+    const tec=!!(L&&seg&&empateUF(L.M,L.p.nome,seg.nome));
     const cor=L?corPartido(L.partido):"var(--line)";
     if(L){lideres[L.partido]=(lideres[L.partido]||0)+1;}
-    const tip=L?`<b>${UF[k].nome}</b> · ${cargoLabel(ufCargo)}<br>${esc(L.p[3])} (${esc(L.partido)}) ${fPct(L.p[4])}%${seg?` · ${esc(seg[3])} ${fPct(seg[4])}%`:""}<br>${esc(L.l.r.inst)}, ${dBR(L.l.r.data)}${tec?`<br>diferença de ${fPct(marg)} ponto${marg===1?"":"s"}, dentro da margem de ${fPct(me)}: empate técnico`:""}`:`<b>${UF[k].nome}</b><br>sem pesquisa de ${cargoLabel(ufCargo)} no observatório`;
+    const tip=L?`<b>${UF[k].nome}</b> · ${cargoLabel(ufCargo)}<br>${esc(L.p.nome)} (${esc(L.partido)}) ${fPct(L.p.valor)}%${seg?` · ${esc(seg.nome)} ${fPct(seg.valor)}%`:""}<br>média de ${pl(L.M.rs.length,"rodada")} de ${pl(L.M.insts,"instituto")}, até ${dBR(dISO(L.M.t))}${tec?`<br>diferença de ${fPct(marg)} ${pts(marg)}, menos que a incerteza da média: empate técnico`:""}`:`<b>${UF[k].nome}</b><br>sem pesquisa de ${cargoLabel(ufCargo)} no observatório`;
     paths+=`<path class="uf${k===ufAtual?" on":""}" d="${g.d}" fill="${cor}" data-uf="${k}" data-tip="${esc(tip)}" role="button" aria-label="${esc(UF[k].nome)}" tabindex="0"><title>${esc(UF[k].nome)}</title></path>`;
     if(tec)hatch+=`<path class="hatch" d="${g.d}" fill="url(#hatchp)"/>`;
     const o=LBL[k];
@@ -3176,14 +3213,14 @@ function drawMapa(){
 }
 function drawMapaSel(){
   const k=ufAtual,u=UF[k]; if(!u)return;
-  const l=liderDe(k,ufCargo), vagas=VAGAS(ufCargo);
+  const M=temPesquisa(ufCargo)?mediaUF(k,ufCargo):null, vagas=VAGAS(ufCargo);
   const outro=ufCargo==="senador"?"governador":"senador", lo=liderPartido(k,outro);
-  let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${l?` · ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}</div>`;
-  if(l){
-    h+=l.pts.slice(0,4).map((p,i)=>{const c=todosUF(u).find(x=>x.slug===p[5]);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p[6])}">${c?esc(c.num):""}</span><span><b>${esc(p[3])}</b><span class="pt">${c?esc(c.partido):""}</span></span><span class="v">${fPct(p[4])}%</span></div>`;}).join("");
-    if(l.pts.length>4)h+=`<div class="src">mais ${l.pts.length-4} nomes testados nesta rodada</div>`;
+  let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${M?` · média de ${pl(M.rs.length,"rodada")} até ${dBR(dISO(M.t))}`:""}</div>`;
+  if(M){
+    h+=M.lista.slice(0,4).map((p,i)=>{const c=todosUF(u).find(x=>x.slug===p.slug);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p.cor)}">${c?esc(c.num):""}</span><span><b>${esc(p.nome)}</b><span class="pt">${c?esc(c.partido):esc(p.partido||"")}</span></span><span class="v">${fPct(p.valor)}%</span></div>`;}).join("");
+    if(M.lista.length>4)h+=`<div class="src">mais ${M.lista.length-4} nomes medidos na janela</div>`;
   } else h+=`<div class="empty" style="margin:0"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;
-  h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p[3])} (${esc(lo.partido)}) com ${fPct(lo.p[4])}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
+  h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p.nome)} (${esc(lo.partido)}) com ${fPct(lo.p.valor)}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
   h+=`<a class="go" href="#uf-${k.toLowerCase()}${ufCargo==="senador"?"-senado":"-governo"}-pesquisas" data-goto-aba="e-pesquisas">Abrir ${esc(u.nome)} →</a>`;
   $("#mapa-sel").innerHTML=h;
 }
@@ -3200,14 +3237,14 @@ function drawGeralUF(){
   const nGov=u.gov.length, nSen=u.sen.length, nPart=new Set([...u.gov,...u.sen].map(c=>c.partido)).size;
   const nRod=u.rodadas.length, insts=new Set(u.rodadas.map(r=>r.inst)).size;
   // manchete numérica do estado: os três primeiros da última rodada da disputa escolhida, sem verbo
-  {const l=liderDe(ufAtual,ufCargo),disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
-    $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${l?`última rodada ${l.r.inst}, ${dBR(l.r.data)}`:(temPesquisa(ufCargo)?"sem pesquisa registrada":"sem pesquisa nominal")}`;
+  {const M=temPesquisa(ufCargo)?mediaUF(ufAtual,ufCargo):null,disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
+    $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${M?`média de ${pl(M.rs.length,"rodada")} de ${pl(M.insts,"instituto")} até ${dBR(dISO(M.t))}`:(temPesquisa(ufCargo)?"sem pesquisa registrada":"sem pesquisa nominal")}`;
     const ed=$("#e-duelo");
-    if(ed){if(l&&l.pts.length>=2){const [A,B]=l.pts,gap=A[4]-B[4],mg=+(l.r.margem||0),emp=mg>0&&Math.abs(gap)<2*mg;
-        const lado=(q,dir)=>{const c=candPorSlug(q[5]);return `<div class="dl${dir?" dir":""}" style="--cc:${corViva(q[6])}"><span class="dl-nome"><i></i>${esc(q[3])}</span><span class="dl-num display tnum">${fPct(q[4])}<small>%</small></span><span class="dl-var">${c?esc(c.partido):""}${c&&c.num?" · "+esc(c.num):""}</span></div>`;};
-        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A[3].split(" ")[0])+" à frente"}</span>${mg?`<span class="dl-var">margem de ${String(mg).replace(".",",")} ${pts(mg)}</span>`:""}</div>`+lado(B,true);}
+    if(ed){if(M&&M.lista.length>=2){const [A,B]=M.lista,gap=A.valor-B.valor,emp=empateUF(M,A.nome,B.nome);
+        const lado=(q,dir)=>{const c=candPorSlug(q.slug);return `<div class="dl${dir?" dir":""}" style="--cc:${corViva(q.cor)}"><span class="dl-nome"><i></i>${esc(q.nome)}</span><span class="dl-num display tnum">${fPct(q.valor)}<small>%</small></span><span class="dl-var">${c?esc(c.partido):esc(q.partido||"")}${c&&c.num?" · "+esc(c.num):""}</span></div>`;};
+        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A.nome.split(" ")[0])+" à frente"}</span><span class="dl-var">média móvel de ${SIG_UF} dias</span></div>`+lado(B,true);}
       else ed.innerHTML="";}
-    $("#e-tag").textContent=l?l.pts.slice(0,3).map(p=>`${p[3]} ${fPct(p[4])}%`).join(" · ")
+    $("#e-tag").textContent=M?M.lista.slice(0,3).map(p=>`${p.nome} ${fPct(p.valor)}%`).join(" · ")
       :(temPesquisa(ufCargo)?`Sem pesquisa registrada para ${cargoArt(ufCargo)} ${emUF(ufAtual)}`
         :`${pl(nDep,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargo)} ${emUF(ufAtual)}`);
     const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;
@@ -3219,31 +3256,34 @@ function drawGeralUF(){
   $("#e-panel-gov").classList.toggle("pick",ufCargo==="governador"); $("#e-panel-sen").classList.toggle("pick",ufCargo==="senador");
   // alertas do estado
   const A=[];
+  // os alertas do estado saem da média, como os nacionais, e o empate vem da incerteza dela
   for(const cargo of ["governador","senador"]){
-    const l=liderDe(ufAtual,cargo); if(!l)continue;
-    const vagas=VAGAS(cargo), p=l.pts[0], q=l.pts[vagas]||null, ant=l.pts[vagas-1];
-    const me=margemDe(l.r), dif=l.pts[1]?Math.abs(p[4]-l.pts[1][4]):null;
-    if(cargo==="governador"&&dif!=null&&me!=null&&dif<=2*me)A.push({s:"warn",k:"Empate técnico",t:dif===0?`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> aparecem com ${fPct(p[4])}% cada na disputa pelo governo`:`<b>${esc(p[3])}</b> e <b>${esc(l.pts[1][3])}</b> separados por ${fPct(dif)} ponto${dif===1?"":"s"} na disputa pelo governo, menos que o dobro da margem de erro`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
-    else if(cargo==="governador"&&l.pts[1]&&p[4]-l.pts[1][4]>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p[3])}</b> abre ${fPct(p[4]-l.pts[1][4])} pontos sobre <b>${esc(l.pts[1][3])}</b> na disputa pelo governo (${fPct(p[4])}% a ${fPct(l.pts[1][4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
-    if(cargo==="governador"&&p[4]>=50)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p[3])}</b> aparece com ${fPct(p[4])}% no primeiro turno, acima da faixa de vitória em turno único`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)}`});
-    if(cargo==="senador"&&ant&&q&&me!=null&&Math.abs(ant[4]-q[4])<=2*me)A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant[3])}</b> e <b>${esc(q[3])}</b> disputam a segunda vaga do Senado dentro da margem (${fPct(ant[4])}% e ${fPct(q[4])}%)`,src:`${esc(l.r.inst)}, ${dBR(l.r.data)} · margem de ${esc(l.r.margem)} ${pts(String(l.r.margem).replace(",","."))}`});
+    const M=temPesquisa(cargo)?mediaUF(ufAtual,cargo):null; if(!M)continue;
+    const vagas=VAGAS(cargo), p=M.lista[0], seg=M.lista[1]||null, q=M.lista[vagas]||null, ant=M.lista[vagas-1];
+    const fonte=`média de ${pl(M.rs.length,"rodada")} de ${pl(M.insts,"instituto")}, ${SIG_UF} dias até ${dBR(dISO(M.t))}`;
+    const dif=seg?Math.abs(p.valor-seg.valor):null;
+    if(cargo==="governador"&&seg&&empateUF(M,p.nome,seg.nome))A.push({s:"warn",k:"Empate técnico",t:`<b>${esc(p.nome)}</b> e <b>${esc(seg.nome)}</b> separados por ${fPct(dif)} ${pts(dif)} na disputa pelo governo, menos que a incerteza da média`,src:fonte});
+    else if(cargo==="governador"&&seg&&p.valor-seg.valor>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p.nome)}</b> abre ${fPct(p.valor-seg.valor)} pontos sobre <b>${esc(seg.nome)}</b> na disputa pelo governo (${fPct(p.valor)}% a ${fPct(seg.valor)}%)`,src:fonte});
+    if(cargo==="governador"&&p.valor>=50)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p.nome)}</b> aparece com ${fPct(p.valor)}% no primeiro turno, acima da faixa de vitória em turno único`,src:fonte});
+    if(cargo==="senador"&&ant&&q&&empateUF(M,ant.nome,q.nome))A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant.nome)}</b> e <b>${esc(q.nome)}</b> disputam a segunda vaga do Senado dentro da incerteza da média (${fPct(ant.valor)}% e ${fPct(q.valor)}%)`,src:fonte});
   }
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
   for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${esc(cargoLabel(c.cargo))}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
   if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});
   renderAlertas($("#e-alerts"),A,`Alertas ${deUF(ufAtual)}`,hashDe("e-tempo"));
-  const lg=liderDe(ufAtual,"governador"), ls=liderDe(ufAtual,"senador");
+  const lg=mediaUF(ufAtual,"governador"), ls=mediaUF(ufAtual,"senador");
   $("#e-strip").innerHTML=[
     [String(nGov),"candidatos ao governo",`${u.gov.filter(c=>c.sit==="Deferido").length} com registro deferido`],
     [String(nSen),"candidatos ao Senado","duas vagas em disputa neste estado"],
     [String(nPart),"partidos na disputa",`${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`],
     [String(nRod),nRod===1?"rodada de pesquisa":"rodadas de pesquisa",nRod?`${pl(insts,"instituto")}; a última em ${dBR(u.rodadas[0].data)}`:"nenhuma no observatório ainda"],
     ...cargosDe(ufAtual).filter(c=>!temPesquisa(c)).map(c=>[String(listaDe(u,c).length),`nomes na ${CARGOS[c].bt}`,"grupo acompanhado, sem pesquisa nominal"]),
-    [lg?fPct(lg.pts[0][4])+"<small>%</small>":"n/d","líder no governo",lg?`${esc(lg.pts[0][3])} (${esc(lg.r.inst)}, ${dBR(lg.r.data)})`:"sem pesquisa"],
-    [ls?fPct(ls.pts[0][4])+"<small>%</small>":"n/d","líder no Senado",ls?`${esc(ls.pts[0][3])} (${esc(ls.r.inst)}, ${dBR(ls.r.data)})`:"sem pesquisa"],
+    [lg?fPct(lg.lista[0].valor)+"<small>%</small>":"n/d","líder no governo",lg?`${esc(lg.lista[0].nome)} · média de ${pl(lg.rs.length,"rodada")} até ${dBR(dISO(lg.t))}`:"sem pesquisa"],
+    [ls?fPct(ls.lista[0].valor)+"<small>%</small>":"n/d","líder no Senado",ls?`${esc(ls.lista[0].nome)} · média de ${pl(ls.rs.length,"rodada")} até ${dBR(dISO(ls.t))}`:"sem pesquisa"],
   ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
-  const capR=l=>l?`${esc(l.r.inst)}, ${dBR(l.r.data)} · ${esc(l.r.modo)} · registro ${esc(l.r.reg)}`:"";
-  $("#e-cap-gov").textContent=capR(lg); $("#e-cap-sen").textContent=capR(ls);
+  // os dois painéis de barras mostram a rodada mais recente, e por isso o carimbo deles é dela
+  const capR=c=>{const l=liderDe(ufAtual,c);return l?`${esc(l.r.inst)}, ${dBR(l.r.data)} · ${esc(l.r.modo)} · registro ${esc(l.r.reg)}`:"";};
+  $("#e-cap-gov").textContent=capR("governador"); $("#e-cap-sen").textContent=capR("senador");
   pinta("#e-ch-gov",barrasRodada(ufAtual,"governador"),{zoom:false});
   pinta("#e-ch-sen",barrasRodada(ufAtual,"senador"),{zoom:false});
 }
