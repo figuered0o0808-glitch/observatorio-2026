@@ -1199,7 +1199,7 @@ svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wd
 
 <section class="view" id="v-candidatos" role="tabpanel" data-title="Candidatos">
   <div class="blkhead"><span class="eyebrow">Fichas</span><h2 class="t display">Os candidatos</h2></div>
-  <p class="sub">Os treze registrados no TSE. "Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.</p>
+  <p class="sub" id="cand-sub">"Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.</p>
   <div class="controls">
     <div class="seg" role="group" aria-label="Quais candidatos mostrar">
       <button type="button" data-view="principais" aria-pressed="true">Os 8 principais</button>
@@ -1965,11 +1965,16 @@ addEventListener("hashchange",rotear);
 const diasP1=Math.round((Date.parse("2026-10-04")-Date.parse(ULT))/864e5);
 const fefcTot=DATA.partidos.filter(p=>!p.secundario).reduce((s,p)=>s+(p.fefc||0),0);
 const nDef=C.filter(c=>c.situacao==="Deferido").length;
+// a contagem de candidaturas vem do dado, nunca escrita à mão: em 14/9/2026 o PRTB substituiu o
+// Marçal, indeferido, pelo Leonardo Avalanche, e o número deixou de ser treze
+const nInd=C.filter(c=>/^Indeferid|Cassa|Renúncia/i.test(c.situacao||"")).length;
+const POREXT=["zero","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","catorze","quinze","dezesseis","dezessete","dezoito","dezenove","vinte"];
+const nCandExt=()=>POREXT[C.length]||String(C.length);
 // o placar não presume quem lidera: os dois primeiros saem da média móvel do dia, ordenada pelo valor
 const ORDEM=()=>OITO.map(posicao).filter(Boolean).sort((a,b)=>b.agora-a.agora);
 const TSE_DT=dBR(String((C[0]&&C[0].atualizado_tse)||"").slice(0,10));
 $("#strip").innerHTML=[
- ["13","registrados no TSE",`${nDef} deferidos; os demais aguardam julgamento · TSE${TSE_DT?", "+TSE_DT:""}`],
+ [String(C.length),"registrados no TSE",`${nDef} deferidos${nInd?`, ${nInd} indeferido${nInd===1?"":"s"}`:""}; os demais aguardam julgamento · TSE${TSE_DT?", "+TSE_DT:""}`],
  [String(DATA.meta.rodadas),"rodadas de pesquisa",`${DATA.meta.institutos} institutos, de ${dBR(DATA.meta.primeira)} a ${dBR(DATA.meta.ultima)}`],
  ["2","campanhas restritas","Renan Santos (31/8) e Pablo Marçal (20/8), por decisão do TSE"],
  (()=>{const o=ORDEM();const a=o[0],b=o[1];const d=a&&b?a.agora-b.agora:null;
@@ -2001,7 +2006,7 @@ function drawManchete(){
   $("#lead-ult").textContent=dBR(M.ultima);
   if(o.length<2||!ult){
     $("#manchete").textContent="A disputa presidencial de 2026, medida todos os dias.";
-    $("#lede-dados").innerHTML=`Pesquisas, busca, redes e ficha do TSE dos treze registrados, com data e fonte em cada número. <a href="#metodo">Como a média é feita →</a>`;
+    $("#lede-dados").innerHTML=`Pesquisas, busca, redes e ficha do TSE ${C.length===1?"do único registrado":"dos "+nCandExt()+" registrados"}, com data e fonte em cada número. <a href="#metodo">Como a média é feita →</a>`;
     return;}
   $("#manchete").textContent=o.slice(0,3).map(p=>`${curto(p.nome)} ${fPct(p.agora)}%`).join(" · ");
   $("#lede-dados").innerHTML=`${M.rodadas} rodadas de ${M.institutos} institutos desde ${dBR(M.primeira)}. Última: ${esc(ult.inst)}, ${dBR(ult.dt)}${ult.modo?", "+esc(ult.modo):""}. <a href="#metodo">Como a média é feita →</a>`;
@@ -2460,6 +2465,8 @@ function renderWall(){
   let list=C.filter(c=>view==="todos"||c.grupo==="principal");
   list=list.slice().sort((a,b)=>{const fa=prefs.foco.includes(a.nome),fb=prefs.foco.includes(b.nome);if(fa!==fb)return fa?-1:1;if(a.grupo!==b.grupo)return a.grupo==="principal"?-1:1;return keyOf(a)-keyOf(b)||a.nome.localeCompare(b.nome);});
   $("#wall").innerHTML=list.map(card).join("");bindTips($("#wall"));
+  const sub=$("#cand-sub");
+  if(sub)sub.textContent=`${nCandExt().charAt(0).toUpperCase()+nCandExt().slice(1)} ${C.length===1?"registrado":"registrados"} no TSE, ${nDef} ${nDef===1?"deferido":"deferidos"}${nInd?` e ${nInd} ${nInd===1?"indeferido":"indeferidos"}`:""}. "Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.`;
 }
 $$("#v-candidatos .seg button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;$$("#v-candidatos .seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWall();}));
 $("#sort").addEventListener("change",e=>{sortBy=e.target.value;renderWall();});

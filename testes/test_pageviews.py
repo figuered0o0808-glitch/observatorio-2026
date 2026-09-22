@@ -414,7 +414,15 @@ class Titulos(Base):
         self.assertEqual(dict(nac)["Pablo Marçal"], "Pablo Marçal")
         self.assertEqual(dict(nac)["Lula"], "Luiz Inácio Lula da Silva")
         self.assertEqual(len(nac), 8)
-        self.assertEqual(sem, ["Clariana Barão", "Edmilson Costa", "Hertz Dias", "Rui Costa Pimenta", "Wilson Grassi"])
+        # Lista congelada de propósito: ela é um posto de conferência humana. Quando alguém entra
+        # ou sai daqui, o teste quebra e obriga a decidir se aquele nome deve mesmo ficar sem
+        # verbete. Leonardo Avalanche entrou em 21/9/2026, quando o PRTB o pôs no lugar do Marçal,
+        # indeferido pelo TSE em 11/9; ele ainda não tem verbete confirmado na Wikipédia em
+        # português, e por isso fica aqui e não em `nac`. Se um verbete aparecer, preencha
+        # wikipedia_titulo em dados/candidatos.csv e tire o nome desta lista.
+        # ordenado dos dois lados: o que importa é quem está na lista, não a posição da linha no CSV
+        self.assertEqual(sorted(sem), ["Clariana Barão", "Edmilson Costa", "Hertz Dias",
+                                       "Leonardo Avalanche", "Rui Costa Pimenta", "Wilson Grassi"])
         est = self.mod.verbetes_estaduais(RAIZ)
         slugs = [s for _, s, _ in est]
         # o número sai do próprio arquivo conferido, não de um literal que envelhece a cada leva
