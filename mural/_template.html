@@ -1243,6 +1243,29 @@ table th{background:#000;color:#fff;border-bottom:0}
   .tabs .scope button{background:transparent;border:2px solid #3A3A3A;color:#9BA0A8;border-radius:0}
   .tabs .scope button[aria-pressed="true"]{background:var(--smt-azul);color:#000;border-color:var(--smt-azul)}
 }
+/* --- as fórmulas da média, na editoria de método --------------------------
+   Atenção: o <math> precisa de display:block math, não display:block. O valor
+   sem "math" transforma o elemento em bloco comum e cada símbolo filho vira um
+   bloco empilhado; foi o que aconteceu na primeira versão deste painel.
+   MathML, que os navegadores desenham nativamente: sem biblioteca nova, e a fórmula
+   é texto de verdade (seleciona, copia, lê em leitor de tela). */
+.formulas ol.fx{list-style:none;counter-reset:fx;margin:14px 0 0;padding:0;display:grid;gap:18px}
+.formulas ol.fx>li{counter-increment:fx;position:relative;padding:14px 16px 12px 58px;border-top:2px solid var(--line-2)}
+.formulas ol.fx>li::before{content:counter(fx,decimal-leading-zero);position:absolute;left:0;top:10px;
+  font-family:Archivo,sans-serif;font-variation-settings:"wdth" 62,"wght" 900;font-stretch:62%;font-weight:900;
+  font-size:34px;line-height:1;color:var(--ed-bg,var(--ink))}
+.formulas h4{margin:0 0 8px;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 75,"wght" 800;
+  font-stretch:75%;font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.formulas math{display:block math;width:fit-content;font-size:21px;margin:8px 0 10px;color:var(--ink);overflow-x:auto;overflow-y:hidden;
+  max-width:100%;padding:4px 0}
+.formulas p{margin:0;font-size:15px;line-height:1.6;color:var(--ink);max-width:78ch}
+.formulas p i,.formulas p b{font-style:italic}
+.formulas p b{font-style:normal}
+@media (max-width:760px){
+  .formulas ol.fx>li{padding:12px 0 10px 40px}
+  .formulas ol.fx>li::before{font-size:26px}
+  .formulas math{font-size:17px}
+}
 </style>
 </head>
 <body>
@@ -1433,6 +1456,38 @@ table th{background:#000;color:#fff;border-bottom:0}
   <div class="grid2 wide-left">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. Mede dado, não mérito.</div><div id="ch-cobertura"></div></div>
     <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta sai da ficha técnica registrada no TSE, por palavra-chave. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
+  </div>
+  <div class="panel formulas" id="p-formulas"><div class="ph"><h3>As fórmulas da média</h3><span class="cap" style="margin:0">a conta que o mural faz, na ordem em que ela é feita</span></div>
+    <p class="cap">Cada constante abaixo é lida do mesmo código que calcula a média, na hora em que a página abre. Se a regra mudar, a fórmula muda junto.</p>
+    <ol class="fx">
+      <li><h4>A régua do tempo</h4>
+        <math display="block"><mi>σ</mi><mo>=</mo><mi>max</mi><mo>(</mo><mn class="rg-min">1</mn><mo>,</mo><mspace width="0.3em"/><mn class="rg-s0">4</mn><mo>−</mo><mo>⌊</mo><mi>d</mi><mo>/</mo><mn class="rg-passo">10</mn><mo>⌋</mo><mo>)</mo></math>
+        <p><i>d</i> é o número de dias desde <span class="rg-ini">4/9/2026</span>. A janela encurta um dia a cada <span class="rg-passo">10</span>, para a rodada desta semana pesar mais que a do mês passado. Hoje, <i>σ</i> = <b class="sig-dias">3</b> dias.</p></li>
+      <li><h4>A janela que alarga</h4>
+        <math display="block"><mi>s</mi><mo>=</mo><mi>min</mi><mo>{</mo><mi>s</mi><mo>≥</mo><mi>σ</mi><mo>:</mo><mspace width="0.3em"/><mtext>institutos com </mtext><mo>|</mo><msub><mi>t</mi><mi>i</mi></msub><mo>−</mo><mi>t</mi><mo>|</mo><mo>≤</mo><mn>2</mn><mi>s</mi><mspace width="0.3em"/><mo>≥</mo><mspace width="0.3em"/><mn class="ag-inst">5</mn><mo>}</mo></math>
+        <p>A janela cresce um dia de cada vez até juntar <span class="ag-inst">5</span> institutos, para uma pesquisa sozinha nunca decidir a corrida. Dentro dela, de cada instituto entra só a rodada mais próxima da data: quem publica toda semana não pesa mais que quem publica uma vez por mês.</p></li>
+      <li><h4>O peso do tempo</h4>
+        <math display="block"><msubsup><mi>w</mi><mi>i</mi><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></msubsup><mo>=</mo><msup><mi>e</mi><mrow><mo>−</mo><msup><mrow><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>−</mo><mi>t</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>/</mo><mn>2</mn><msup><mi>s</mi><mn>2</mn></msup></mrow></msup></math>
+        <p>Curva normal em torno da data calculada: a rodada de hoje vale 1, a de <i>s</i> dias atrás vale 0,61, a de 2<i>s</i> dias vale 0,14.</p></li>
+      <li><h4>O viés de cada instituto</h4>
+        <math display="block"><msub><mi>b</mi><mrow><mi>j</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><mi>min</mi><mo>(</mo><mn class="ag-tetocasa">5</mn><mo>,</mo><mspace width="0.2em"/><mi>max</mi><mo>(</mo><mo>−</mo><mn class="ag-tetocasa">5</mn><mo>,</mo><mspace width="0.2em"/><msub><mi>δ</mi><mrow><mi>j</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>·</mo><mi>n</mi><mo>/</mo><mo>(</mo><mi>n</mi><mo>+</mo><mn class="ag-enc">4</mn><mo>)</mo><mo>)</mo><mo>)</mo></math>
+        <math display="block"><msub><mover><mi>x</mi><mo>~</mo></mover><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>b</mi><mrow><mi>j</mi><mo>,</mo><mi>c</mi></mrow></msub></math>
+        <p><i>δ</i> é a mediana da diferença entre o que o instituto <i>j</i> deu ao candidato <i>c</i> e a mediana dos outros institutos na mesma semana. O fator <i>n</i>/(<i>n</i>+<span class="ag-enc">4</span>) encolhe a correção de quem tem poucas rodadas, e ela nunca passa de <span class="ag-tetocasa">5</span> pontos. O desconto vale só para a média: os pontos do gráfico continuam mostrando o que cada instituto publicou. A tabela logo abaixo mostra o <i>b</i> de cada um.</p></li>
+      <li><h4>Quanto a rodada destoa</h4>
+        <math display="block"><msub><mi>r</mi><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><msub><mover><mi>x</mi><mo>~</mo></mover><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mi>M</mi><mi>c</mi></msub><mspace width="1.2em"/><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><msqrt><mrow><mfrac><mn>1</mn><mi>C</mi></mfrac><munder><mo>∑</mo><mi>c</mi></munder><msup><mrow><mo>(</mo><msub><mi>r</mi><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>−</mo><msub><mover><mi>r</mi><mo>¯</mo></mover><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup></mrow></msqrt></math>
+        <p><i>M</i> é a mediana ponderada de cada candidato e <i>r̄</i> é a média dos resíduos da rodada, o nível dela. Tirar o nível é o que separa metodologia de discrepância: quem mede todo mundo dois pontos abaixo tem <i>D</i> baixo e não perde peso; quem troca a ordem dos candidatos tem <i>D</i> alto e perde.</p></li>
+      <li><h4>A penalidade</h4>
+        <math display="block"><msub><mi>u</mi><mi>i</mi></msub><mo>=</mo><mfrac><msub><mi>D</mi><mi>i</mi></msub><mrow><mi>max</mi><mo>(</mo><mn>1,4826</mn><mo>·</mo><msub><mi>med</mi><mi>w</mi></msub><mo>(</mo><mi>D</mi><mo>)</mo><mo>,</mo><mspace width="0.2em"/><mn class="ag-piso">1</mn><mo>)</mo></mrow></mfrac></math>
+        <math display="block"><mi>f</mi><mo>(</mo><mi>u</mi><mo>)</mo><mo>=</mo><mi>min</mi><mo>(</mo><mn>1</mn><mo>,</mo><mspace width="0.3em"/><msup><mrow><mo>(</mo><mn class="ag-k">1,5</mn><mo>/</mo><mi>u</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>)</mo><mspace width="1.4em"/><msub><mi>w</mi><mi>i</mi></msub><mo>=</mo><msubsup><mi>w</mi><mi>i</mi><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></msubsup><mo>·</mo><mi>f</mi><mo>(</mo><msub><mi>u</mi><mi>i</mi></msub><mo>)</mo></math>
+        <p>O denominador é o desvio típico do conjunto, medido de forma que uma rodada muito fora não o infla. Até <span class="ag-k">1,5</span> desvio típico a rodada entra inteira, porque abaixo disso o quadrado passa de 1 e o mínimo devolve 1. Acima, a queda é quadrática: quem destoa o dobro do aceitável fica com um quarto do peso. A penalidade nunca chega a zero, então nenhuma rodada é apagada. A conta se repete até <span class="ag-voltas">6</span> vezes, porque tirar peso de quem destoa muda a mediana, e a mediana muda quem destoa.</p></li>
+      <li><h4>O teto e a média</h4>
+        <math display="block"><msub><mi>w</mi><mi>i</mi></msub><mo>≤</mo><mn class="ag-teto">15%</mn><mo>·</mo><munder><mo>∑</mo><mi>k</mi></munder><msub><mi>w</mi><mi>k</mi></msub><mspace width="1.6em"/><msub><mi>m</mi><mi>c</mi></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><msub><mover><mi>x</mi><mo>~</mo></mover><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub></mrow></mfrac></math>
+        <p>Nenhuma rodada passa de <span class="ag-teto">15%</span> do peso total. A média de cada candidato é a média ponderada dos valores já corrigidos.</p></li>
+      <li><h4>A incerteza e o empate técnico</h4>
+        <math display="block"><msub><mi>n</mi><mtext>ef</mtext></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>w</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mspace width="1.2em"/><mi>ε</mi><mo>=</mo><msqrt><mrow><mfrac><mrow><msub><mi>Var</mi><mi>w</mi></msub><mo>(</mo><msub><mi>x</mi><mi>a</mi></msub><mo>−</mo><msub><mi>x</mi><mi>b</mi></msub><mo>)</mo></mrow><msub><mi>n</mi><mtext>ef</mtext></msub></mfrac><mo>+</mo><msub><mi>V</mi><mtext>viés</mtext></msub></mrow></msqrt></math>
+        <math display="block"><mtext>empate técnico se </mtext><mo>|</mo><msub><mi>m</mi><mi>a</mi></msub><mo>−</mo><msub><mi>m</mi><mi>b</mi></msub><mo>|</mo><mo>&lt;</mo><mi>ε</mi></math>
+        <p><i>n</i><sub>ef</sub> conta quantas rodadas a média vale de fato: uma rodada com peso pequeno conta como fração de rodada. <i>V</i><sub>viés</sub> devolve à margem o erro da própria estimativa do viés, porque corrigir o viés tira dispersão e sem isso a margem ficaria estreita de mentira. Quando a diferença entre os dois primeiros é menor que <i>ε</i>, o mural diz empate técnico em vez de anunciar um líder.</p></li>
+    </ol>
   </div>
   <div class="panel"><div class="ph"><h3>A régua de cada instituto</h3><span class="cap" style="margin:0" id="casa-cap"></span></div>
     <div class="tablewrap"><table id="tb-casa"><thead><tr><th>Instituto</th><th class="num">Rodadas</th><th class="num">1º turno, Lula</th><th class="num">1º turno, Flávio</th><th class="num">2º turno, margem</th></tr></thead><tbody></tbody></table></div>
@@ -1656,6 +1711,18 @@ const REGUA={inicio:"2026-09-04",sigma0:4,passo:10,minimo:1};
 const RETA0=Date.parse(REGUA.inicio);
 function sigmaRegua(dia){const d=Math.floor((Date.parse(dia||HOJE)-Date.parse(REGUA.inicio))/864e5);return Math.max(REGUA.minimo,REGUA.sigma0-Math.floor(Math.max(0,d)/REGUA.passo));}
 const SIG=sigmaRegua(HOJE);
+// As fórmulas da editoria de método mostram as constantes lidas daqui, e não escritas à mão no
+// HTML: se a regra mudar, a fórmula publicada muda junto e não tem como mentir.
+function preencherFormulas(){
+  const br=x=>String(x).replace(".",",");
+  const d=new Date(REGUA.inicio+"T12:00:00");
+  const put=(sel,val)=>document.querySelectorAll(sel).forEach(e=>e.textContent=val);
+  put(".rg-min",br(REGUA.minimo));put(".rg-s0",br(REGUA.sigma0));put(".rg-passo",br(REGUA.passo));
+  put(".rg-ini",d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear());
+  put(".ag-inst",br(AG.inst));put(".ag-enc",br(AG.encolhe));put(".ag-tetocasa",br(AG.tetoCasa));
+  put(".ag-piso",br(AG.piso));put(".ag-k",br(AG.k));put(".ag-voltas",br(AG.voltas));
+  put(".ag-teto",br(Math.round(AG.teto*100))+"%");
+}
 document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
 // A janela padrão é de 30 dias desde 21/9/2026, a pedido do Francisco: na reta final o que interessa
 // é a rodada desta semana, não janeiro. Quem quiser o ano inteiro troca aqui e a escolha fica salva.
@@ -1875,13 +1942,18 @@ const serieDe=n=>DATA.polls.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[
 //      toda semana não pesar mais que quem publica uma vez por mês;
 //   2. a janela alarga sozinha até juntar AG.inst institutos, para a régua de um dia em outubro
 //      não deixar uma pesquisa decidindo a corrida;
-//   3. a rodada que aponta uma disputa diferente da do conjunto entra com peso menor. O desvio é
-//      medido depois de tirar o nível da rodada: quem mede todo mundo dois pontos abaixo não é
-//      penalizado (isso é metodologia, e o nível continua entrando na conta); quem troca a ordem
-//      dos candidatos é;
+//   3. a rodada que aponta uma disputa diferente da do conjunto entra com peso menor, e a queda é
+//      quadrática: quem destoa o dobro do aceitável fica com um quarto do peso, não com metade.
+//      O desvio é medido depois de tirar o nível da rodada: quem mede todo mundo dois pontos
+//      abaixo não é penalizado (isso é metodologia, e o nível continua entrando na conta); quem
+//      troca a ordem dos candidatos é. A penalidade nunca zera, então rodada nenhuma é apagada;
 //   4. nenhuma rodada passa de AG.teto do peso total.
 // A régua (SIG) continua mandando no peso do tempo: rodada mais recente pesa mais.
 const AG={inst:5,k:1.5,teto:.15,piso:1,voltas:6,semana:7*864e5,vizinhos:3,encolhe:4,tetoCasa:5};
+preencherFormulas();
+// f(u) = min(1, (k/u)²): até k desvios típicos a rodada entra inteira; acima, a queda é
+// quadrática e nunca chega a zero. É a fórmula 06 da editoria de método.
+function penalAG(u){if(!(u>AG.k))return 1;const f=AG.k/u;return f*f;}
 // junta pontos por candidato ({nome:[{t,v,inst}]}) nas rodadas que os produziram
 function emRodadas(porNome){
   const R=new Map();
@@ -1981,7 +2053,17 @@ function pesosEm(rods,nomes,sigma,t){
       return Math.sqrt(res.reduce((a,x)=>a+(x-nivel)*(x-nivel),0)/res.length);
     });
     const escala=Math.max((medPond(dist.map((d,i)=>[d,peso[i]]))||0)*1.4826,AG.piso);
-    const novo=dentro.map((x,i)=>{const u=dist[i]/escala;return x.w*(u<=AG.k?1:AG.k/u);});
+    // A queda é QUADRÁTICA acima de k, não linear. Com k/u, a rodada que destoa o dobro do
+    // aceitável ficava com metade do peso, o que é pouco para quem inverte a ordem dos
+    // candidatos. Com (k/u)², fica com um quarto. Medido em 23/9/2026 no dado publicado: a
+    // Palver saiu de 10,22% do peso para menos de 8,16%, a Veritá de 11,67% para 9,36%, e o
+    // n efetivo de Kish SUBIU de 10,3 para 10,7, ou seja, o peso passou a se espalhar melhor
+    // entre os institutos em vez de se concentrar. A média mexeu pouco, que é o esperado de
+    // uma defesa: Lula -0,11 e Flávio -0,25.
+    // Testamos também zerar o extremo (Tukey, redescendente) e ele faz o CONTRÁRIO: apagar a
+    // rodada extrema encolhe o total e os moderadamente destoantes ganham espaço, com a Veritá
+    // subindo para 13,89%. Por isso a penalidade nunca zera: rodada nenhuma é apagada.
+    const novo=dentro.map((x,i)=>x.w*penalAG(dist[i]/escala));
     let dif=0;for(let i=0;i<novo.length;i++)dif=Math.max(dif,Math.abs(novo[i]-peso[i]));
     peso=novo;if(dif<1e-9)break;
   }

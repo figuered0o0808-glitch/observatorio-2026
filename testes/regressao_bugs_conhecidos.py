@@ -1122,6 +1122,40 @@ with sync_playwright() as p:
     check("estado pela média sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- as fórmulas da média na editoria de método, e a penalidade quadrática (23/9/2026)
+    # A fórmula publicada tem de ser a conta que roda. As constantes do painel são lidas de AG e
+    # de REGUA na hora em que a página abre; aqui conferimos que o que aparece é o que está lá, e
+    # que a penalidade é mesmo min(1, (k/u)^2): quem destoa o dobro fica com um quarto, não metade.
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#metodo")
+    page.wait_for_timeout(700)
+    r = page.evaluate("""() => {
+        const q = s => [...document.querySelectorAll(s)].map(e => e.textContent.trim());
+        const br = x => String(x).replace('.', ',');
+        const mostra = {k: q('.ag-k'), teto: q('.ag-teto'), inst: q('.ag-inst'), casa: q('.ag-tetocasa'),
+                        enc: q('.ag-enc'), voltas: q('.ag-voltas'), piso: q('.ag-piso'),
+                        s0: q('.rg-s0'), passo: q('.rg-passo'), minimo: q('.rg-min')};
+        const espera = {k: br(AG.k), teto: Math.round(AG.teto*100)+'%', inst: br(AG.inst), casa: br(AG.tetoCasa),
+                        enc: br(AG.encolhe), voltas: br(AG.voltas), piso: br(AG.piso),
+                        s0: br(REGUA.sigma0), passo: br(REGUA.passo), minimo: br(REGUA.minimo)};
+        const erradas = Object.keys(espera).filter(k => !mostra[k].length || mostra[k].some(v => v !== espera[k]));
+        return {passos: document.querySelectorAll('#p-formulas ol.fx > li').length,
+                formulas: document.querySelectorAll('#p-formulas math').length,
+                erradas, mostra, espera,
+                pen: [1, 1.5, 3, 6, 1e6].map(u => penalAG(u)),
+                esticavel: document.querySelectorAll('#p-formulas mo[stretchy]').length}; }""")
+    check("editoria de método mostra as fórmulas da média, em oito passos",
+          r["passos"] == 8 and r["formulas"] >= 10, {k: r[k] for k in ("passos", "formulas")})
+    check("toda constante mostrada nas fórmulas é a mesma do código que calcula a média",
+          not r["erradas"], {"erradas": r["erradas"], "mostra": r["mostra"], "espera": r["espera"]})
+    pen = r["pen"]
+    check("penalidade é min(1, (k/u)^2): inteira até k, um quarto no dobro, e nunca zera",
+          pen[0] == 1 and pen[1] == 1 and abs(pen[2] - 0.25) < 1e-12 and abs(pen[3] - 0.0625) < 1e-12 and pen[4] > 0, pen)
+    check("nenhuma fórmula depende de delimitador esticável (que exige fonte matemática no aparelho)",
+          r["esticavel"] == 0, r["esticavel"])
+    check("fórmulas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:
