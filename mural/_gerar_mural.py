@@ -639,13 +639,14 @@ io.open(os.path.join(AQUI, "mural-inteiro.html"), "w", encoding="utf-8").write(m
 io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
 # ---- politica de privacidade
 # Gerada a partir do que o site faz de fato, com a identificacao de quem responde pelos dados
-# vinda de notas/organizacao.json (nome, email e encarregado; CNPJ e endereço não aparecem,
-# decisão de 23/9/2026, porque o site não tem inscrições abertas). Enquanto esses campos estiverem por preencher, a pagina sai
+# vinda de notas/organizacao.json. Desde 23/9/2026 só o email de contato aparece: sem inscrições,
+# o site não guarda dado pessoal que precise de responsável nomeado, e nome da organização,
+# CNPJ, endereço e encarregado saíram da página. Enquanto o email estiver por preencher, a pagina sai
 # com um aviso visivel e a regressao barra a publicacao com o cadastro ligado: cadastro no ar
 # com politica incompleta e o tipo de coisa que nao pode passar por descuido.
 ORG_PATH = os.path.join(AQUI, "..", "notas", "organizacao.json")
 org = json.load(io.open(ORG_PATH, encoding="utf-8")) if os.path.exists(ORG_PATH) else {}
-falta = [k for k in ("nome", "email", "encarregado")
+falta = [k for k in ("email",)
          if str(org.get(k, "")).startswith("PREENCHER") or not org.get(k)]
 _meses_pv = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho",
              "agosto", "setembro", "outubro", "novembro", "dezembro"]
@@ -656,8 +657,7 @@ aviso = ("" if not falta else
 pv = io.open(os.path.join(AQUI, "_privacidade.html"), encoding="utf-8").read()
 _troca = [("__DATA_POLITICA__", "%d de %s de %d" % (_hoje_pv.day, _meses_pv[_hoje_pv.month - 1], _hoje_pv.year)),
           ("__AVISO_LACUNA__", aviso),
-          ("__ORG_NOME__", org.get("nome", "")), ("__ORG_EMAIL__", org.get("email", "")),
-          ("__ORG_ENCARREGADO__", org.get("encarregado", ""))]
+          ("__ORG_EMAIL__", org.get("email", ""))]
 for _k, _v in _troca:
     pv = pv.replace(_k, _v)
 io.open(os.path.join(AQUI, "..", "privacidade.html"), "w", encoding="utf-8").write(pv)
