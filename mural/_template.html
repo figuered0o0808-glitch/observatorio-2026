@@ -43,53 +43,58 @@
 <style>
 :root{
   color-scheme:light;
-  --ground:#F5F5F2; --paper:#FFFFFF; --paper-2:#EFEFEB;
-  --ink:#14161A; --ink-2:#494D54; --ink-3:#7C818A; --line:#E3E3DF; --line-2:#ECECE8;
-  --red:#C8102E; --red-deep:#A00D25; --red-soft:#FAE7EA; --red-ink:#FFFFFF;
-  --band:#14161A; --band-2:#1F2127; --band-ink:#FFFFFF; --band-mut:#9BA0A8; --band-line:#2E3138;
+  --ground:#EFEFEA; --paper:#FFFFFF; --paper-2:#E6E6E0;
+  --ink:#000000; --ink-2:#3A3D42; --ink-3:#6E727A; --line:#E3E3DF; --line-2:#DCDCD7;
+  --red:#008BFE; --red-deep:#002F82; --red-soft:#DDEEFF; --red-ink:#000000;
+  --logo-red:#C8102E;
+  --smt-azul:#008BFE; --smt-azul-p:#002F82; --smt-ciano:#00B1D0; --smt-amarelo:#F7B700;
+  --smt-roxo:#9E3EFF; --smt-roxo-p:#210679; --smt-magenta:#B809C0; --smt-coral:#FF8D96;
+  --band:#000000; --band-2:#141414; --band-ink:#FFFFFF; --band-mut:#A8ACB4; --band-line:#2A2A2A;
   --neutro:#39424C;
   --good:#1E7A3D; --good-soft:#E2F1E6; --warn:#96660F; --warn-soft:#F7ECD1; --crit:#B00F29; --crit-soft:#FAE7EA;
   --c1:#D62828; --c2:#1F5FBF; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300; --c7:#4a3aa7; --c8:#EB6834;
   --m1:#EDA100; --m2:#4A3AA7; --m3:#0A9396;
-  --accent:#14161A; --accent-ink:#FFFFFF;
-  --accent-text:#14161A; --surface:#FFFFFF;
-  --shadow:0 1px 2px rgba(20,22,26,.06);
+  --accent:#008BFE; --accent-ink:#000000;
+  --accent-text:#002F82; --surface:#FFFFFF;
+  --shadow:none;
   --map-line:#FFFFFF; --zebra:rgba(20,22,26,.035);
-  --foot-bg:#14161A; --foot-line:transparent;
+  --foot-bg:#002F82; --foot-line:transparent;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --ground:#0F1013; --paper:#17181C; --paper-2:#1E2025;
-    --ink:#F1F1EF; --ink-2:#B7BAC0; --ink-3:#83878F; --line:#2C2E33; --line-2:#242629;
-    --red:#FF5163; --red-deep:#C8102E; --red-soft:#341A1F; --red-ink:#17181C;
-    --band:#1E2025; --band-2:#262930; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#353840;
+    --ground:#000000; --paper:#111111; --paper-2:#191919;
+    --ink:#FFFFFF; --ink-2:#C6CAD2; --ink-3:#9298A1; --line:#2C2E33; --line-2:#242629;
+    --red:#3FA9FF; --red-deep:#008BFE; --red-soft:#0B2338; --red-ink:#000000;
+    --logo-red:#C8102E;
+    --band:#191919; --band-2:#242424; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#2E2E2E;
     --neutro:#9AA4AE;
     --good:#5BC27F; --good-soft:#1C3526; --warn:#E0B052; --warn-soft:#3A2F14; --crit:#FF5163; --crit-soft:#341A1F;
     --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#23AD45; --c7:#9085e9; --c8:#E56A33;
     --m1:#C98500; --m2:#9085E9; --m3:#2FB5B8;
-    --accent:#F1F1EF; --accent-ink:#17181C;
-    --accent-text:#F1F1EF; --surface:#17181C;
-  --shadow:0 1px 2px rgba(0,0,0,.45);
+    --accent:#3FA9FF; --accent-ink:#000000;
+    --accent-text:#7FC6FF; --surface:#17181C;
+  --shadow:none;
   --map-line:#2C2E33; --zebra:rgba(255,255,255,.04);
-  --foot-bg:#262930; --foot-line:#353840;
+  --foot-bg:#002F82; --foot-line:transparent;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --ground:#0F1013; --paper:#17181C; --paper-2:#1E2025;
-  --ink:#F1F1EF; --ink-2:#B7BAC0; --ink-3:#83878F; --line:#2C2E33; --line-2:#242629;
-  --red:#FF5163; --red-deep:#C8102E; --red-soft:#341A1F; --red-ink:#17181C;
-  --band:#1E2025; --band-2:#262930; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#353840;
+  --ground:#000000; --paper:#111111; --paper-2:#191919;
+  --ink:#FFFFFF; --ink-2:#C6CAD2; --ink-3:#9298A1; --line:#2C2E33; --line-2:#242629;
+  --red:#3FA9FF; --red-deep:#008BFE; --red-soft:#0B2338; --red-ink:#000000;
+    --logo-red:#C8102E;
+  --band:#191919; --band-2:#242424; --band-ink:#F1F1EF; --band-mut:#9BA0A8; --band-line:#2E2E2E;
   --neutro:#9AA4AE;
   --good:#5BC27F; --good-soft:#1C3526; --warn:#E0B052; --warn-soft:#3A2F14; --crit:#FF5163; --crit-soft:#341A1F;
   --c1:#F25757; --c2:#4F8BE8; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#23AD45; --c7:#9085e9; --c8:#E56A33;
   --m1:#C98500; --m2:#9085E9; --m3:#2FB5B8;
-  --accent:#F1F1EF; --accent-ink:#17181C;
-  --accent-text:#F1F1EF; --surface:#17181C;
-  --shadow:0 1px 2px rgba(0,0,0,.45);
+  --accent:#3FA9FF; --accent-ink:#000000;
+  --accent-text:#7FC6FF; --surface:#17181C;
+  --shadow:none;
   --map-line:#2C2E33; --zebra:rgba(255,255,255,.04);
-  --foot-bg:#262930; --foot-line:#353840;
+  --foot-bg:#002F82; --foot-line:transparent;
 }
 *{box-sizing:border-box}
 html{--fs:15px;--pad:20px;--gap:20px}
@@ -1067,6 +1072,177 @@ svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wd
 .marcos-fold summary{cursor:pointer;font-weight:600;color:var(--ink);padding:4px 0}
 @media (max-width:1000px){.destaques{grid-template-columns:1fr 1fr}.destaques .hls{display:contents}}
 @media (max-width:760px){.destaques{grid-template-columns:1fr;gap:12px}}
+/* ===========================================================================
+   A CASCA DO MURAL COMO PROJETO DO SMT
+   ---------------------------------------------------------------------------
+   Entrou em 23/9/2026. O mural passa a ser publicado como projeto do Se Mexa
+   Também, e a casca veste a estética do coletivo. A regra que organizou tudo:
+   o mural continua sendo o mural. Fonte, logo, estrutura e a sobriedade dos
+   gráficos ficam; o SMT entra como acento editorial e como cor de editoria.
+
+   O QUE ESTA SEÇÃO NÃO TOCA, de propósito, porque ali cor é dado e não enfeite:
+   --c1..--c8 (identidade de candidato), CORP/corPartido (partido no mapa),
+   --good/--warn/--crit (situação no TSE e gravidade de alerta), --m1..--m3
+   (modo de coleta da pesquisa), a hachura a 45 graus do mapa (empate técnico),
+   a faixa .reta, as bandas de incerteza e os rótulos de série.
+
+   AS DUPLAS DE COR FORAM CALCULADAS, não escolhidas no olho (razão WCAG):
+     preto sobre azul #008BFE ........  6,12      branco sobre roxo #9E3EFF ....  4,58
+     preto sobre amarelo #F7B700 ..... 11,73      branco sobre magenta #B809C0 .  5,47
+     preto sobre ciano #00B1D0 .......  8,20      branco sobre azul profundo ... 12,15
+     preto sobre coral #FF8D96 .......  9,50      branco sobre roxo profundo ... 15,36
+   Por isso amarelo, ciano, coral e azul claro recebem sempre tipo PRETO, e os
+   dois profundos, o roxo e o magenta recebem BRANCO.
+
+   POR QUE A COR DA EDITORIA MORA SÓ NO CABEÇALHO DA SEÇÃO: medido em OKLab,
+   cinco dessas cores ficam abaixo do piso ΔE 15 de alguma cor de candidato
+   (amarelo x Caiado 5,7; coral x Zema 6,9; azul profundo x Marçal 11,4;
+   ciano x Cury 12,6; azul x Flávio 14,1). Em bloco grande, longe do desenho e
+   com o número da seção junto, isso não confunde. Dentro de um gráfico,
+   confundiria. Nenhuma dessas cores entra em marca de dado.
+   =========================================================================== */
+
+/* --- o vermelho do logo é do logo ----------------------------------------
+   O vermelho editorial virou azul do SMT, então o traço e o ponto da marca
+   precisam do próprio valor. Medido no arquivo que o Francisco mandou: o
+   vermelho da logo nova é #C20E2B, a ΔE 1,3 do --logo-red. */
+svg.mark #mm-curva{stroke:var(--logo-red)}
+svg.mark #mm-ponto{fill:var(--logo-red)}
+
+/* --- o lockup: MURAL em branco, subtítulo embaixo, INDICA dentro ---------- */
+.masthead .brand{align-items:flex-start}
+.masthead .word{flex-direction:column;align-items:flex-start;gap:5px}
+.masthead .brand svg.mark{height:44px}
+.masthead .word .m2{color:#FFFFFF;font-size:11px;letter-spacing:.26em;padding-top:0;
+  display:flex;align-items:center;gap:9px;line-height:1}
+.masthead .word .m2 .m2sep{opacity:.55}
+.masthead .word .m2 .marca-indica-top{height:13px;width:auto;display:block;fill:currentColor}
+
+/* --- sem canto mole nem sombra difusa: é cartaz impresso ------------------ */
+.card,.panel,.hero2,.placar,.count,.btn,.seg,.tiles .lp,.tablewrap,.al,.pm,
+select,input[type="search"],label.sel,.tag,.dz,.focus,.chipbtn,details.fold{
+  border-radius:0;box-shadow:none}
+.tiles .lp:hover{transform:none;box-shadow:none}
+
+/* --- a Archivo variável vai mais longe ------------------------------------ */
+.display{font-variation-settings:"wdth" 62,"wght" 900;font-stretch:62%;letter-spacing:-.005em}
+.eyebrow{font-variation-settings:"wdth" 75,"wght" 800;font-stretch:75%;letter-spacing:.16em}
+.panel h3{font-variation-settings:"wdth" 70,"wght" 900;font-stretch:70%;letter-spacing:.01em;font-size:24px}
+.ch-kicker{font-size:13px;letter-spacing:.16em}
+
+/* --- cabeçalho e navegação em bloco preto --------------------------------- */
+header.band.band-top{background:#000;color:#fff;border-bottom:0}
+header.band.band-top #mm-letras{fill:#fff}
+header.band.band-top .ed{color:#A8ACB4}
+header.band.band-top .ed b{color:#fff}
+header.band.band-top .btn,header.band.band-top .tema-btn{
+  background:transparent;border-color:#3A3A3A;color:#fff}
+header.band.band-top .btn:hover,header.band.band-top .tema-btn:hover{
+  background:var(--smt-azul);border-color:var(--smt-azul);color:#000}
+.nav-band{background:#000;border-bottom:4px solid var(--smt-azul)}
+.tabs button,.tabs .scope button{color:#9BA0A8}
+.tabs button:hover,.tabs .scope button:hover{color:#fff}
+.tabs button[aria-selected="true"],.tabs .scope button[aria-pressed="true"]{
+  color:#fff;border-bottom-color:var(--smt-azul)}
+.tabs .div{background:#333}
+.subnav{background:var(--smt-amarelo);border-bottom:3px solid #000}
+.subnav .eyebrow,.subnav .cap,.subnav a,.subnav .ufb-mapa{color:#000}
+.subnav .ufb-mapa{text-decoration-color:#000}
+
+/* --- a editoria é um bloco chapado que sangra na janela, com o número ----- */
+.blkhead{
+  position:relative;width:100vw;
+  margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-bottom:30px;
+  padding:30px calc(50vw - 50% + 24px) 26px calc(50vw - 50% + 130px);
+  border-top:0;overflow:hidden;align-items:baseline;
+  background:var(--ed-bg,#000);color:var(--ed-ink,#fff)}
+.blkhead::before{
+  content:var(--ed-n,"");position:absolute;left:calc(50vw - 50% + 24px);top:50%;
+  transform:translateY(-50%);font-family:Archivo,sans-serif;
+  font-variation-settings:"wdth" 62,"wght" 900;font-stretch:62%;font-weight:900;
+  font-size:104px;line-height:.8;letter-spacing:-.02em;color:var(--ed-ink,#fff);opacity:.9}
+.blkhead .eyebrow{color:var(--ed-ink,#fff);opacity:.85;font-size:14px;letter-spacing:.18em}
+.blkhead h2.t{color:var(--ed-ink,#fff);font-size:clamp(44px,5.6vw,80px);
+  letter-spacing:-.015em;line-height:.92}
+.blkhead .stamp-dt{color:var(--ed-ink,#fff);opacity:.8}
+.blkhead .copy{color:var(--ed-ink,#fff);text-decoration-color:currentColor;opacity:.9}
+.blkhead .copy:hover{color:var(--ed-ink,#fff);opacity:1}
+.blkhead .right{align-self:center;position:relative;z-index:1}
+
+#v-geral,#v-e-geral          {--ed-bg:#008BFE;--ed-ink:#000000;--ed-n:"01"}
+#v-pesquisas,#v-e-pesquisas  {--ed-bg:#F7B700;--ed-ink:#000000;--ed-n:"02"}
+#v-busca,#v-e-busca          {--ed-bg:#00B1D0;--ed-ink:#000000;--ed-n:"03"}
+#v-candidatos,#v-e-candidatos{--ed-bg:#9E3EFF;--ed-ink:#FFFFFF;--ed-n:"04"}
+#v-lado,#v-e-lado            {--ed-bg:#B809C0;--ed-ink:#FFFFFF;--ed-n:"05"}
+#v-partidos,#v-e-partidos    {--ed-bg:#002F82;--ed-ink:#FFFFFF;--ed-n:"06"}
+#v-tempo,#v-e-tempo          {--ed-bg:#FF8D96;--ed-ink:#000000;--ed-n:"07"}
+#v-metodo,#v-e-metodo        {--ed-bg:#210679;--ed-ink:#FFFFFF;--ed-n:"08"}
+
+/* --- a capa vira cartaz --------------------------------------------------- */
+.hero2{border-top:8px solid var(--ed-bg,var(--smt-azul));padding:30px 34px 24px;margin-bottom:22px}
+.hero2 .eyebrow{background:var(--smt-ciano);color:#000;padding:6px 13px 5px;
+  display:inline-block;opacity:1;font-size:15px;letter-spacing:.16em}
+.hero2 .count{background:var(--smt-amarelo);border-top:0;border-left:0;
+  box-shadow:inset 0 0 0 3px #000}
+.hero2 .count .big,.hero2 .count .big small,.hero2 .count .hm,.hero2 .count .hm b,
+.hero2 .count .pl,.hero2 .count .pd{color:#000}
+.hero2 .count .big{font-size:44px}
+.hero2 h1.manchete{color:#fff;font-size:clamp(20px,2.3vw,28px);letter-spacing:.02em;margin-top:16px}
+.hero2 .lede{color:#B6BAC2;font-size:15px;margin-top:8px}
+.hero2 .lede a{color:var(--smt-amarelo);text-decoration-color:var(--smt-amarelo)}
+.duelo .dl-num{font-size:clamp(64px,9.6vw,136px);line-height:.86}
+.duelo .dl-nome{font-size:21px;letter-spacing:.14em}
+.placar{border-top:6px solid var(--smt-azul)}
+.foot-band{border-top:6px solid var(--smt-amarelo)}
+.foot-band svg.mark #mm-curva{stroke:#FFFFFF}
+.foot-band svg.mark #mm-ponto{fill:#FFFFFF}
+.foot-band svg.mark #mm-letras{fill:#FFFFFF}
+.foot-band .brand-f .m2,.foot-band .word .m2{color:#FFFFFF}
+
+/* --- respiro: a página deixa de ser densa de ponta a ponta ---------------- */
+.panel.main{border-top:6px solid var(--ed-bg,#000);margin-bottom:34px;padding-top:18px}
+.panel{border-top:2px solid var(--line-2)}
+.view>.panel:not(.main),.block>.panel:not(.main){margin-top:26px}
+.tiles{gap:18px;margin-bottom:30px}
+.destaques{margin-top:34px}
+.view>.sub{font-size:17px;line-height:1.65;max-width:62ch;margin-bottom:22px}
+
+/* --- controles chapados --------------------------------------------------- */
+.btn{border:2px solid #000;background:transparent}
+.btn:hover{background:var(--smt-azul);border-color:var(--smt-azul);color:#000}
+.btn.primary{background:var(--smt-azul);border-color:var(--smt-azul);color:#000}
+.seg{border:2px solid #000}
+.seg button[aria-pressed="true"],.zb.on{background:var(--smt-azul);color:#000;border-color:var(--smt-azul)}
+.chipbtn{border:2px solid var(--line-2)}
+.chipbtn[aria-pressed="true"]{background:#000;color:#fff;border-color:#000}
+select,input[type="search"],label.sel{border:2px solid #000}
+
+/* --- painéis e cartões: filete grosso, sem cartão fofo -------------------- */
+.card{border:2px solid #000;border-top:6px solid #000}
+.tiles .lp{border:2px solid #000;border-top:6px solid var(--chipc,#000)}
+.tiles .lp[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--chipc)}
+.tablewrap{border:2px solid #000}
+table th{background:#000;color:#fff;border-bottom:0}
+.al.first{border-left-width:6px}
+
+/* --- celular -------------------------------------------------------------- */
+@media (max-width:760px){
+  .masthead .word{gap:3px}
+  .masthead .brand svg.mark{height:30px}
+  .masthead .word .m2{font-size:8.5px;letter-spacing:.2em;gap:6px}
+  .masthead .word .m2 .marca-indica-top{height:10px}
+  .blkhead{padding:20px 16px 18px 74px;margin-bottom:22px}
+  .blkhead::before{left:14px;font-size:56px}
+  .blkhead h2.t{font-size:34px}
+  .panel.main{margin-bottom:26px}
+  .tiles{gap:12px;margin-bottom:22px}
+  .hero2{padding:20px 16px 16px;border-top-width:6px}
+  .duelo .dl-num{font-size:clamp(44px,13vw,64px)}
+  .hero2 .count .big{font-size:34px}
+  .nav-band{border-bottom-width:3px}
+  .tabs .scope button{background:transparent;border:2px solid #3A3A3A;color:#9BA0A8;border-radius:0}
+  .tabs .scope button[aria-pressed="true"]{background:var(--smt-azul);color:#000;border-color:var(--smt-azul)}
+}
 </style>
 </head>
 <body>
@@ -1080,7 +1256,7 @@ svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wd
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="indica-marca" viewBox="0 0 3228 967"><g transform="translate(0.000000,967.000000) scale(1.000000,-1.000000)" stroke="none" fill="currentColor"><path d="M0 741 l0 -226 79 0 79 0 0 -181 c0 -161 0 -182 2 -182 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 2 0 4 3 4 5 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 0 3 1 3 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 4 l0 4 -116 0 -117 0 0 223 0 223 -82 0 -82 0 0 -225z M1799 886 l0 -79 92 0 91 0 0 79 0 79 -91 0 -92 0 0 -79z M1526 955 c0 -2 0 -3 -1 -3 -2 0 -2 -15 -2 -131 0 -116 0 -131 -1 -131 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -2 1 -2 0 -3 0 -3 1 0 1 -2 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -7 1 -6 0 -7 0 -7 2 0 1 -2 1 -10 1 -9 0 -11 0 -11 2 0 1 -4 1 -28 1 -25 0 -29 0 -29 -1 0 -2 -2 -2 -10 -2 -8 0 -10 0 -10 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -2 0 -4 0 -4 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -2 -1 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -3 -4 -4 -4 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -4 0 -3 0 -5 -1 -5 -1 0 -1 -2 -1 -4 0 -3 0 -4 -1 -4 -2 0 -2 -1 -2 -6 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -5 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -7 0 -6 0 -8 -1 -8 -2 0 -2 -2 -2 -13 0 -11 0 -13 -1 -13 -2 0 -2 -5 -2 -41 0 -37 0 -42 2 -42 1 0 1 -2 1 -13 0 -11 0 -13 2 -13 1 0 1 -1 1 -7 0 -6 0 -7 2 -7 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -4 0 -2 0 -4 1 -4 1 0 1 -3 1 -6 0 -5 0 -6 2 -6 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 2 -2 9 -2 5 0 9 0 9 -1 0 -1 9 -1 26 -1 16 0 25 0 25 1 0 1 4 1 11 1 8 0 10 0 10 2 0 1 1 1 7 1 6 0 7 0 7 2 0 1 1 1 6 1 5 0 6 0 6 2 0 1 1 1 4 1 3 0 4 0 4 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 5 1 3 0 4 0 4 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 4 3 4 4 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 2 0 4 3 4 5 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 0 3 -1 0 -1 -1 -2 -1 -2 -2 0 -2 -5 -2 -37 l0 -38 90 0 c78 0 89 0 89 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 -1 1 -1 1 -2 0 -2 43 -2 380 0 337 0 380 2 380 0 0 1 1 1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 l0 3 -88 0 -88 0 0 -3z m-107 -338 c0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -2 1 -2 5 -2 2 0 4 0 4 -1 0 -1 2 -1 4 -1 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -2 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -6 0 -5 0 -6 2 -6 1 0 1 -1 1 -5 0 -5 0 -6 2 -6 1 0 1 -4 1 -33 0 -30 0 -34 -1 -34 -2 0 -2 -1 -2 -7 0 -6 0 -7 -1 -7 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -4 0 -2 0 -4 -1 -4 -1 0 -1 -2 -1 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -2 -2 -14 -2 -13 0 -15 0 -15 2 0 1 -2 1 -8 1 -7 0 -9 0 -9 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 1 -1 1 -4 1 -4 0 -5 0 -5 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 4 0 3 0 4 -1 4 -2 0 -2 1 -2 5 0 2 0 4 -1 4 -1 0 -1 4 -1 9 0 6 0 8 -1 8 -2 0 -2 4 -2 28 0 23 0 27 2 27 1 0 1 1 1 7 0 4 0 7 1 7 1 0 1 3 1 6 0 5 0 6 2 6 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 3 0 1 1 2 2 2 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 4 1 3 0 4 0 4 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 2 1 5 1 3 0 4 0 4 2 0 1 1 1 6 1 4 0 5 0 5 2 0 1 3 1 23 1 20 0 23 0 23 -1z M2842 773 c0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -1 -2 -7 -2 -6 0 -7 0 -7 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -3 0 -5 0 -5 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 -2 -5 -4 -5 -1 0 -1 -2 -1 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -4 0 -3 0 -4 -1 -4 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -2 0 -2 -1 -2 -5 0 -5 0 -6 -1 -6 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -2 0 -2 -1 -2 -6 0 -3 0 -6 -1 -6 -1 0 -1 -3 -1 -7 0 -6 0 -7 -1 -7 -2 0 -2 -1 -2 -7 0 -6 0 -7 -1 -7 -2 0 -2 -2 -2 -12 0 -10 0 -12 -1 -12 -2 0 -2 -5 -2 -40 0 -35 0 -40 2 -40 1 0 1 -2 1 -11 0 -10 0 -12 2 -12 1 0 1 -1 1 -7 0 -6 0 -8 2 -8 1 0 1 -1 1 -5 0 -4 0 -6 1 -6 1 0 1 -3 1 -7 0 -6 0 -8 2 -8 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -2 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 4 -3 4 -4 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 4 -3 4 -4 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -2 1 -2 4 -2 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 5 -2 3 0 4 0 4 -1 0 -2 1 -2 4 -2 3 0 4 0 4 -1 0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -2 1 -2 6 -2 4 0 5 0 5 -1 0 -2 2 -2 9 -2 5 0 9 0 9 -1 0 -1 11 -1 32 -1 20 0 31 0 31 1 0 1 4 1 9 1 6 0 8 0 8 2 0 1 1 1 6 1 5 0 6 0 6 2 0 1 1 1 6 1 4 0 5 0 5 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 1 1 1 3 1 l3 0 0 -36 c0 -31 0 -36 -1 -36 -1 0 -2 -1 -2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -2 11 -2 89 -2 l89 0 0 290 c0 256 0 289 -1 289 -1 0 -2 1 -2 2 0 1 -10 1 -87 1 l-88 0 0 -39 0 -39 -3 0 c-2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -2 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -2 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -2 1 -8 1 -7 0 -9 0 -9 2 0 1 -4 1 -27 1 -24 0 -28 0 -28 -1z m93 -156 c0 -2 1 -2 7 -2 6 0 7 0 7 -1 0 -2 1 -2 6 -2 3 0 5 0 5 -1 0 -1 2 -1 5 -1 3 0 4 0 4 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -2 0 -2 1 -3 2 -3 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -5 0 -5 0 -6 2 -6 1 0 1 -2 1 -16 0 -14 0 -16 2 -16 1 0 1 -1 1 -3 0 -2 0 -3 -1 -3 -2 0 -2 -2 -2 -15 0 -14 0 -16 -1 -16 -2 0 -2 -1 -2 -7 0 -6 0 -8 -1 -8 -2 0 -2 -1 -2 -4 0 -3 0 -4 -1 -4 -2 0 -2 -1 -2 -4 0 -4 0 -5 -1 -5 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -2 0 -2 -1 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -1 -1 -1 0 -2 -1 -2 -1 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -2 -3 -4 -5 -4 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -2 -1 -2 -4 -2 -4 0 -5 0 -5 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -3 -2 -18 -2 -16 0 -19 0 -19 2 0 1 -1 1 -7 1 -6 0 -8 0 -8 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -2 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 4 0 3 0 4 -1 4 -2 0 -2 1 -2 6 0 5 0 6 -1 6 -2 0 -2 2 -2 9 0 6 0 8 -1 8 -2 0 -2 3 -2 23 0 20 0 23 2 23 1 0 1 2 1 9 0 6 0 8 2 8 1 0 1 1 1 6 0 5 0 6 2 6 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 1 1 2 2 2 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 0 1 1 0 1 3 4 4 4 1 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 5 1 2 0 4 0 4 1 0 1 2 1 6 1 4 0 5 0 5 2 0 1 2 1 9 1 7 0 9 0 9 2 0 1 2 1 13 1 11 0 13 0 13 -1z M2286 772 c-103 -9 -182 -64 -222 -155 -18 -39 -26 -82 -28 -132 -2 -96 25 -176 80 -232 49 -51 117 -78 196 -78 47 0 86 9 124 27 71 35 120 102 139 189 l1 3 -90 0 -89 0 -1 -3 c-3 -8 -13 -27 -18 -33 -12 -14 -27 -24 -44 -28 -13 -3 -37 -3 -48 0 -31 8 -54 31 -67 66 -14 37 -16 99 -4 143 15 54 52 85 101 82 35 -3 59 -20 75 -52 2 -5 4 -11 5 -12 l0 -3 90 0 90 0 -1 3 c-18 82 -59 143 -120 180 -47 27 -108 40 -169 35z M777 770 c0 -2 -2 -2 -8 -2 -7 0 -9 0 -9 -1 0 -2 -1 -2 -7 -2 -6 0 -8 0 -8 -1 0 -2 -1 -2 -4 -2 -3 0 -4 0 -4 -1 0 -2 -1 -2 -6 -2 -5 0 -6 0 -6 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -2 -1 -4 -1 -3 0 -4 0 -4 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -2 -2 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -1 -1 -2 -1 -2 0 -3 -1 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 -2 0 -3 0 -3 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 0 -2 -1 0 -1 -3 -4 -4 -4 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -1 -2 -1 0 -2 -1 -2 -1 0 -1 -1 -2 -3 -2 l-3 0 0 36 0 36 -88 0 c-78 0 -88 0 -88 -1 0 -1 0 -2 -1 -2 -1 0 -1 -97 -1 -289 l0 -290 89 0 89 0 0 165 c0 145 0 164 2 164 1 0 1 2 1 12 0 9 0 11 2 11 1 0 1 1 1 6 0 4 0 5 2 5 1 0 1 1 1 5 0 3 0 4 2 4 1 0 1 1 1 4 0 3 0 4 2 4 0 0 1 1 1 2 0 0 0 1 1 1 1 0 1 1 1 3 0 2 1 3 2 3 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 1 1 2 0 0 1 1 2 1 1 0 1 1 1 3 0 2 1 3 2 3 0 0 1 0 1 1 0 1 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 3 1 1 0 2 1 2 2 0 0 1 1 2 1 0 0 1 1 1 2 0 0 1 1 2 1 0 0 1 1 1 2 0 1 1 1 3 1 2 0 3 1 3 2 0 1 1 1 3 1 2 0 3 0 3 1 0 1 2 1 4 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 1 1 5 1 3 0 4 0 4 2 0 1 4 1 26 1 22 0 25 0 25 -1 0 -2 1 -2 6 -2 5 0 6 0 6 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -2 1 -2 4 -2 2 0 4 0 4 -1 0 -1 1 -1 3 -1 2 0 3 0 3 -1 0 -1 1 -2 3 -2 2 0 3 0 3 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 3 -2 1 0 2 -1 2 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 0 0 1 0 1 -1 0 -1 1 -1 2 -1 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 1 -2 2 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 0 0 1 -1 1 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 1 -3 2 -3 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -1 1 -4 0 -4 0 -5 2 -5 1 0 1 -1 1 -4 0 -3 0 -4 2 -4 1 0 1 -2 1 -10 0 -9 0 -11 2 -11 1 0 1 -19 1 -167 l0 -167 89 0 89 0 0 176 c0 117 0 176 -1 176 -1 0 -1 7 -1 19 0 15 0 18 -1 18 -2 0 -2 2 -2 9 0 6 0 8 -1 8 -2 0 -2 1 -2 6 0 5 0 6 -1 6 -2 0 -2 1 -2 7 0 6 0 7 -1 7 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -2 0 -2 1 -2 5 0 3 0 4 -1 4 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -2 0 -2 1 -2 5 0 2 0 4 -1 4 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 1 -1 2 -1 2 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 3 0 2 0 3 -1 3 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 0 1 -1 1 -1 0 -1 1 -1 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 0 -1 1 -1 1 -1 0 -2 0 -2 1 0 1 -1 1 -2 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 0 -1 1 -1 1 -1 0 -2 1 -2 2 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -4 1 -3 0 -4 0 -4 2 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -3 1 -2 0 -3 1 -3 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -1 1 -6 1 -5 0 -6 0 -6 2 0 1 -1 1 -5 1 -5 0 -6 0 -6 2 0 1 -2 1 -9 1 -7 0 -9 0 -9 2 0 1 -4 1 -31 1 -28 0 -32 0 -32 -1z M1805 761 c0 -1 0 -2 -1 -2 -1 0 -1 -98 -1 -291 l0 -291 89 0 89 0 0 291 c0 258 0 291 -1 291 -1 0 -2 1 -2 2 0 1 -10 1 -86 1 -77 0 -87 0 -87 -1z M2066 58 l0 -58 244 0 244 0 0 58 0 57 -244 0 -244 0 0 -57z"/></g></symbol></svg>
 <header class="band band-top"><div class="wrap masthead">
   <div class="brand">
-    <h1 class="word"><svg xmlns="http://www.w3.org/2000/svg" viewBox="25 -722 4033 922" class="mark" role="img" aria-label="Mural"><path id="mm-letras" fill="currentColor" d="M49.0 0.0V-688.0H316.0L360.0 -445.0Q363.0 -427.0 368.0 -398.0Q373.0 -369.0 378.5 -338.0Q384.0 -307.0 388.0 -282.0H397.0Q401.0 -302.0 406.0 -330.5Q411.0 -359.0 416.0 -389.0Q421.0 -419.0 425.0 -445.0L467.0 -688.0H726.0V0.0H543.0V-211.0Q543.0 -261.0 545.0 -305.5Q547.0 -350.0 548.5 -384.0Q550.0 -418.0 550.0 -435.0H541.0Q539.0 -421.0 535.0 -401.5Q531.0 -382.0 528.0 -364.0Q525.0 -346.0 522.0 -334.0L458.0 0.0H312.0L249.0 -334.0Q247.0 -346.0 243.0 -364.0Q239.0 -382.0 236.0 -401.5Q233.0 -421.0 230.0 -435.0H222.0Q223.0 -410.0 224.5 -372.0Q226.0 -334.0 227.0 -292.0Q228.0 -250.0 228.0 -211.0V0.0Z M1062.0 12.0Q985.0 12.0 928.5 -13.0Q872.0 -38.0 842.0 -94.0Q812.0 -150.0 812.0 -242.0V-688.0H1005.0V-236.0Q1005.0 -196.0 1016.5 -171.0Q1028.0 -146.0 1061.0 -146.0Q1094.0 -146.0 1106.5 -171.0Q1119.0 -196.0 1119.0 -236.0V-688.0H1312.0V-242.0Q1312.0 -150.0 1282.0 -94.0Q1252.0 -38.0 1196.5 -13.0Q1141.0 12.0 1062.0 12.0Z M1398.0 0.0V-688.0H1695.0Q1772.0 -688.0 1817.0 -659.0Q1862.0 -630.0 1882.0 -581.5Q1902.0 -533.0 1902.0 -475.0Q1902.0 -417.0 1885.5 -368.5Q1869.0 -320.0 1830.0 -286.0L1922.0 0.0H1717.0L1655.0 -231.0H1591.0V0.0ZM1591.0 -378.0H1663.0Q1687.0 -378.0 1697.5 -402.0Q1708.0 -426.0 1708.0 -459.0Q1708.0 -481.0 1703.0 -498.0Q1698.0 -515.0 1688.5 -525.5Q1679.0 -536.0 1663.0 -536.0H1591.0Z M1924.0 0.0 2091.0 -688.0H2347.0L2514.0 0.0H2310.0L2292.0 -100.0H2139.0L2122.0 0.0ZM2166.0 -252.0H2266.0L2241.0 -395.0Q2240.0 -405.0 2237.5 -420.5Q2235.0 -436.0 2232.0 -454.5Q2229.0 -473.0 2226.0 -491.5Q2223.0 -510.0 2220.0 -525.0H2212.0Q2209.0 -506.0 2205.5 -482.5Q2202.0 -459.0 2198.5 -436.0Q2195.0 -413.0 2191.0 -395.0Z M2557.0 0.0V-688.0H2750.0V-163.0H2989.0V0.0Z"/><path id="mm-curva" d="M49 121 L2989 121 L3139 121 L3379 -169 L3539 -94 L3919 -583" fill="none" stroke="var(--red)" stroke-width="110" stroke-linejoin="round"/><circle id="mm-ponto" cx="3919" cy="-583" r="115" fill="var(--red)"/></svg><span class="m2">dos Candidatos</span></h1>
+    <h1 class="word"><svg xmlns="http://www.w3.org/2000/svg" viewBox="25 -722 4033 922" class="mark" role="img" aria-label="Mural"><path id="mm-letras" fill="currentColor" d="M49.0 0.0V-688.0H316.0L360.0 -445.0Q363.0 -427.0 368.0 -398.0Q373.0 -369.0 378.5 -338.0Q384.0 -307.0 388.0 -282.0H397.0Q401.0 -302.0 406.0 -330.5Q411.0 -359.0 416.0 -389.0Q421.0 -419.0 425.0 -445.0L467.0 -688.0H726.0V0.0H543.0V-211.0Q543.0 -261.0 545.0 -305.5Q547.0 -350.0 548.5 -384.0Q550.0 -418.0 550.0 -435.0H541.0Q539.0 -421.0 535.0 -401.5Q531.0 -382.0 528.0 -364.0Q525.0 -346.0 522.0 -334.0L458.0 0.0H312.0L249.0 -334.0Q247.0 -346.0 243.0 -364.0Q239.0 -382.0 236.0 -401.5Q233.0 -421.0 230.0 -435.0H222.0Q223.0 -410.0 224.5 -372.0Q226.0 -334.0 227.0 -292.0Q228.0 -250.0 228.0 -211.0V0.0Z M1062.0 12.0Q985.0 12.0 928.5 -13.0Q872.0 -38.0 842.0 -94.0Q812.0 -150.0 812.0 -242.0V-688.0H1005.0V-236.0Q1005.0 -196.0 1016.5 -171.0Q1028.0 -146.0 1061.0 -146.0Q1094.0 -146.0 1106.5 -171.0Q1119.0 -196.0 1119.0 -236.0V-688.0H1312.0V-242.0Q1312.0 -150.0 1282.0 -94.0Q1252.0 -38.0 1196.5 -13.0Q1141.0 12.0 1062.0 12.0Z M1398.0 0.0V-688.0H1695.0Q1772.0 -688.0 1817.0 -659.0Q1862.0 -630.0 1882.0 -581.5Q1902.0 -533.0 1902.0 -475.0Q1902.0 -417.0 1885.5 -368.5Q1869.0 -320.0 1830.0 -286.0L1922.0 0.0H1717.0L1655.0 -231.0H1591.0V0.0ZM1591.0 -378.0H1663.0Q1687.0 -378.0 1697.5 -402.0Q1708.0 -426.0 1708.0 -459.0Q1708.0 -481.0 1703.0 -498.0Q1698.0 -515.0 1688.5 -525.5Q1679.0 -536.0 1663.0 -536.0H1591.0Z M1924.0 0.0 2091.0 -688.0H2347.0L2514.0 0.0H2310.0L2292.0 -100.0H2139.0L2122.0 0.0ZM2166.0 -252.0H2266.0L2241.0 -395.0Q2240.0 -405.0 2237.5 -420.5Q2235.0 -436.0 2232.0 -454.5Q2229.0 -473.0 2226.0 -491.5Q2223.0 -510.0 2220.0 -525.0H2212.0Q2209.0 -506.0 2205.5 -482.5Q2202.0 -459.0 2198.5 -436.0Q2195.0 -413.0 2191.0 -395.0Z M2557.0 0.0V-688.0H2750.0V-163.0H2989.0V0.0Z"/><path id="mm-curva" d="M49 121 L2989 121 L3139 121 L3379 -169 L3539 -94 L3919 -583" fill="none" stroke="var(--red)" stroke-width="110" stroke-linejoin="round"/><circle id="mm-ponto" cx="3919" cy="-583" r="115" fill="var(--red)"/></svg><span class="m2">dos Candidatos<span class="m2sep" aria-hidden="true">·</span><svg class="marca-indica-top" viewBox="0 0 3228 967" role="img" aria-label="INDICA"><use href="#indica-marca"/></svg></span></h1>
   </div>
   <div class="mast-r">
     <span class="ed"><span class="ed-l">Edição de </span><b id="stamp"></b><span class="ed-s" id="stamp-curto"></span></span>

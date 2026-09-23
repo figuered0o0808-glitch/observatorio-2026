@@ -383,8 +383,14 @@ with sync_playwright() as p:
                 c6ok: contraste(cs.getPropertyValue('--c6').trim(), '#17181C') >= 3 && cs.getPropertyValue('--c6').trim().toUpperCase() !== '#008300',
                 stroke: getComputedStyle(document.querySelector('.mapa-svg path.uf')).stroke}; }""")
     check("tema escuro: nenhuma cor de partido abaixo de 3:1 contra #17181C", r["escuro"] and not r["ruins"], r)
-    check("tema escuro: --band separada do fundo (#1E2025) e --c6 clareado em relação ao claro, com contraste >= 3:1",
-          r["band"].upper() == "#1E2025" and r["c6ok"], r)
+    # A prova aqui é a SEPARAÇÃO entre o palco escuro e o fundo da página, não um hex.
+    # Até 23/9/2026 isto travava o valor literal #1E2025, e uma troca legítima de paleta
+    # derrubava o teste sem que nada tivesse piorado. O piso é a separação que aquele par
+    # dava (#1E2025 sobre #0F1013 = 1,167), arredondado para baixo.
+    sep = page.evaluate("""() => { const cs = getComputedStyle(document.documentElement);
+        return +contraste(cs.getPropertyValue('--band').trim(), cs.getPropertyValue('--ground').trim()).toFixed(3); }""")
+    check("tema escuro: --band separada do fundo (>= 1,15 de contraste) e --c6 clareado em relação ao claro, com contraste >= 3:1",
+          sep >= 1.15 and r["c6ok"], dict(r, separacao=sep))
     check("tema escuro: contorno dos estados não é a cor do fundo", r["stroke"] not in ("rgb(23, 24, 28)", "rgb(15, 16, 19)"), r)
     b.close()
 
