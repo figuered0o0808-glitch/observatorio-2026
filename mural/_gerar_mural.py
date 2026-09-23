@@ -589,7 +589,11 @@ protegido = {k: data[k] for k in PROTEGIDO}
 def montar(d):
     return (tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";")
                .replace("__SUPABASE_URL__", SUPA_URL).replace("__SUPABASE_ANON__", SUPA_ANON)
-               .replace("__CARGA_URL__", CARGA_URL))
+               .replace("__CARGA_URL__", CARGA_URL)
+               # a descrição do site para o Google e para a prévia de link conta os candidatos
+               # do dado; "treze", escrito à mão, ficou errado quando a 14ª candidatura entrou
+               .replace("__N_PRES__", str(len(out)))
+               .replace("__N_EST__", str(sum(len(e["gov"]) + len(e["sen"]) for e in estados.values()))))
 
 html = montar(publico)
 io.open(os.path.join(AQUI, "mural.html"), "w", encoding="utf-8").write(html)
