@@ -1191,6 +1191,16 @@ header.band.band-top .btn:hover,header.band.band-top .tema-btn:hover{
 .hero2 .lede{color:#B6BAC2;font-size:15px;margin-top:8px}
 .hero2 .lede a{color:var(--smt-amarelo);text-decoration-color:var(--smt-amarelo)}
 .duelo .dl-num{font-size:clamp(64px,9.6vw,136px);line-height:.86}
+/* votos válidos: a régua de 0 a 100 com a marca dos 50%, que é o que decide o primeiro turno */
+.vv{margin:16px 0 4px;max-width:760px}
+.vv p{margin:0 0 8px;color:#B6BAC2;font-size:15px;line-height:1.5}
+.vv p b{color:#fff;font-weight:600}
+.vv-regua{position:relative;height:14px;background:var(--band-line)}
+.vv-regua .f{position:absolute;left:0;top:0;bottom:0;background:var(--cc,#fff)}
+.vv-regua .i{position:absolute;top:-3px;bottom:-3px;border-left:1px solid #fff;border-right:1px solid #fff;background:rgba(255,255,255,.18)}
+.vv-regua .c{position:absolute;left:50%;top:-6px;bottom:-6px;width:3px;margin-left:-1.5px;background:var(--smt-amarelo)}
+.vv-eixo{display:flex;justify-content:space-between;color:var(--band-mut);font-size:11.5px;margin-top:6px;font-variant-numeric:tabular-nums}
+.vv-eixo span:nth-child(2){color:var(--smt-amarelo);font-weight:600}
 .duelo .dl-nome{font-size:21px;letter-spacing:.14em}
 .placar{border-top:6px solid var(--smt-azul)}
 .foot-band{border-top:6px solid var(--smt-amarelo)}
@@ -1312,6 +1322,7 @@ table th{background:#000;color:#fff;border-bottom:0}
     <div class="duelo" id="duelo"></div>
     <h1 class="manchete tagline display" id="manchete"></h1>
     <p class="lede" id="lede-dados"></p>
+    <div class="vv" id="validos" hidden></div>
     <div id="ch-hero"></div>
   </div>
   <div class="tiles" id="lg-home" role="group" aria-label="Legenda e placar da média móvel"></div>
@@ -1487,6 +1498,13 @@ table th{background:#000;color:#fff;border-bottom:0}
         <math display="block"><msub><mi>n</mi><mtext>ef</mtext></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>w</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mspace width="1.2em"/><mi>ε</mi><mo>=</mo><msqrt><mrow><mfrac><mrow><msub><mi>Var</mi><mi>w</mi></msub><mo>(</mo><msub><mi>x</mi><mi>a</mi></msub><mo>−</mo><msub><mi>x</mi><mi>b</mi></msub><mo>)</mo></mrow><msub><mi>n</mi><mtext>ef</mtext></msub></mfrac><mo>+</mo><msub><mi>V</mi><mtext>viés</mtext></msub></mrow></msqrt></math>
         <math display="block"><mtext>empate técnico se </mtext><mo>|</mo><msub><mi>m</mi><mi>a</mi></msub><mo>−</mo><msub><mi>m</mi><mi>b</mi></msub><mo>|</mo><mo>&lt;</mo><mi>ε</mi></math>
         <p><i>n</i><sub>ef</sub> é o número efetivo de rodadas, em que uma rodada com peso pequeno conta como uma fração de rodada. <i>V</i><sub>viés</sub> soma à margem o erro da estimativa do viés, já que a correção do viés reduz a dispersão e, sem esse termo, a margem ficaria menor do que deveria. Quando a diferença entre os dois primeiros colocados é menor que <i>ε</i>, o resultado aparece como empate técnico.</p></li>
+      <li><h4>Votos válidos e o primeiro turno</h4>
+        <math display="block"><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>c</mi></munder><msub><mi>x</mi><mrow><mi>c</mi><mo>,</mo><mi>i</mi></mrow></msub><mspace width="1.2em"/><msub><mi>v</mi><mi>c</mi></msub><mo>=</mo><mi>F</mi><mo>·</mo><msub><mi>m</mi><mi>c</mi></msub></math>
+        <math display="block"><mi>F</mi><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><mo>·</mo><mn>100</mn><mo>/</mo><msub><mi>S</mi><mi>i</mi></msub></mrow><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub></mrow></mfrac></math>
+        <math display="block"><msub><mi>ε</mi><mi>v</mi></msub><mo>=</mo><msqrt><mrow><mfrac><mrow><msub><mi>Var</mi><mi>w</mi></msub><mo>(</mo><mn>100</mn><mo>·</mo><msub><mi>x</mi><mrow><mi>a</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>/</mo><msub><mi>S</mi><mi>i</mi></msub><mo>)</mo></mrow><msub><mi>n</mi><mtext>ef</mtext></msub></mfrac><mo>+</mo><msub><mi>V</mi><mtext>viés</mtext></msub></mrow></msqrt></math>
+        <math display="block"><mtext>vitória no 1º turno se</mtext><mspace width="0.5em"/><msub><mi>v</mi><mi>a</mi></msub><mo>−</mo><mn>50</mn><mo>&gt;</mo><msub><mi>ε</mi><mi>v</mi></msub></math>
+        <math display="block"><mtext>segundo turno se</mtext><mspace width="0.5em"/><mn>50</mn><mo>−</mo><msub><mi>v</mi><mi>a</mi></msub><mo>&gt;</mo><msub><mi>ε</mi><mi>v</mi></msub></math>
+        <p>Vence no primeiro turno quem tem mais de 50% dos votos válidos, que são os votos dados a candidatos. <i>S</i><sub><i>i</i></sub> é a soma dos candidatos da rodada <i>i</i>, com brancos, nulos e indecisos fora, e inclui quem não está no painel, porque esses votos também são válidos. <i>F</i> converte a média de intenção total em votos válidos e usa os mesmos pesos <i>w</i><sub><i>i</i></sub> da média, então a ordem dos candidatos nos válidos é sempre a mesma da média total. Nas rodadas nacionais, entra no fator a rodada que fecha: registra brancos, nulos ou indecisos e soma entre 96% e 104%, ou os candidatos sozinhos já somam entre 96% e 104%. Nos estados a base não registra brancos nem indecisos, e entra a rodada cujos candidatos somam ao menos <span class="vv-min">60%</span>. Quando a distância do líder até 50% é menor que <i>ε</i><sub><i>v</i></sub>, a média não diz se haverá segundo turno, e é isso que o mural escreve.</p></li>
     </ol>
   </div>
   <div class="panel"><div class="ph"><h3>A régua de cada instituto</h3><span class="cap" style="margin:0" id="casa-cap"></span></div>
@@ -1501,6 +1519,7 @@ table th{background:#000;color:#fff;border-bottom:0}
       <div class="duelo" id="e-duelo"></div>
       <h1 class="manchete tagline display" id="e-tag"></h1>
       <p class="lede" id="e-lede"></p>
+      <div class="vv" id="e-validos" hidden></div>
     </div>
 <details class="mapa panel" id="mapa" open><summary><div class="ph"><h3>O mapa da disputa</h3><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span><span class="tg" aria-hidden="true"></span></div></summary>
   <div class="mapa-grid">
@@ -1706,6 +1725,17 @@ const T1=Math.min(Date.parse(ULT)+3*864e5,Date.parse(HOJE)+864e5);let T0=Date.pa
 // a janela chegar a 1 dia exatamente em 4/10 (3 dias de 14/9, 2 de 24/9).
 // Calculada pelo calendário de Brasília ao abrir a página, sem regeneração.
 const REGUA={inicio:"2026-09-04",sigma0:4,passo:10,minimo:1};
+// Testada contra o histórico em 23/9/2026: cada uma das 144 rodadas nacionais desde março foi
+// prevista pela média feita só com o que tinha saído antes dela. Janelas fixas de 1 a 21 dias
+// erram quase o mesmo (margem Lula-Flávio: 4,04 a 4,12 pontos; desde 4/9, 3,55 a 3,59), e esta
+// régua fica no meio (4,08 e 3,58). Quem manda no erro é a diferença entre institutos, não a
+// janela, até porque a janela alarga sozinha até juntar AG.inst institutos. Sem ganho medido,
+// a régua ficou como estava.
+// No mesmo dia medimos "manada" (instituto que gruda na média em vez de medir): dispersão de
+// cada instituto em torno da média anterior contra a dispersão que a amostra dele produziria.
+// Os mais estáveis estão LONGE da média (CNT/MDA +6,8, Veritá -5,3 na margem), o que é viés
+// próprio, já tratado pelo efeito casa. O único perto da média e estável demais, PoderData
+// (razão 0,63 em 9 rodadas), fica dentro do que o acaso produz. Sem evidência, sem penalidade.
 // Reta final: de 4/9 (quando a régua começa a encurtar) até a eleição. Nos gráficos de tempo esse trecho
 // ganha fundo sombreado e o que vem antes fica mais apagado, para o olho pesar o recente.
 const RETA0=Date.parse(REGUA.inicio);
@@ -1721,7 +1751,7 @@ function preencherFormulas(){
   put(".rg-ini",d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear());
   put(".ag-inst",br(AG.inst));put(".ag-enc",br(AG.encolhe));put(".ag-tetocasa",br(AG.tetoCasa));
   put(".ag-piso",br(AG.piso));put(".ag-k",br(AG.k));put(".ag-voltas",br(AG.voltas));
-  put(".ag-teto",br(Math.round(AG.teto*100))+"%");
+  put(".ag-teto",br(Math.round(AG.teto*100))+"%");put(".vv-min",br(VV_UF_MIN)+"%");
 }
 document.querySelectorAll(".sig-dias").forEach(e=>e.textContent=SIG);
 // A janela padrão é de 30 dias desde 21/9/2026, a pedido do Francisco: na reta final o que interessa
@@ -1950,6 +1980,8 @@ const serieDe=n=>DATA.polls.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[
 //   4. nenhuma rodada passa de AG.teto do peso total.
 // A régua (SIG) continua mandando no peso do tempo: rodada mais recente pesa mais.
 const AG={inst:5,k:1.5,teto:.15,piso:1,voltas:6,semana:7*864e5,vizinhos:3,encolhe:4,tetoCasa:5};
+// votos válidos nos estados: rodada que lista menos que isto no total não entra no fator (ver validosUF)
+const VV_UF_MIN=60;
 preencherFormulas();
 // f(u) = min(1, (k/u)²): até k desvios típicos a rodada entra inteira; acima, a queda é
 // quadrática e nunca chega a zero. É a fórmula 06 da editoria de método.
@@ -2119,7 +2151,7 @@ function incertezaEm(rods,nomes,sigma,t,a,b){
   const {dentro,peso}=pesosEm(rods,nomes,sigma,t);
   const m=[],w=[];
   for(let i=0;i<dentro.length;i++){
-    const x=dentro[i].r.v[a],y=dentro[i].r.v[b];
+    const x=dentro[i].r.v[a],y=b==null?0:dentro[i].r.v[b];
     if(x!=null&&y!=null&&peso[i]>0){m.push(x-y);w.push(peso[i]);}
   }
   if(m.length<3)return null;
@@ -2131,7 +2163,7 @@ function incertezaEm(rods,nomes,sigma,t,a,b){
   let vC=0,sC=0;
   for(let i=0;i<dentro.length;i++){
     const c=dentro[i].r.casa;if(!c||!peso[i])continue;
-    const ea=c[a]?c[a].se:0,eb=c[b]?c[b].se:0;
+    const ea=c[a]?c[a].se:0,eb=b!=null&&c[b]?c[b].se:0;
     vC+=peso[i]*(ea*ea+eb*eb);sC+=peso[i];
   }
   const varCasa=sC?vC/sC/Math.max(1,nef):0;
@@ -2145,6 +2177,48 @@ function empatam(rods,nomes,sigma,t,a,b){
   if(m[a]==null||m[b]==null)return false;
   return Math.abs(m[a]-m[b])<inc.erro;
 }
+// ---- votos válidos
+// Vence no primeiro turno quem passa de 50% dos votos válidos, e o que as rodadas publicam é
+// intenção total, com brancos, nulos e indecisos dentro. Cada rodada que se pode fechar tem um
+// fator 100/S, em que S é a soma dos candidatos dela, e o fator da média é a média desses
+// fatores com OS MESMOS PESOS da média total (uma rodada por instituto, penalidade, efeito casa,
+// teto). O válido de cada candidato é a média total vezes esse fator.
+// Por que não fazer uma média própria das rodadas já convertidas: testado em 23/9/2026, ela dá
+// quase o mesmo número no país (Lula 42,6 contra 42,4), mas nos estados em empate técnico a
+// ordem dos dois primeiros podia trocar (MT e PA), com o placar dizendo um líder e a régua
+// outro. Com um fator comum a ordem é sempre a da média total.
+// soma(r) devolve o S da rodada, ou nada quando ela não fecha (fica fora só do fator).
+function validosEm(rods,nomes,sigma,t,soma){
+  if(rods.length<3)return null;
+  const S=new Map(rods.map(r=>[r.inst+"|"+r.t,soma(r)]));
+  const {dentro,peso}=pesosEm(rods,nomes,sigma,t);
+  const tot=peso.reduce((a,b)=>a+b,0);let sw=0,sf=0;
+  for(let i=0;i<dentro.length;i++){const s=S.get(dentro[i].r.inst+"|"+dentro[i].r.t);if(s>0&&peso[i]>0){sw+=peso[i];sf+=peso[i]*100/s;}}
+  // menos da metade do peso com soma conhecida: o fator seria de poucas rodadas, e não é a média
+  if(!tot||sw<tot/2)return null;
+  const F=sf/sw,m0=agregarEm(rods,nomes,sigma,t),m={};
+  for(const n of nomes)if(m0[n]!=null)m[n]=m0[n]*F;
+  const ordem=Object.keys(m).sort((x,y)=>m[y]-m[x]);if(!ordem.length)return null;
+  const lider=ordem[0],v=m[lider];
+  // incerteza: dispersão ponderada do válido do líder rodada a rodada, sobre a raiz do n
+  // efetivo, mais o erro da estimativa do efeito casa, como em incertezaEm
+  const ys=[],ws=[];let vC=0,sC=0;
+  for(let i=0;i<dentro.length;i++){
+    const r=dentro[i].r,s=S.get(r.inst+"|"+r.t),x=r.v[lider];
+    if(!(s>0)||x==null||!(peso[i]>0))continue;
+    ys.push(x*100/s);ws.push(peso[i]);
+    if(r.casa&&r.casa[lider]){const e=r.casa[lider].se*100/s;vC+=peso[i]*e*e;sC+=peso[i];}
+  }
+  let erro=null;
+  if(ys.length>=3){
+    const w=ws.reduce((a,b)=>a+b,0),mu=ys.reduce((a,y,i)=>a+y*ws[i],0)/w;
+    const vr=ys.reduce((a,y,i)=>a+ws[i]*(y-mu)*(y-mu),0)/w,nef=w*w/ws.reduce((a,x)=>a+x*x,0);
+    erro=Math.sqrt(vr/nef+(sC?vC/sC/Math.max(1,nef):0));
+  }
+  const status=erro==null?"sem":v-50>erro?"vence":50-v>erro?"segundo":"perto";
+  return {m,ordem,lider,v,erro,status,fator:F,cobre:sw/tot};
+}
+const somaVV1T=r=>(DATA.somasVV||{})[r.inst+"|"+dISO(r.t)];
 // linha de cada nome nos instantes das rodadas, só entre a primeira e a última que o mediram
 function linhaAgregada(rods,nomes,sigma){
   const ts=[...new Set(rods.map(r=>r.t))].sort((a,b)=>a-b),out={},lim={};
@@ -2322,6 +2396,8 @@ function drawHome(){
     const lado=(q,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[q.nome]}"><span class="dl-nome"><i></i>${esc(curto(q.nome))}</span><span class="dl-num display tnum" data-v="${q.agora}">${fPct(q.agora)}<small>%</small></span><span class="dl-var">${q.delta!=null?(q.delta>=1?"▲ ":q.delta<=-1?"▼ ":"")+fmtDelta(q.delta)+" pts em 30 dias":"sem base há 30 dias"}</span></div>`;
     dz.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(gap)}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(A.nome))+" à frente"}</span></div>`+lado(B,true);
     if(!drawHome._ja){drawHome._ja=true;contarDuelo();}}
+  let vv=null;try{vv=validosEm(rodadas1T(),OITO,SIG,Date.parse(ULT),somaVV1T);}catch(e){}
+  desenharVV($("#validos"),vv,curto,n=>COR[n],"");
   // ---- a linha dos dois da frente no bloco escuro, sem pontos: é a curva da marca virando dado
   if($("#ch-hero")){const base=(frente.length>=2?frente:nomes.slice(0,2)).map(mk).map(x=>({...x,r:0,lw:3,banda:null}));
     const [yH,tH]=escalaY(base,52,Date.parse("2026-01-01"));
@@ -2332,6 +2408,22 @@ function drawHome(){
 // e as simulações na janela da capa. Antes ele morava só num painel pequeno da editoria Pesquisas.
 // "1 ponto", "1,1 pontos": a concordância segue o número já formatado
 function pts(v){return fPct(Math.abs(+v))==="1"?"ponto":"pontos";}
+// a régua de votos válidos: texto com a leitura e a barra de 0 a 100 com a marca dos 50%.
+// nome(n) dá o nome curto e cor(n) a cor do candidato; a leitura sai do status de validosEm.
+function desenharVV(el,R,nome,cor,onde){
+  if(!el)return;
+  if(!R||R.status==="sem"){el.hidden=true;el.innerHTML="";return;}
+  const a=R.lider,b=R.ordem[1],e=R.erro,va=fPct(R.v),fe=fPct(e);
+  const abre=`Em votos válidos, que são os que decidem o primeiro turno${onde?" "+onde:""}, <b>${esc(nome(a))} tem ${va}%</b>`;
+  const txt=R.status==="vence"
+    ? `${abre}: passa de 50% por mais que a incerteza da média (${fe} ${pts(e)}). A média aponta vitória no primeiro turno.`
+    : R.status==="perto"
+    ? `${abre}, a ${fPct(Math.abs(R.v-50))} ${pts(R.v-50)} dos 50%. A distância é menor que a incerteza da média (${fe} ${pts(e)}), então a média ainda não diz se haverá segundo turno.`
+    : `${abre}${b?`, e ${esc(nome(b))}, ${fPct(R.m[b])}%`:""}. Ninguém chega a 50% nem somando a incerteza da média (${fe} ${pts(e)}): a média aponta segundo turno.`;
+  const lo=Math.max(0,R.v-e),hi=Math.min(100,R.v+e);
+  el.innerHTML=`<p>${txt}</p><div class="vv-regua" style="--cc:${cor(a)}" role="img" aria-label="${esc(nome(a))}, ${va}% dos votos válidos, entre ${fPct(lo)}% e ${fPct(hi)}% pela incerteza da média; a marca de 50% decide o primeiro turno"><i class="f" style="width:${R.v.toFixed(2)}%"></i><i class="i" style="left:${lo.toFixed(2)}%;width:${(hi-lo).toFixed(2)}%"></i><b class="c"></b></div><div class="vv-eixo" aria-hidden="true"><span>0</span><span>50%</span><span>100</span></div>`;
+  el.hidden=false;
+}
 function texto2T(m2,inc){
   if(m2["Lula"]==null||m2["Flávio Bolsonaro"]==null||!inc)return "";
   const d=m2["Lula"]-m2["Flávio Bolsonaro"],frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
@@ -3301,7 +3393,7 @@ pr.addEventListener("change",e=>{
 // ---- notas
 $("#notes").innerHTML=`<p><b>Como a média é feita.</b> A média de cada candidato é ponderada pela data das pesquisas, com uma janela que encurta conforme a eleição se aproxima. Dentro da janela, cada instituto entra com uma rodada só, e nenhuma rodada passa de ${Math.round(AG.teto*100)}% do peso. Há dois ajustes para resultados muito diferentes dos demais. A rodada que se afasta do conjunto além do que o erro amostral explica perde peso, e essa perda cresce com o quadrado da distância. O viés constante de cada instituto, medido ao longo do ano em relação aos outros, é descontado antes do cálculo, e a tabela "A régua de cada instituto", acima, mostra o tamanho e a direção de cada um. A incerteza publicada soma o erro amostral e o erro da estimativa do viés. Quando a diferença entre os dois primeiros é menor que essa incerteza, o resultado aparece como empate técnico. As fórmulas estão no painel acima.</p>
 <p><b>Atualização e verificação.</b> As pesquisas nacionais e estaduais e os acessos aos verbetes da Wikipédia são atualizados automaticamente duas vezes por dia, às 8h e às 20h de Brasília. Uma rotina no GitHub lê a compilação pública da Wikipédia e a API oficial da Wikimedia, gera o mural de novo, confere o dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE entram a cada coleta, com a data indicada ao lado. A "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato e indica só a quantidade de informação disponível. Foco, período, tema e densidade ficam salvos apenas no navegador de quem fez a escolha.</p>
-<p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro no TSE, listadas na tabela "ver as rodadas". O gráfico da corrida reúne pesquisas feitas com métodos diferentes, e a AtlasIntel, que coleta pela internet, costuma dar a Lula mais do que as pesquisas presenciais e por telefone. A linha é a média das rodadas e não uma projeção. A janela da média tem ${SIG} dias hoje e encurta até a eleição. Ela cresce até reunir ${AG.inst} institutos, e de cada instituto entra só a rodada mais próxima da data do cálculo. Na rejeição, cada instituto faz a pergunta de um jeito, e a comparação só vale dentro do mesmo instituto. Não foram localizadas as rodadas de janeiro e fevereiro do Datafolha e do PoderData. Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período. A AtlasIntel de 19/5 teve a divulgação suspensa por decisão judicial e entrou só em parte.</p>
+<p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro no TSE, listadas na tabela "ver as rodadas". O gráfico da corrida reúne pesquisas feitas com métodos diferentes, e a AtlasIntel, que coleta pela internet, costuma dar a Lula mais do que as pesquisas presenciais e por telefone. A linha é a média das rodadas e não uma projeção. Os votos válidos, que decidem se há segundo turno, saem da mesma média: cada rodada que registra brancos, nulos e indecisos mostra quanto do total foi para candidatos, e esse fator, pesado como a média, converte a intenção total em válidos. Rodada que não permite fechar essa conta fica fora só da conversão. A janela da média tem ${SIG} dias hoje e encurta até a eleição. Em 23/9 testamos essa escolha contra o histórico, prevendo cada rodada com a média do que tinha saído antes dela: janelas de 1 a 21 dias erram quase o mesmo, cerca de 4 pontos na margem entre os dois primeiros, porque o que pesa no erro é a diferença entre institutos. Por isso a régua ficou como estava. Também procuramos instituto que acompanha a média em vez de medir, e nenhum caso passou do que o acaso explica. Ela cresce até reunir ${AG.inst} institutos, e de cada instituto entra só a rodada mais próxima da data do cálculo. Na rejeição, cada instituto faz a pergunta de um jeito, e a comparação só vale dentro do mesmo instituto. Não foram localizadas as rodadas de janeiro e fevereiro do Datafolha e do PoderData. Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período. A AtlasIntel de 19/5 teve a divulgação suspensa por decisão judicial e entrou só em parte.</p>
 <p><b>Metodologias.</b> O modo de cada rodada (presencial, por telefone ou pela internet) é identificado na ficha técnica registrada e aparece como "não informada" quando a ficha não diz. O desvio por instituto compara cada rodada com a média dos outros institutos num período de 28 dias. Em janeiro e fevereiro havia poucas pesquisas por período, e o desvio desses meses é menos preciso. O desvio reflete diferenças de método e não indica qual instituto está mais perto do resultado.</p>
 <p><b>Redes.</b> Desde 1/9, o número de seguidores no Instagram vem de coleta própria. O observatório lê o valor exato no perfil público e grava uma linha por candidato e por dia de leitura. Essa leitura não é automática, porque o Instagram exige login, e por isso cada número aparece com a data ao lado. TikTok e YouTube seguem a mesma rotina. Para o histórico do ano, os números vêm da imprensa, em ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados por Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon e Fanpage Karma, com a fonte em cada ponto. A série tem poucos pontos e as fontes discordam entre si no mesmo dia, então as linhas ligam as medianas de cada dia. Os acessos à Wikipédia são atualizados automaticamente todo dia pela API oficial da Wikimedia.</p>
 <p><b>Busca e descoberta.</b> O Google Trends é coletado pelo observatório na própria página de consulta do Google, com dados diários do Brasil desde 1/1. O índice é relativo dentro de cada consulta, e os candidatos estão divididos em duas consultas que incluem Lula como referência. O Google devolveu zero para o dia 16/8, e esse dia foi tratado como falta de dado. A série é baixada inteira a cada coleta e aparece datada no gráfico. Os acessos à Wikipédia vêm da API oficial de pageviews da Wikimedia, contando só acessos de pessoas, desde 1/1, com atualização automática diária. Os dados estão em <code>dados/trends-2026.csv</code> e <code>dados/wikipedia-pageviews.csv</code>.</p>
@@ -3398,7 +3490,13 @@ function agregUF(u,cargo){
 function mediaUF(u,cargo){
   const a=agregUF(u,cargo);if(!a)return null;
   const m=agregarEm(a.rods,a.nomes,SIG_UF,a.t);
-  const lista=a.nomes.filter(n=>m[n]!=null)
+  // Só entra na lista quem alguma rodada mediu dentro da janela da média. Até 23/9/2026 quem
+  // tinha saído das pesquisas continuava com o número antigo: a média de cada nome é feita só
+  // com as rodadas que o mediram, e se todas eram velhas, o peso delas era ínfimo mas, sozinho
+  // no denominador, virava 100% do número. Assim Antônio Denarium aparecia com 55,7% no Senado
+  // de Roraima por rodadas de abril, e Léo Moraes com 16,5% no governo de Rondônia por março.
+  const {janela}=pesosEm(a.rods,a.nomes,SIG_UF,a.t),lim=2*janela*864e5;
+  const lista=a.nomes.filter(n=>m[n]!=null&&a.porNome[n].some(p=>a.t-p.t<=lim))
     .map(n=>({nome:n,valor:m[n],n:a.porNome[n].length,...a.meta[n]}))
     .sort((x,y)=>y.valor-x.valor);
   return lista.length?{...a,lista,media:m}:null;
@@ -3406,6 +3504,18 @@ function mediaUF(u,cargo){
 // empate técnico pela incerteza da própria média, como no painel presidencial, e não pela margem
 // declarada de uma rodada só
 function empateUF(a,x,y){try{return empatam(a.rods,a.nomes,SIG_UF,a.t,x,y);}catch(e){return false;}}
+// votos válidos no governo do estado. A base estadual não traz brancos, nulos nem indecisos
+// (a compilação publica só os candidatos), então o denominador de cada rodada é a soma dos
+// candidatos que ela lista. Rodada que lista menos de 60% no total foi publicada pela metade
+// (só os primeiros colocados, em geral) e dividir por ela inflaria o líder: fica fora desta
+// conta. Nas rodadas nacionais, onde os indecisos estão registrados, brancos, nulos e
+// indecisos passam de 40% só em rodada de cenário hipotético de maio. No Senado não existe a
+// regra dos 50%: vence quem tem mais votos, e cada eleitor vota em dois.
+const somaUF=r=>{const vs=Object.values(r.v),S=vs.reduce((a,b)=>a+b,0);return vs.length>=2&&S>=VV_UF_MIN&&S<=104?S:null;};
+function validosUF(M){
+  if(!M)return null;
+  try{return validosEm(M.rods,M.nomes,SIG_UF,M.t,somaUF);}catch(e){return null;}
+}
 // disputa proporcional não tem pesquisa nominal: o mercado não publica por nome. Onde o resto
 // do mural mostraria uma rodada, esses dois cargos mostram essa frase, não um vazio sem motivo.
 const semPesq=c=>temPesquisa(c)
@@ -3517,6 +3627,7 @@ function drawGeralUF(){
     const abre=temPesquisa(ufCargo)
       ? `${pl(nGov,"candidatura")} ao governo e ${nSen} ao Senado, de ${pl(nPart,"partido")}, registradas no TSE.`
       : `${pl(nDep,"candidatura acompanhada","candidaturas acompanhadas")} na disputa ${cargoPor(ufCargo)}, de ${pl(new Set(listaDe(u,ufCargo).map(c=>c.partido)).size,"partido")}: parlamentares em busca de reeleição e nomes novos de repercussão, não o registro inteiro.`;
+    desenharVV($("#e-validos"),ufCargo==="governador"?validosUF(M):null,n=>n,n=>corViva(M.meta[n].cor),"");
     $("#e-lede").innerHTML=`${abre} ${rc.length?`${pl(rc.length,"rodada")} de ${pl(ic,"instituto")} para ${cargoArt(ufCargo)} no observatório${nRod>rc.length?`, ${nRod} no estado`:""}.`:(temPesquisa(ufCargo)?`Nenhuma rodada de ${cargoLabel(ufCargo)} no observatório ainda${nRod?`; ${pl(nRod,"rodada")} da outra disputa`:""}.`:semPesq(ufCargo))} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;}
   $("#e-panel-gov").style.order=ufCargo==="governador"?0:1; $("#e-panel-sen").style.order=ufCargo==="senador"?0:1;
   $("#e-panel-gov").classList.toggle("pick",ufCargo==="governador"); $("#e-panel-sen").classList.toggle("pick",ufCargo==="senador");
@@ -3530,7 +3641,11 @@ function drawGeralUF(){
     const dif=seg?Math.abs(p.valor-seg.valor):null;
     if(cargo==="governador"&&seg&&empateUF(M,p.nome,seg.nome))A.push({s:"warn",k:"Empate técnico",t:`<b>${esc(p.nome)}</b> e <b>${esc(seg.nome)}</b> separados por ${fPct(dif)} ${pts(dif)} na disputa pelo governo, menos que a incerteza da média`,src:fonte});
     else if(cargo==="governador"&&seg&&p.valor-seg.valor>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p.nome)}</b> abre ${fPct(p.valor-seg.valor)} pontos sobre <b>${esc(seg.nome)}</b> na disputa pelo governo (${fPct(p.valor)}% a ${fPct(seg.valor)}%)`,src:fonte});
-    if(cargo==="governador"&&p.valor>=50)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p.nome)}</b> aparece com ${fPct(p.valor)}% no primeiro turno, acima da faixa de vitória em turno único`,src:fonte});
+    // a regra do turno único é mais de 50% dos VÁLIDOS; até 23/9/2026 este alerta olhava a
+    // intenção total, que tem brancos e indecisos dentro, e só disparava bem depois da hora
+    const V=cargo==="governador"?validosUF(M):null;
+    if(V&&V.status==="vence")A.push({s:"info",k:"Primeiro turno",t:`<b>${esc(V.lider)}</b> tem ${fPct(V.v)}% dos votos válidos na média, acima de 50% por mais que a incerteza (${fPct(V.erro)} ${pts(V.erro)}). A média aponta vitória no primeiro turno`,src:fonte});
+    else if(V&&V.status==="perto")A.push({s:"warn",k:"Primeiro turno",t:`<b>${esc(V.lider)}</b> tem ${fPct(V.v)}% dos votos válidos na média, a ${fPct(Math.abs(V.v-50))} ${pts(V.v-50)} dos 50%. A distância é menor que a incerteza, e a média não diz se haverá segundo turno`,src:fonte});
     if(cargo==="senador"&&ant&&q&&empateUF(M,ant.nome,q.nome))A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant.nome)}</b> e <b>${esc(q.nome)}</b> disputam a segunda vaga do Senado dentro da incerteza da média (${fPct(ant.valor)}% e ${fPct(q.valor)}%)`,src:fonte});
   }
   const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
@@ -3918,7 +4033,7 @@ ${(()=>{const D=Object.entries(UF).filter(([k,u])=>(u.depfed||[]).length||(u.dep
   if(!D.length)return "";   // sem lista de deputado, o parágrafo inteiro não existe
   const n=D.reduce((s,[k,u])=>s+(u.depfed||[]).length+(u.depest||[]).length,0);
   return `<p><b>Deputado federal e estadual.</b> ${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga. O que existe além da ficha é busca e verbete: ${(()=>{const T=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).tr&&u.busca.tr[x.slug]).length,0),0),W=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).wk&&u.busca.wk[x.slug]).length,0),0);return `${T} com série no Google Trends dentro do estado e ${W} com verbete na Wikipédia conferido um a um`;})()}. Seguidores no Instagram ainda não, porque essa leitura depende de navegador com sessão aberta e não roda na coleta automática.</p>`;})()}
-<p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, e mais ${n2} simulações de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base. ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o mais parecido com as candidaturas registradas, e os outros ficam no seletor de cenário. A média de cada candidato é calculada como a da Presidência, com janela de ${SIG_UF} dias, e é ela que aparece na manchete, no placar e no mapa.</p>
+<p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, e mais ${n2} simulações de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base. ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o mais parecido com as candidaturas registradas, e os outros ficam no seletor de cenário. A média de cada candidato é calculada como a da Presidência, com janela de ${SIG_UF} dias, e é ela que aparece na manchete, no placar e no mapa. Ela mostra só quem alguma rodada mediu dentro da janela, para que um nome que saiu das pesquisas não continue na manchete com número antigo. Para governador, os votos válidos saem da mesma média. Como a compilação não registra brancos nem indecisos, a base de cada rodada é a soma dos candidatos listados, e rodada que lista menos de ${VV_UF_MIN}% no total fica fora dessa conta.</p>
 <p><b>O que ainda falta.</b> O número de registro no TSE, o modo de coleta e o contratante da maior parte das rodadas, que a compilação não traz e que entram conforme as fichas forem localizadas. Faltam também os eventos de campanha de cada estado, a série diária de seguidores e os dados de TikTok e YouTube dos candidatos estaduais.</p>
 <p><b>Busca e redes.</b> ${(()=>{const T=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).tr||{}).length,0),W=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).wk||{}).length,0),I=Object.values(UF).reduce((s,u)=>s+Object.values((u.busca||{}).ig||{}).filter(x=>x.n!=null).length,0),H=Object.values(UF).reduce((s,u)=>s+[...u.gov,...u.sen].filter(c=>c.ext&&c.ext.ig).length,0);return `Google Trends dentro de cada estado para todas as candidaturas, em consultas de até cinco nomes que incluem como referência o líder da última pesquisa. ${T} nomes tiveram algum volume de busca em 2026, e para os outros o próprio Google devolveu zero. O verbete na Wikipédia foi localizado e conferido para ${W} candidaturas, com acessos diários desde janeiro. ${H} candidaturas informaram perfil de Instagram ao TSE, e ${I} tiveram o número de seguidores lido no perfil público. Perfis, bens e vices vêm do detalhe de cada candidatura no DivulgaCandContas.`;})()}</p>
 <p><b>Como comparar.</b> No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas são preenchidas. Por isso importa quem está entre os dois primeiros, e não só quem lidera. Para governador, a eleição termina no primeiro turno só se um candidato tiver mais de 50% dos votos válidos. Na manchete, no placar e no mapa, empate técnico quer dizer que a diferença entre os dois primeiros é menor que a incerteza da média.</p>`;

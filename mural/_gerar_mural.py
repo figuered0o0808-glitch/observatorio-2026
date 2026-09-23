@@ -62,6 +62,35 @@ for r in pesq:
 # dedupe rejeição (mesma rodada, candidato repetido em vários cenários)
 seen = set(); rej = [x for x in rej if not (tuple(x[:3]) in seen or seen.add(tuple(x[:3])))]
 institutos = sorted({x[0] for x in polls_main})
+
+# ---- votos válidos: o denominador de cada rodada nacional de primeiro turno
+# Vence no primeiro turno quem tem mais de 50% dos votos válidos, que são os votos em candidato
+# (brancos, nulos e indecisos ficam fora). A conta por rodada é parte do candidato / soma dos
+# candidatos da rodada, e a soma inclui quem não está entre os oito (Hertz Dias, Rui Costa
+# Pimenta, "outros"), porque esses votos também são válidos. Só entra rodada que se pode fechar:
+#   a) traz brancos, nulos ou indecisos e o total da rodada fica entre 96 e 104 (arredondamento); ou
+#   b) os candidatos sozinhos já somam entre 96 e 104, isto é, a fonte publicou em votos válidos
+#      ou redistribuiu os indecisos (a Veritá de 2/6/2026 faz isso: candidatos 100,1 e "não sabe"
+#      10,5 à parte).
+# Rodada com candidato sem número, ou que não fecha por nenhum dos dois caminhos, fica de fora da
+# conta de válidos, e continua na média de intenção total como sempre. Em 23/9/2026 eram 6 de 167.
+NAO_CANDIDATO = {"não sabe", "brancos e nulos", "indecisos e abstenções"}
+_linhas_1t = defaultdict(list)
+for r in pesq:
+    if r["cenario"] == "1º turno" and not r["instituto"].startswith("Agregador"):
+        _linhas_1t[(r["instituto"], r["data_divulgacao"])].append(r)
+somas_validos, fora_validos = {}, []
+for (inst, dt), ls in sorted(_linhas_1t.items(), key=lambda x: (x[0][1], x[0][0])):
+    cand = [r for r in ls if r["candidato"] not in NAO_CANDIDATO]
+    sem_numero = [r["candidato"] for r in cand if num(r["percentual"]) is None]
+    s_cand = sum(num(r["percentual"]) or 0 for r in cand)
+    s_tot = sum(num(r["percentual"]) or 0 for r in ls)
+    tem_nc = any(r["candidato"] in NAO_CANDIDATO for r in ls)
+    fecha = (tem_nc and 96 <= s_tot <= 104) or 96 <= s_cand <= 104
+    if fecha and not sem_numero and s_cand > 0:
+        somas_validos[f"{inst}|{dt}"] = round(s_cand, 2)
+    else:
+        fora_validos.append((inst, dt, round(s_cand, 1), round(s_tot, 1), sem_numero))
 meta = {"rodadas": len(rodadas), "institutos": len({k[0] for k in rodadas}),
         "primeira": min(k[1] for k in rodadas), "ultima": max(k[1] for k in rodadas)}
 
@@ -546,7 +575,7 @@ for k, v in sorted(ufs.items()):
 GEO_PATH = os.path.join(DADOS, "geo", "br-uf-paths.json")
 geo = json.load(io.open(GEO_PATH, encoding="utf-8")) if os.path.exists(GEO_PATH) else None
 
-data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": ATUALIZADO, "candidatos": out, "polls": polls_main, "polls2t": polls_2t,
+data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": ATUALIZADO, "candidatos": out, "polls": polls_main, "somasVV": somas_validos, "polls2t": polls_2t,
         "rej": rej, "institutos": institutos, "meta": meta, "fichas": fichas,
         "ig": ig_serie, "series": {k: dict(v) for k, v in series_plat.items()}, "idx": idx_serie, "partidos": partidos, "timeline": timeline,
         "trends": trends_c, "termos": trends_t, "wiki": wiki, "vies": vies}
@@ -637,3 +666,7 @@ ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.
 print("mural.html", len(html), "bytes público +", len(js_prot), "bytes protegidos |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
       len(rej), "pontos rejeição |", len(polls_2t), "pontos 2T |", sum(len(v) for v in ig_serie.values()), "pontos IG |",
       len(timeline), "eventos |", meta)
+# rodadas que ficam fora da conta de votos válidos, com o motivo, para ninguém descobrir pelo número
+print("votos válidos:", len(somas_validos), "rodadas nacionais fecham;", len(fora_validos), "ficam fora")
+for inst, dt, sc, st, sem in fora_validos:
+    print(f"  fora: {inst} {dt} (candidatos {sc}, total {st}" + (f", sem número: {', '.join(sem)}" if sem else "") + ")")

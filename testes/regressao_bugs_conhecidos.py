@@ -1134,18 +1134,18 @@ with sync_playwright() as p:
         const br = x => String(x).replace('.', ',');
         const mostra = {k: q('.ag-k'), teto: q('.ag-teto'), inst: q('.ag-inst'), casa: q('.ag-tetocasa'),
                         enc: q('.ag-enc'), voltas: q('.ag-voltas'), piso: q('.ag-piso'),
-                        s0: q('.rg-s0'), passo: q('.rg-passo'), minimo: q('.rg-min')};
+                        s0: q('.rg-s0'), passo: q('.rg-passo'), minimo: q('.rg-min'), vvmin: q('.vv-min')};
         const espera = {k: br(AG.k), teto: Math.round(AG.teto*100)+'%', inst: br(AG.inst), casa: br(AG.tetoCasa),
                         enc: br(AG.encolhe), voltas: br(AG.voltas), piso: br(AG.piso),
-                        s0: br(REGUA.sigma0), passo: br(REGUA.passo), minimo: br(REGUA.minimo)};
+                        s0: br(REGUA.sigma0), passo: br(REGUA.passo), minimo: br(REGUA.minimo), vvmin: br(VV_UF_MIN)+'%'};
         const erradas = Object.keys(espera).filter(k => !mostra[k].length || mostra[k].some(v => v !== espera[k]));
         return {passos: document.querySelectorAll('#p-formulas ol.fx > li').length,
                 formulas: document.querySelectorAll('#p-formulas math').length,
                 erradas, mostra, espera,
                 pen: [1, 1.5, 3, 6, 1e6].map(u => penalAG(u)),
                 esticavel: document.querySelectorAll('#p-formulas mo[stretchy]').length}; }""")
-    check("editoria de método mostra as fórmulas da média, em oito passos",
-          r["passos"] == 8 and r["formulas"] >= 10, {k: r[k] for k in ("passos", "formulas")})
+    check("editoria de método mostra as fórmulas da média, em nove passos",
+          r["passos"] == 9 and r["formulas"] >= 10, {k: r[k] for k in ("passos", "formulas")})
     check("toda constante mostrada nas fórmulas é a mesma do código que calcula a média",
           not r["erradas"], {"erradas": r["erradas"], "mostra": r["mostra"], "espera": r["espera"]})
     pen = r["pen"]
@@ -1154,6 +1154,78 @@ with sync_playwright() as p:
     check("nenhuma fórmula depende de delimitador esticável (que exige fonte matemática no aparelho)",
           r["esticavel"] == 0, r["esticavel"])
     check("fórmulas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
+    # ---- votos válidos (23/9/2026)
+    # Vence no primeiro turno quem passa de 50% dos VÁLIDOS. Até aqui o alerta de governador
+    # olhava a intenção total (p.valor >= 50), que tem brancos e indecisos dentro, e o mural não
+    # dizia em lugar nenhum se a média aponta segundo turno. Conferimos: a conversão é um fator
+    # comum (a ordem nos válidos é a da média total, sem placar e régua discordando), a rodada
+    # que não fecha fica fora do fator, a régua aparece na capa, e o alerta usa os válidos.
+    b, page, errs = novo_ctx(p)
+    page.goto(URL)
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => {
+        const t = Date.parse(ULT), R = validosEm(rodadas1T(), OITO, SIG, t, somaVV1T), m = agregar1T(SIG, t);
+        const razoes = OITO.filter(n => m[n] != null && R.m[n] != null).map(n => R.m[n] / m[n]);
+        const ordemTot = OITO.filter(n => m[n] != null).sort((a, b) => m[b] - m[a]);
+        const uf = UFLIST.map(u => { const M = mediaUF(u, 'governador'); const V = validosUF(M);
+            return V ? {u, lider: V.lider, topo: M.lista[0].nome, v: V.v, tot: M.lista[0].valor, status: V.status, erro: V.erro} : null; }).filter(Boolean);
+        const S = DATA.somasVV || {};
+        return {razoes, ordemVV: R.ordem, ordemTot, v: R.v, erro: R.erro, status: R.status, fator: R.fator,
+                btg: 'BTG/Nexus|2026-09-21' in S, verita: S['Instituto Veritá|2026-06-02'],
+                somas: Object.values(S), uf,
+                regua: (() => { const e = document.querySelector('#validos'); return e && !e.hidden ? e.innerText : ''; })()}; }""")
+    razoes = r["razoes"]
+    check("votos válidos nacionais: um fator comum, maior que 1, para todo candidato",
+          razoes and max(razoes) - min(razoes) < 1e-9 and 1 < razoes[0] < 1.5, razoes[:3])
+    check("votos válidos nacionais: a ordem é a mesma da média total",
+          r["ordemVV"] == r["ordemTot"], {"vv": r["ordemVV"][:3], "tot": r["ordemTot"][:3]})
+    check("votos válidos nacionais: rodada com candidato sem número (BTG/Nexus 21/9) fica fora do fator",
+          not r["btg"], r["btg"])
+    check("votos válidos nacionais: rodada já publicada em válidos (Veritá 2/6) entra com a soma dela",
+          r["verita"] is not None and 96 <= r["verita"] <= 104, r["verita"])
+    check("toda soma de candidatos que entra no fator é positiva e no máximo 104",
+          all(0 < x <= 104 for x in r["somas"]), [x for x in r["somas"] if not 0 < x <= 104][:5])
+    st = {"vence": lambda d: d["v"] - 50 > d["erro"], "segundo": lambda d: 50 - d["v"] > d["erro"],
+          "perto": lambda d: abs(d["v"] - 50) <= d["erro"]}
+    check("status nacional de primeiro turno bate com a distância a 50% e a incerteza",
+          r["status"] in st and st[r["status"]](r), {k: r[k] for k in ("v", "erro", "status")})
+    check("a capa mostra a régua de votos válidos com o número do líder",
+          "votos válidos" in r["regua"] and (f"{r['v']:.1f}".replace(".", ",").rstrip("0").rstrip(",") in r["regua"]), r["regua"][:160])
+    ruins = [d for d in r["uf"] if d["lider"] != d["topo"] or not (d["status"] in st and st[d["status"]](d)) or d["v"] < d["tot"]]
+    check("governo estadual: líder nos válidos é o líder da média, e o status bate com a incerteza",
+          len(r["uf"]) >= 20 and not ruins, ruins[:3])
+    check("votos válidos sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
+    # o alerta de primeiro turno do governo sai dos válidos: SP tem Tarcísio acima de 50% da
+    # intenção total e dos válidos, e o alerta tem de dizer "votos válidos", não o número total
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#uf-sp-governo")
+    page.wait_for_timeout(1200)
+    r = page.evaluate("""() => { const V = validosUF(mediaUF('SP', 'governador'));
+        return {al: document.querySelector('#e-alerts').innerText, st: V && V.status,
+                reg: (() => { const e = document.querySelector('#e-validos'); return e && !e.hidden ? e.innerText : ''; })()}; }""")
+    check("alerta de primeiro turno no governo usa votos válidos",
+          r["st"] != "vence" or ("votos válidos" in r["al"] and "faixa de vitória em turno único" not in r["al"]), r["al"][:300])
+    check("o estado mostra a régua de votos válidos do governo", "votos válidos" in r["reg"], r["reg"][:160])
+    b.close()
+
+    # ---- nome que saiu das pesquisas não fica na média do estado (23/9/2026)
+    # A média de cada nome é feita com as rodadas que o mediram; se eram todas velhas, o peso era
+    # ínfimo mas, sozinho no denominador, virava o número inteiro. Antônio Denarium aparecia com
+    # 55,7% no Senado de Roraima por rodadas de abril.
+    b, page, errs = novo_ctx(p)
+    page.goto(URL)
+    page.wait_for_timeout(900)
+    velhos = page.evaluate("""() => { const out = [];
+        for (const u of UFLIST) for (const c of ['governador', 'senador']) { const M = mediaUF(u, c); if (!M) continue;
+          const {janela} = pesosEm(M.rods, M.nomes, SIG_UF, M.t);
+          for (const x of M.lista) { const ult = Math.max(...M.porNome[x.nome].map(p => p.t));
+            if (M.t - ult > 2 * janela * 864e5) out.push([u, c, x.nome, Math.round((M.t - ult) / 864e5)]); } }
+        return out; }""")
+    check("média do estado só lista quem alguma rodada mediu dentro da janela", not velhos, velhos[:5])
     b.close()
 
 print()
