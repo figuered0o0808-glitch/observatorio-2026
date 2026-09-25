@@ -749,18 +749,24 @@ with sync_playwright() as p:
         const share = q => { const tot = q.peso.reduce((a, b) => a + b, 0); return Math.max(...q.peso) / tot; };
         // um instituto que publica duas vezes na janela entra uma vez só
         const insts = p2.dentro.filter(x => Math.abs(x.r.t - t) <= 2 * p2.janela * 864e5).map(x => x.r.inst);
-        const veri = p2.dentro.map((x, i) => [x.r.inst, p2.peso[i]]).filter(x => x[0] === 'Instituto Veritá');
-        const tot2 = p2.peso.reduce((a, b) => a + b, 0);
+        // A Veritá de 6/9 é medida no dia do bug (7/9, com a régua daquele dia e só o que tinha
+        // saído até ali), e não no dia em que o teste roda: com a régua encurtando, em 24/9 ela
+        // saiu da janela e o teste, que a procurava na data de hoje, barrou quatro atualizações.
+        const tb = Date.parse('2026-09-07'), rb = r2.filter(r => r.t <= tb), pb = pesosEm(rb, n2, sigmaRegua('2026-09-07'), tb);
+        const totb = pb.peso.reduce((a, b) => a + b, 0), tot0 = pb.dentro.reduce((a, x) => a + x.w, 0);
+        const iv = pb.dentro.findIndex(x => x.r.inst === 'Instituto Veritá' && dISO(x.r.t) === '2026-09-06');
         return {maior1: share(p1), maior2: share(p2), repetido: insts.length !== new Set(insts).size,
-                institutos: new Set(insts).size, veritaShare: veri.length ? veri[0][1] / tot2 : null,
+                institutos: new Set(insts).size, veritaShare: iv < 0 ? null : pb.peso[iv] / totb,
+                veritaTempo: iv < 0 ? null : pb.dentro[iv].w / tot0,
                 m2: agregarEm(r2, n2, SIG, t), inc2: incertezaEm(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro'),
                 empate2: empatam(r2, n2, SIG, t, 'Lula', 'Flávio Bolsonaro')}; }""")
     check("nenhuma rodada passa de 15% do peso da média (primeiro e segundo turno)",
           ag["maior1"] <= 0.1501 and ag["maior2"] <= 0.1501, {k: ag[k] for k in ("maior1", "maior2")})
     check("cada instituto entra uma vez só na janela", not ag["repetido"], ag["institutos"])
     check("a janela junta pelo menos cinco institutos", ag["institutos"] >= 5, ag["institutos"])
-    check("a rodada que destoa do conjunto perde peso (Veritá abaixo do teto no segundo turno)",
-          ag["veritaShare"] is not None and ag["veritaShare"] < 0.15, ag["veritaShare"])
+    check("a rodada que destoa do conjunto perde peso (Veritá de 6/9, no segundo turno de 7/9)",
+          ag["veritaShare"] is not None and ag["veritaShare"] <= 0.1501 and ag["veritaShare"] < ag["veritaTempo"],
+          {k: ag[k] for k in ("veritaShare", "veritaTempo")})
     # o empate técnico é uma regra, não um resultado do dia: quem decide é a conta, e o texto do
     # painel tem que dizer a mesma coisa que ela. Este bloco já barrou uma rodada automática por
     # fixar o placar de um dia (9/9/2026), então checa a coerência, nunca o número.
@@ -1030,13 +1036,18 @@ with sync_playwright() as p:
         tag: document.querySelector('#duelo-2t .dl-tag')?.textContent,
         cap: document.querySelector('#cap-home-2t').textContent,
         svg2t: !!document.querySelector('#ch-home-2t svg.tempo'),
-        antes2t: document.querySelectorAll('#ch-home-2t svg.tempo .linha.antes').length
+        antes2t: document.querySelectorAll('#ch-home-2t svg.tempo .linha.antes').length,
+        // a faixa só existe enquanto a janela começa antes de 4/9 (a mesma condição do gráfico).
+        // De 3/10 em diante a janela de 30 dias cabe inteira na reta final e não há trecho a apagar;
+        // exigir o trecho apagado sempre travaria a atualização da véspera da eleição.
+        cruza: RETA0 > janelaHome() + 864e5
     })""")
     check("janela padrão de 30 dias, na capa e nas preferências, com 7, 90 e tudo à disposição",
           r["janelaPref"] == "30" and r["homeJanela"] == "30" and ["30", "true"] in r["seg"]
           and [k for k, _ in r["seg"]] == ["7", "30", "90", "tudo"], r)
     check("gráfico da capa com a faixa da reta final rotulada e o trecho anterior apagado",
-          r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"] == "reta final", r)
+          (r["retaHome"] and r["antesHome"] >= 2 and r["rotulo"] == "reta final") if r["cruza"]
+          else (not r["retaHome"] and r["antesHome"] == 0), r)
     # o tempo tem uma escala só: distância no eixo é proporcional a dias em qualquer trecho, inclusive
     # atravessando a faixa da reta final. Escala partida foi tentada em 21/9/2026 e desfeita no mesmo dia.
     esc_ = page.evaluate("""() => {
@@ -1048,7 +1059,7 @@ with sync_playwright() as p:
         return {passos, uniforme: passos.every(p => Math.abs(p - 1) < 1e-6), datas: labs.length, colide,
                 atravessa: m.reta && m.X(RETA0) > m.ml && m.X(RETA0) < m.ml + m.iw}; }""")
     check("uma escala só para o tempo: o dia mede o mesmo em qualquer ponto do eixo, sem rótulos colidindo",
-          esc_["uniforme"] and esc_["atravessa"] and esc_["datas"] >= 3 and esc_["colide"] == 0, esc_)
+          esc_["uniforme"] and (esc_["atravessa"] or not r["cruza"]) and esc_["datas"] >= 3 and esc_["colide"] == 0, esc_)
     # cada janela cobre exatamente os dias de dado que promete, contados da última rodada, e o eixo
     # nunca desenha o futuro (a folga da direita não passa de amanhã)
     janelas = page.evaluate("""async () => {
@@ -1066,7 +1077,7 @@ with sync_playwright() as p:
           janelas["7"] == 7 and janelas["30"] == 30 and janelas["90"] == 90 and janelas["tudo"] > 200
           and 0 < janelas["folga"] <= 3 and janelas["futuro"] <= 1, janelas)
     check("segundo turno na capa: painel visível com dois números, selo e gráfico",
-          r["p2t"] and len(r["nums"]) == 2 and all("%" in n for n in r["nums"]) and r["tag"] and r["svg2t"] and r["antes2t"] >= 1, r)
+          r["p2t"] and len(r["nums"]) == 2 and all("%" in n for n in r["nums"]) and r["tag"] and r["svg2t"] and (r["antes2t"] >= 1 or not r["cruza"]), r)
     page.goto(URL + "#pesquisas")
     page.wait_for_timeout(600)
     cap_pesq = page.evaluate("() => document.querySelector('#cap-2t').textContent")
