@@ -1,0 +1,55 @@
+# Diagnóstico do aviso "não seguro" (25/9/2026). O ambiente de trabalho não alcança o domínio,
+# então a conferência roda aqui: DNS, certificado, redirecionamentos e a configuração do Pages.
+# Com "aplicar" ligado, tenta também ligar o HTTPS obrigatório pela API do Pages.
+name: Diagnóstico de HTTPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      aplicar:
+        description: 'Tentar ligar o HTTPS obrigatório pela API (true/false)'
+        default: 'false'
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: DNS
+        run: |
+          for h in muraldoscandidatos.com www.muraldoscandidatos.com; do
+            echo "== $h"; for t in A AAAA CNAME CAA; do echo "-- $t"; dig +short $t $h; done
+          done
+      - name: Certificado
+        run: |
+          for h in muraldoscandidatos.com www.muraldoscandidatos.com; do
+            echo "== $h"
+            echo | timeout 20 openssl s_client -connect $h:443 -servername $h 2>/dev/null \
+              | openssl x509 -noout -subject -issuer -dates -ext subjectAltName || echo "sem certificado válido"
+          done
+      - name: Redirecionamentos
+        run: |
+          for u in http://muraldoscandidatos.com/ https://muraldoscandidatos.com/ http://www.muraldoscandidatos.com/ https://www.muraldoscandidatos.com/ https://muraldoscandidatos.com/privacidade.html; do
+            echo "== $u"
+            curl -sS -o /dev/null -m 20 -w 'status %{http_code} -> %{redirect_url} | ssl_verify %{ssl_verify_result}\n' "$u" || echo "falhou"
+          done
+      - name: Conteúdo misto
+        run: |
+          curl -sS -m 30 https://muraldoscandidatos.com/ -o pagina.html || exit 0
+          echo "recursos http:// na página:"; grep -o 'http://[^"'"'"' )<>]*' pagina.html | grep -v w3.org | sort | uniq -c || echo "nenhum"
+      - name: Configuração do Pages
+        run: |
+          gh api repos/$REPO/pages | jq '{cname, status, https_enforced, build_type, source, https_certificate, html_url}' || true
+          gh api repos/$REPO/pages/health 2>/dev/null | jq . || echo "health indisponível"
+      - name: Ligar HTTPS obrigatório
+        if: inputs.aplicar == 'true'
+        run: |
+          gh api -X PUT repos/$REPO/pages -F https_enforced=true && echo "pedido aceito" || echo "API recusou"
+          sleep 5
+          gh api repos/$REPO/pages | jq '{cname, https_enforced, https_certificate}' || true
