@@ -1239,6 +1239,32 @@ with sync_playwright() as p:
     check("média do estado só lista quem alguma rodada mediu dentro da janela", not velhos, velhos[:5])
     b.close()
 
+    # ---- quem chega por http:// vai para https:// (25/9/2026)
+    # Com o "Enforce HTTPS" do Pages desligado, o servidor entregava o site por http:// com status
+    # 200 e o navegador marcava "não seguro". A página redireciona sozinha; aqui o domínio é servido
+    # pelo próprio teste, nas duas versões, e conferimos para onde o navegador termina.
+    raiz_ = _P(__file__).resolve().parent.parent
+    b, page, errs = novo_ctx(p)
+    corpos = {"/": (raiz_ / "index.html").read_text(encoding="utf-8"),
+              "/privacidade.html": (raiz_ / "privacidade.html").read_text(encoding="utf-8")}
+    def servir(r):
+        u = urlsplit(r.request.url)
+        doc = r.request.resource_type == "document" and u.hostname == "muraldoscandidatos.com"
+        r.fulfill(status=200, content_type="text/html; charset=utf-8", body=corpos.get(u.path, "") if doc else "")
+    page.route("**/*", servir)
+    destinos = {}
+    for caminho in ("", "privacidade.html"):
+        try:
+            page.goto("http://muraldoscandidatos.com/" + caminho + "#geral", wait_until="commit")
+            page.wait_for_url("https://**", timeout=5000)
+        except Exception:
+            pass
+        destinos[caminho or "/"] = page.url
+    check("quem entra por http:// é levado ao https:// (capa e privacidade)",
+          all(u.startswith("https://muraldoscandidatos.com/") for u in destinos.values())
+          and destinos["/"].endswith("#geral"), destinos)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

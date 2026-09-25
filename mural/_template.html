@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>/* Enquanto o "Enforce HTTPS" do GitHub Pages estiver desligado, o servidor entrega o site também
+por http://, e o navegador marca "não seguro". Quem chega assim é mandado para o https:// antes de
+qualquer coisa carregar. Só no domínio publicado: o arquivo aberto do disco e os testes não mudam. */
+if(location.protocol==="http:"&&/(^|\.)muraldoscandidatos\.com$/.test(location.hostname))location.replace("https://muraldoscandidatos.com"+location.pathname+location.search+location.hash);</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mural dos Candidatos</title>
 <meta name="description" content="Pesquisas, buscas, redes sociais e fichas do TSE das __N_PRES__ candidaturas à Presidência e das __N_EST__ a governador e senador nos 27 estados, com data e fonte em todos os números. Observatório do desempenho dos candidatos, da INDICA.">

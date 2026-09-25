@@ -1,4 +1,8 @@
 <meta charset="utf-8">
+<script>/* Enquanto o "Enforce HTTPS" do GitHub Pages estiver desligado, o servidor entrega o site também
+por http://, e o navegador marca "não seguro". Quem chega assim é mandado para o https:// antes de
+qualquer coisa carregar. Só no domínio publicado: o arquivo aberto do disco e os testes não mudam. */
+if(location.protocol==="http:"&&/(^|\.)muraldoscandidatos\.com$/.test(location.hostname))location.replace("https://muraldoscandidatos.com"+location.pathname+location.search+location.hash);</script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Privacidade · Mural dos Candidatos</title>
 <meta name="description" content="O que o Mural dos Candidatos guarda de quem usa o site e de quem cria conta, por quê, por quanto tempo e como pedir para apagar.">
