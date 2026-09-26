@@ -1305,6 +1305,33 @@ with sync_playwright() as p:
     check("pequenos erros no celular sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- fotos dos presidenciáveis (26/9/2026) e links do rodapé do cartão/dossiê
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#candidatos")
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => { const com = C.filter(c => c.foto);
+        const semCred = com.filter(c => !c.foto_cred || !c.foto_cred.licenca || !c.foto_cred.pagina).map(c => c.nome);
+        const imgs = [...document.querySelectorAll('#wall .card .fotobox img')];
+        const quebradas = imgs.filter(i => !(i.complete && i.naturalWidth > 0)).length;
+        const cor = a => getComputedStyle(a).color;
+        const links = [...document.querySelectorAll('#wall .card .foot a')].map(cor);
+        return {n: com.length, semCred, cards: imgs.length, quebradas, brancos: links.filter(c => c === 'rgb(255, 255, 255)').length}; }""")
+    check("fotos dos presidenciáveis com crédito e licença, sem imagem quebrada nos cartões",
+          r["n"] >= 8 and not r["semCred"] and r["cards"] >= 1 and r["quebradas"] == 0, r)
+    check("links do rodapé dos cartões legíveis (não brancos no fundo claro)", r["brancos"] == 0, r)
+    page.click("#wall .card button:has-text('Abrir dossiê')")
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => ({cred: (document.querySelector('.dz .top .cred') || {}).textContent || '',
+        brancos: [...document.querySelectorAll('.dz .foot a')].filter(a => getComputedStyle(a).color === 'rgb(255, 255, 255)').length})""")
+    check("o dossiê mostra o crédito da foto e os links do rodapé legíveis",
+          "Wikimedia Commons" in r["cred"] and r["brancos"] == 0, r)
+    page.goto(URL + "#metodo")
+    page.wait_for_timeout(700)
+    notas = page.evaluate("() => document.querySelector('#notes') ? document.querySelector('#notes').textContent : document.body.textContent")
+    check("o método lista os créditos das fotos", "Fotos." in notas and "Wikimedia Commons" in notas, notas[:0])
+    check("fotos sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

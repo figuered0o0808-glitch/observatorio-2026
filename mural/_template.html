@@ -317,6 +317,14 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--ink);border-radius:4px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
 .card.vigiado{border-top-color:var(--accent)}
 .card .head{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:14px 16px 10px;align-items:start}
+.fotobox{position:relative;width:60px;height:60px;flex:none}
+.fotobox img{width:60px;height:60px;object-fit:cover;border-radius:4px;display:block;background:var(--paper-2)}
+.fotobox .n-mini{position:absolute;right:-6px;bottom:-6px;background:var(--accent);color:var(--accent-ink);font-size:13px;line-height:1;padding:4px 5px 3px;border-radius:3px;min-width:22px;text-align:center}
+.dz .top .fotobox,.dz .top .fotobox img{width:72px;height:72px}
+.dz .top .fotobox .n-mini{background:var(--band-ink);color:var(--band)}
+.dz .top .cred{font-size:11.5px;color:var(--band-mut);margin-top:6px;line-height:1.4}
+.dz .top .cred a{color:var(--band-mut);text-decoration:underline;text-underline-offset:2px}
+.duelo .dl-nome .dl-foto{width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px var(--cc);flex:none}
 .card .n{background:var(--accent);color:var(--accent-ink);font-size:28px;line-height:1;min-width:56px;padding:11px 8px;text-align:center;border-radius:4px}
 .card.minor .n{font-size:22px;min-width:50px;padding:10px 7px}
 .card h3.nm{margin:2px 0 0;font-size:21px;line-height:1;text-transform:uppercase}
@@ -534,6 +542,10 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:
 .fc p{margin:0 0 8px}
 .foot a{color:var(--band-ink);text-decoration-color:var(--band-line)}
 .foot a:hover{text-decoration-color:var(--band-ink)}
+/* .foot também é o rodapé do cartão e do dossiê, em fundo claro: sem isto os links ("TSE",
+   "Ficha completa no DivulgaCandContas", "Verbete na Wikipédia") herdavam o branco do rodapé do site */
+.card .foot a,.dz .foot a{color:var(--ink);text-decoration-color:var(--line-2)}
+.card .foot a:hover,.dz .foot a:hover{text-decoration-color:var(--ink)}
 .fc ul.foot-ufs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px 4px}
 .foot-ufs a{display:block;text-align:center;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;font-size:11.5px;letter-spacing:.06em;text-decoration:none;border:1px solid var(--band-line);border-radius:2px;padding:4px 0;line-height:1.2}
 .foot-ufs a:hover{border-color:var(--band-ink)}
@@ -1117,6 +1129,8 @@ svg.mark #mm-ponto{fill:var(--logo-red)}
 
 /* --- o lockup: MURAL em branco, subtítulo embaixo, INDICA dentro ---------- */
 .masthead .brand{align-items:flex-start}
+/* a logo com o lockup (Dos candidatos · Indica) é mais alta que a faixa e encostava no topo da tela */
+.masthead{padding-top:16px;padding-bottom:12px}
 .masthead .word{flex-direction:column;align-items:flex-start;gap:5px}
 .masthead .brand svg.mark{height:44px}
 .masthead .word .m2{color:#FFFFFF;font-size:11px;letter-spacing:.26em;padding-top:0;
@@ -1244,6 +1258,7 @@ table th{background:#000;color:#fff;border-bottom:0}
 /* --- celular -------------------------------------------------------------- */
 @media (max-width:760px){
   .masthead .word{gap:3px}
+  .masthead{padding-top:12px;padding-bottom:9px}
   .masthead .brand svg.mark{height:30px}
   .masthead .word .m2{font-size:8.5px;letter-spacing:.2em;gap:6px}
   .masthead .word .m2 .marca-indica-top{height:10px}
@@ -2408,7 +2423,7 @@ function drawHome(){
   // ---- o placar: os dois da frente frente a frente, a diferença no meio e se é empate técnico
   const ord=ORDEM(),dz=$("#duelo");
   if(dz&&ord.length>=2){const [A,B]=ord,gap=A.agora-B.agora;let emp=false;try{emp=empatam(rodadas1T(),OITO,SIG,Date.parse(ULT),A.nome,B.nome);}catch(e){}
-    const lado=(q,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[q.nome]}"><span class="dl-nome"><i></i>${esc(curto(q.nome))}</span><span class="dl-num display tnum" data-v="${q.agora}">${fPct(q.agora)}<small>%</small></span><span class="dl-var">${q.delta!=null?(q.delta>=1?"▲ ":q.delta<=-1?"▼ ":"")+fmtDelta(q.delta)+" pts em 30 dias":"sem base há 30 dias"}</span></div>`;
+    const lado=(q,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${COR[q.nome]}"><span class="dl-nome">${byName[q.nome]&&byName[q.nome].foto?`<img class="dl-foto" src="${byName[q.nome].foto}" alt="" width="240" height="240">`:"<i></i>"}${esc(curto(q.nome))}</span><span class="dl-num display tnum" data-v="${q.agora}">${fPct(q.agora)}<small>%</small></span><span class="dl-var">${q.delta!=null?(q.delta>=1?"▲ ":q.delta<=-1?"▼ ":"")+fmtDelta(q.delta)+" pts em 30 dias":"sem base há 30 dias"}</span></div>`;
     dz.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(gap)}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(A.nome))+" à frente"}</span></div>`+lado(B,true);
     if(!drawHome._ja){drawHome._ja=true;contarDuelo();}}
   let vv=null;try{vv=validosEm(rodadas1T(),OITO,SIG,Date.parse(ULT),somaVV1T);}catch(e){}
@@ -2808,11 +2823,19 @@ function ultimas3(nome){
 }
 const igInfo=n=>{const c=byName[n],r=c&&c.redes.find(x=>x.plat==="Instagram"&&x.seg);return r?r.seg:null;};
 const starBtn=(nome,dark)=>`<button type="button" class="btn star" data-vig="${esc(nome)}" aria-pressed="${prefs.foco.includes(nome)}" title="Pôr em foco em todos os gráficos (guardado neste navegador)"><span class="glyph" aria-hidden="true">${prefs.foco.includes(nome)?"★":"☆"}</span>${prefs.foco.includes(nome)?"Em foco":"Pôr em foco"}</button>`;
+// foto do candidato (Wikimedia Commons, embutida pelo gerador) com o número de urna no canto; sem
+// foto, o quadrado com o número, como antes
+const fotoOuNumero=(c,cls="n")=>c.foto
+  ?`<div class="fotobox"><img src="${c.foto}" alt="${esc(c.nome)}" width="240" height="240" loading="lazy" decoding="async"><span class="n-mini display tnum">${esc(c.numero)}</span></div>`
+  :`<div class="${cls} display tnum">${esc(c.numero)}</div>`;
+const creditoFoto=c=>{const f=c.foto_cred;if(!f)return "";
+  const lic=f.url_licenca?`<a href="${esc(f.url_licenca)}" target="_blank" rel="noopener">${esc(f.licenca)}</a>`:esc(f.licenca);
+  return `Foto: <a href="${esc(f.pagina)}" target="_blank" rel="noopener">${esc(f.autor||"autor na Commons")}</a>, ${lic}, via Wikimedia Commons`;};
 const card=c=>{
   const minor=c.grupo!=="principal",p=posicao(c.nome),ig=igInfo(c.nome),cob=cobertura(c),rj=DATA.rej.filter(r=>r[2]===c.nome).sort((a,b)=>b[1].localeCompare(a[1]))[0];
   const colig=c.coligacao?` · ${esc(c.coligacao)}`:"";
   return `<article class="card${minor?" minor":""}${prefs.foco.includes(c.nome)?" vigiado":""}" id="card-${slug(c.nome)}">
-    <div class="head"><div class="n display tnum">${esc(c.numero)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${colig} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div><div class="pills">${pillSit(c)}</div></div></div>
+    <div class="head">${fotoOuNumero(c)}<div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${colig} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div><div class="pills">${pillSit(c)}</div></div></div>
     <div class="stats">
       <div class="st"><span>Intenção</span><b class="display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem menção</small>"}</b><span class="d">${p&&p.delta!=null?(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":"média móvel"}</span></div>
       <div class="st"><span>Rejeição</span><b class="display tnum">${rj?fPct(rj[3])+"<small>%</small>":"<small>não medida</small>"}</b><span class="d">${rj?esc(rj[0].split("/")[0].split(" (")[0])+" · "+dBR(rj[1]):""}</span></div>
@@ -3050,8 +3073,8 @@ function renderDossie(c,cwMed=0){
   const cw=cwMed||(MOBILE?Math.max(240,innerWidth-62):0), so={W:cw||520,mr:cw?64:96};
   const T0s=T0;T0=Date.parse("2026-01-01");const modoSvg=svgModo(nome,520,260,96,null,cw);T0=T0s;
   return `<div class="dz">
-    <div class="top"><div class="n display tnum">${esc(c.numero)}</div>
-      <div><span class="kick">Dossiê · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(nome)}</h2><div class="party">${esc(c.partido)}${c.coligacao?" · "+esc(c.coligacao):""} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div></div>
+    <div class="top">${fotoOuNumero(c)}
+      <div><span class="kick">Dossiê · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(nome)}</h2><div class="party">${esc(c.partido)}${c.coligacao?" · "+esc(c.coligacao):""} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div>${c.foto_cred?`<div class="cred">${creditoFoto(c)}</div>`:""}</div>
       <div class="acts">${stampDe(c)}${starBtn(nome)}<button type="button" class="btn" data-copy="1">Copiar link</button><button type="button" class="btn" data-close="1" aria-label="Fechar dossiê">Fechar ✕</button></div>
     </div>
     <div class="body">
@@ -3411,6 +3434,9 @@ pr.addEventListener("change",e=>{
 $("#notes").innerHTML=`<p><b>Como a média é feita.</b> A média de cada candidato é ponderada pela data das pesquisas, com uma janela que encurta conforme a eleição se aproxima. Dentro da janela, cada instituto entra com uma rodada só, e nenhuma rodada passa de ${Math.round(AG.teto*100)}% do peso. Há dois ajustes para resultados muito diferentes dos demais. A rodada que se afasta do conjunto além do que o erro amostral explica perde peso, e essa perda cresce com o quadrado da distância. O viés constante de cada instituto, medido ao longo do ano em relação aos outros, é descontado antes do cálculo, e a tabela "A régua de cada instituto", acima, mostra o tamanho e a direção de cada um. A incerteza publicada soma o erro amostral e o erro da estimativa do viés. Quando a diferença entre os dois primeiros é menor que essa incerteza, o resultado aparece como empate técnico. As fórmulas estão no painel acima.</p>
 <p><b>Atualização e verificação.</b> As pesquisas nacionais e estaduais e os acessos aos verbetes da Wikipédia são atualizados automaticamente duas vezes por dia, às 8h e às 20h de Brasília. Uma rotina no GitHub lê a compilação pública da Wikipédia e a API oficial da Wikimedia, gera o mural de novo, confere o dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE entram a cada coleta, com a data indicada ao lado. A "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato e indica só a quantidade de informação disponível. Foco, período, tema e densidade ficam salvos apenas no navegador de quem fez a escolha.</p>
 <p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro no TSE, listadas na tabela "ver as rodadas". O gráfico da corrida reúne pesquisas feitas com métodos diferentes, e a AtlasIntel, que coleta pela internet, costuma dar a Lula mais do que as pesquisas presenciais e por telefone. A linha é a média das rodadas e não uma projeção. Os votos válidos, que decidem se há segundo turno, saem da mesma média: cada rodada que registra brancos, nulos e indecisos mostra quanto do total foi para candidatos, e esse fator, pesado como a média, converte a intenção total em válidos. Rodada que não permite fechar essa conta fica fora só da conversão. A janela da média tem ${SIG} dias hoje e encurta até a eleição. Em 23/9 testamos essa escolha contra o histórico, prevendo cada rodada com a média do que tinha saído antes dela: janelas de 1 a 21 dias erram quase o mesmo, cerca de 4 pontos na margem entre os dois primeiros, porque o que pesa no erro é a diferença entre institutos. Por isso a régua ficou como estava. Também procuramos instituto que acompanha a média em vez de medir, e nenhum caso passou do que o acaso explica. Ela cresce até reunir ${AG.inst} institutos, e de cada instituto entra só a rodada mais próxima da data do cálculo. Na rejeição, cada instituto faz a pergunta de um jeito, e a comparação só vale dentro do mesmo instituto. Não foram localizadas as rodadas de janeiro e fevereiro do Datafolha e do PoderData. Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período. A AtlasIntel de 19/5 teve a divulgação suspensa por decisão judicial e entrou só em parte.</p>
+${(()=>{const cf=C.filter(c=>c.foto_cred);if(!cf.length)return "";
+  const sem=C.filter(c=>!c.foto).map(c=>esc(c.nome));
+  return `<p><b>Fotos.</b> As fotos dos candidatos vêm da Wikimedia Commons, pela imagem que o próprio Wikidata associa a cada um, e só entram depois de conferido que o verbete é da pessoa certa. Todas têm licença livre, que pede o crédito: ${cf.map(c=>`${esc(c.nome)} (${creditoFoto(c).replace(/^Foto: /,"").replace(/, via Wikimedia Commons$/,"")})`).join("; ")}.${sem.length?` Sem foto livre localizada: ${sem.join(", ")}.`:""}</p>`;})()}
 <p><b>Metodologias.</b> O modo de cada rodada (presencial, por telefone ou pela internet) é identificado na ficha técnica registrada e aparece como "não informada" quando a ficha não diz. O desvio por instituto compara cada rodada com a média dos outros institutos num período de 28 dias. Em janeiro e fevereiro havia poucas pesquisas por período, e o desvio desses meses é menos preciso. O desvio reflete diferenças de método e não indica qual instituto está mais perto do resultado.</p>
 <p><b>Redes.</b> Desde 1/9, o número de seguidores no Instagram vem de coleta própria. O observatório lê o valor exato no perfil público e grava uma linha por candidato e por dia de leitura. Essa leitura não é automática, porque o Instagram exige login, e por isso cada número aparece com a data ao lado. TikTok e YouTube seguem a mesma rotina. Para o histórico do ano, os números vêm da imprensa, em ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados por Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon e Fanpage Karma, com a fonte em cada ponto. A série tem poucos pontos e as fontes discordam entre si no mesmo dia, então as linhas ligam as medianas de cada dia. Os acessos à Wikipédia são atualizados automaticamente todo dia pela API oficial da Wikimedia.</p>
 <p><b>Busca e descoberta.</b> O Google Trends é coletado pelo observatório na própria página de consulta do Google, com dados diários do Brasil desde 1/1. O índice é relativo dentro de cada consulta, e os candidatos estão divididos em duas consultas que incluem Lula como referência. O Google devolveu zero para o dia 16/8, e esse dia foi tratado como falta de dado. A série é baixada inteira a cada coleta e aparece datada no gráfico. Os acessos à Wikipédia vêm da API oficial de pageviews da Wikimedia, contando só acessos de pessoas, desde 1/1, com atualização automática diária. Os dados estão em <code>dados/trends-2026.csv</code> e <code>dados/wikipedia-pageviews.csv</code>.</p>

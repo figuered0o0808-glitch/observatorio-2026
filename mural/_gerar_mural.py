@@ -211,6 +211,22 @@ for c in cands:
         "situacao_texto": SITUACAO.get(nome, ""),
     })
 
+# ---- fotos (Wikimedia Commons, coleta/fotos_presidenciaveis.py). Vão embutidas na página, e não
+# como arquivo à parte: a mesma página é servida na raiz e em mural/, e os testes a abrem do disco,
+# então um caminho relativo quebraria em algum desses lugares. Onze fotos de 240px somam ~170 KB.
+# A licença livre obriga ao crédito: autor e licença seguem junto e aparecem no dossiê e no método.
+import base64 as _b64
+_FOTOS = os.path.join(DADOS, "fotos-presidenciaveis.csv")
+if os.path.exists(_FOTOS):
+    _por_nome = {c["nome"]: c for c in out}
+    for f in ler("fotos-presidenciaveis.csv"):
+        c = _por_nome.get(f["candidato"])
+        arq = os.path.join(AQUI, "..", f["arquivo"])
+        if not c or not os.path.exists(arq): continue
+        c["foto"] = "data:image/jpeg;base64," + _b64.b64encode(open(arq, "rb").read()).decode()
+        c["foto_cred"] = {"autor": f["autor"], "licenca": f["licenca"], "url_licenca": f["url_licenca"],
+                          "pagina": f["pagina_commons"]}
+
 # ---------------------------------------------------------------- efeito casa
 from datetime import date as _date
 def _dias(s): a=s.split("-"); return _date(int(a[0]),int(a[1]),int(a[2])).toordinal()

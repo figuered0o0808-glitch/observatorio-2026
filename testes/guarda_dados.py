@@ -119,6 +119,8 @@ INTOCAVEIS = (
     "dados/redes-fontes.csv",
     "dados/seguidores-historico-fontes.csv",
     "dados/tse-presidenciaveis.csv",
+    # créditos das fotos: só o fluxo "Fotos dos presidenciáveis", disparado à mão, reescreve
+    "dados/fotos-presidenciaveis.csv",
     "dados/estados/wikipedia-verbetes-estados.csv",
     # RJ e SP, deputado federal e estadual: coleta manual pelo navegador, curadoria de imprensa;
     # nenhuma rotina automática reescreve esses dois
