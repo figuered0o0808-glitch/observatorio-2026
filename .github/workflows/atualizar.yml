@@ -335,7 +335,23 @@ jobs:
           EOF
           cat "$RUNNER_TEMP/mensagem.txt"
           git commit -F "$RUNNER_TEMP/mensagem.txt"
-          git pull --rebase --autostash origin main
+          # Se alguém publicou código enquanto esta rodada coletava (26/9/2026: as fotos entraram
+          # no meio da rodada), o index.html e o mural.html desta rodada foram gerados pelo código
+          # antigo e conflitam com os de main. Página gerada não se mescla, se regera: com o código
+          # de main e os dados desta rodada. Conflito em qualquer outro arquivo continua parando tudo.
+          if ! git pull --rebase --autostash origin main; then
+            conflitos=$(git diff --name-only --diff-filter=U)
+            echo "conflitos: $conflitos"
+            if [ -z "$conflitos" ] || echo "$conflitos" | grep -qvxE 'index\.html|mural/mural\.html'; then
+              echo "::error::conflito fora das páginas geradas; nada foi publicado"
+              git rebase --abort; exit 1
+            fi
+            MURAL_ATUALIZADO="$ATUALIZADO" python3 mural/_gerar_mural.py
+            git add index.html mural/mural.html
+            # a política também é regravada pelo gerador (só a data muda); ela não faz parte desta rodada
+            git checkout -- privacidade.html 2>/dev/null || true
+            GIT_EDITOR=true git rebase --continue
+          fi
           git push origin HEAD:main
           { echo '```'; cat "$RUNNER_TEMP/mensagem.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           echo "commitou=true" >> "$GITHUB_OUTPUT"
