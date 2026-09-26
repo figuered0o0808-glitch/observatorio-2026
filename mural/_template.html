@@ -523,7 +523,7 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:
 .foot-band{margin-top:36px;background:var(--foot-bg);color:var(--band-mut);border-top:3px solid var(--red-deep);box-shadow:inset 0 1px 0 var(--foot-line)}
 .foot{padding:24px 24px 28px;font-size:13px;line-height:1.45}
 .foot-lead{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--band-line);margin-bottom:16px}
-.foot-motto{font-size:19px;color:var(--band-ink);line-height:1.05}
+.foot-motto{font-size:19px;color:var(--band-ink);line-height:1.05;word-spacing:.14em}
 .foot-ed{font-size:12.5px;color:var(--band-mut)}
 .foot-cols{display:grid;grid-template-columns:1.5fr .9fr 1.6fr .9fr;gap:24px;align-items:start}
 .foot-links{display:flex;gap:16px;margin-top:10px}
@@ -607,6 +607,8 @@ dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:
 .al.first{border-top:0;border-left:4px solid var(--alc,var(--ink-3));padding:2px 0 4px 12px;margin-bottom:6px;font-size:14px;line-height:1.45}
 .al.first .k{display:block;margin:0 0 2px}
 .al.compact .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* no celular o corte em duas linhas escondia justamente o fim do alerta (os números, a conclusão) */
+@media (max-width:700px){.al.compact .t{display:block;-webkit-line-clamp:unset;overflow:visible}}
 .al.crit{--alc:var(--crit)}.al.warn{--alc:var(--warn)}.al.info{--alc:var(--ink-2)}
 .alerts .go,.eventos .go{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink)}
 .eventos ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
@@ -1264,13 +1266,13 @@ table th{background:#000;color:#fff;border-bottom:0}
    MathML, que os navegadores desenham nativamente: sem biblioteca nova, e a fórmula
    é texto de verdade (seleciona, copia, lê em leitor de tela). */
 .formulas ol.fx{list-style:none;counter-reset:fx;margin:14px 0 0;padding:0;display:grid;gap:18px}
-.formulas ol.fx>li{counter-increment:fx;position:relative;padding:14px 16px 12px 58px;border-top:2px solid var(--line-2)}
+.formulas ol.fx>li{counter-increment:fx;position:relative;min-width:0;padding:14px 16px 12px 58px;border-top:2px solid var(--line-2)}
 .formulas ol.fx>li::before{content:counter(fx,decimal-leading-zero);position:absolute;left:0;top:10px;
   font-family:Archivo,sans-serif;font-variation-settings:"wdth" 62,"wght" 900;font-stretch:62%;font-weight:900;
   font-size:34px;line-height:1;color:var(--ed-bg,var(--ink))}
 .formulas h4{margin:0 0 8px;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 75,"wght" 800;
   font-stretch:75%;font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
-.formulas math{display:block math;width:fit-content;font-size:21px;margin:8px 0 10px;color:var(--ink);overflow-x:auto;overflow-y:hidden;
+.formulas math{display:block math;width:fit-content;max-width:100%;font-size:21px;margin:8px 0 10px;color:var(--ink);overflow-x:auto;overflow-y:hidden;
   max-width:100%;padding:4px 0}
 .formulas p{margin:0;font-size:15px;line-height:1.6;color:var(--ink);max-width:78ch}
 .formulas p i,.formulas p b{font-style:italic}
@@ -1417,7 +1419,7 @@ table th{background:#000;color:#fff;border-bottom:0}
   <div class="controls">
     <div class="seg" role="group" aria-label="Quais candidatos mostrar">
       <button type="button" data-view="principais" aria-pressed="true">Os 8 principais</button>
-      <button type="button" data-view="todos" aria-pressed="false">Todos os 13</button>
+      <button type="button" data-view="todos" aria-pressed="false" id="bt-todos">Todos</button>
     </div>
     <label class="sel">Ordenar por
       <select id="sort">
@@ -1470,7 +1472,7 @@ table th{background:#000;color:#fff;border-bottom:0}
   <div class="panel main"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia são atualizadas duas vezes por dia, e as outras fontes a cada coleta. Todo número tem data e fonte.</div><div class="pipe" id="pipe"></div></div>
   <div class="grid2 wide-left">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. O quadro mostra quanta informação existe sobre cada um e não avalia os candidatos.</div><div id="ch-cobertura"></div></div>
-    <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta é identificado por palavras-chave na ficha técnica registrada no TSE. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
+    <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta é identificado por palavras-chave na ficha técnica registrada no TSE. Quando a rodada chega sem ficha, vale o modo do próprio instituto, se ele usou sempre o mesmo em pelo menos duas rodadas. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
   </div>
   <div class="panel formulas" id="p-formulas"><div class="ph"><h3>As fórmulas da média</h3><span class="cap" style="margin:0">o cálculo da média, passo a passo</span></div>
     <p class="cap">Os valores que aparecem nas fórmulas vêm do mesmo código que calcula a média. Se a regra mudar, as fórmulas mudam também.</p>
@@ -1788,9 +1790,13 @@ function eixoTempo(X,Y0,Y1,t0=T0,t1=T1){
     const pxDia=X(t0+864e5)-X(t0);const passoR=[passo,2,3,7,14,21,28].filter(p=>p>=passo).find(p=>p*pxDia>=40)||28;
     for(let t=t1-((t1-t0)%(passoR*864e5));t>=t0;t-=passoR*864e5)marcas.push({x:X(t),txt:dBR(dISO(t))});}
   // da direita para a esquerda, para as datas recentes nunca cederem lugar às antigas
-  marcas.sort((p,q)=>q.x-p.x);let ultimo=null;
+  marcas.sort((p,q)=>q.x-p.x);let ultimo=null;const x0=X(t0);
   for(const m of marcas){
     if(ultimo!=null&&ultimo-m.x<40)continue;
+    // a data centrada no começo do eixo avança metade da largura para a esquerda e, no celular,
+    // encostava no "0%" do eixo vertical (26/9/2026): ela passa a começar no início do eixo, e só
+    // sai se assim encostar na data seguinte
+    if(!m.mes&&m.x-16<x0){if(ultimo!=null&&ultimo-16<x0+36)continue;ultimo=m.x;out+=`<text class="axis" x="${x0}" y="${Y1+16}">${m.txt}</text>`;continue;}
     ultimo=m.x;
     out+=m.mes?`<text class="axis" x="${m.x+4}" y="${Y1+16}">${m.txt}</text>`
               :`<text class="axis" x="${m.x}" y="${Y1+16}" text-anchor="middle">${m.txt}</text>`;
@@ -2312,7 +2318,8 @@ const TSE_DT=dBR(String((C[0]&&C[0].atualizado_tse)||"").slice(0,10));
 $("#strip").innerHTML=[
  [String(C.length),"registrados no TSE",`${nDef} deferidos${nInd?`, ${nInd} indeferido${nInd===1?"":"s"}`:""}; os demais aguardam julgamento · TSE${TSE_DT?", "+TSE_DT:""}`],
  [String(DATA.meta.rodadas),"rodadas de pesquisa",`${DATA.meta.institutos} institutos, de ${dBR(DATA.meta.primeira)} a ${dBR(DATA.meta.ultima)}`],
- ["2","campanhas restritas","Renan Santos (31/8) e Pablo Marçal (20/8), por decisão do TSE"],
+ (()=>{const r=C.filter(c=>c.restrito);return [String(r.length),r.length===1?"campanha restrita":"campanhas restritas",
+   r.length?r.map(c=>`${esc(c.nome)} (${esc((c.restrito.match(/\(([^)]+)\)/)||[,""])[1])})`).join(" e ")+", por decisão do TSE":"nenhuma no momento"];})(),
  (()=>{const o=ORDEM();const a=o[0],b=o[1];const d=a&&b?a.agora-b.agora:null;
    if(d==null)return ["","vantagem do líder",""];
    const emp=empatam(rodadas1T(),OITO,SIG,Date.parse(DATA.meta.ultima),a.nome,b.nome);
@@ -2320,7 +2327,11 @@ $("#strip").innerHTML=[
      emp?`${esc(curto(a.nome))} e ${esc(curto(b.nome))} separados por menos que a incerteza da média, até ${dBR(DATA.meta.ultima)}`
         :`${esc(curto(a.nome))} sobre ${esc(curto(b.nome))}, média móvel de ${SIG} dias até ${dBR(DATA.meta.ultima)}`];})(),
  [fBRL(fefcTot),"de fundo eleitoral",`FEFC 2026 somado dos ${DATA.partidos.filter(p=>!p.secundario).length} partidos com candidato, pela tabela do TSE`],
- ["14/9","próximo debate","consórcio CNN, SBT e RedeTV!"],
+ // o próximo debate sai da linha do tempo, e não escrito à mão: até 26/9/2026 este cartão ainda
+ // anunciava o de 14/9, que o consórcio cancelou em 8/9
+ (()=>{const d=TL.filter(e=>e.categoria==="debate"&&e.data>=HOJE&&!/cancelad/i.test(e.evento)).sort((a,b)=>a.data.localeCompare(b.data))[0];
+   if(!d)return ["","próximo debate","nenhum agendado na linha do tempo"];
+   return [`${+d.data.slice(8,10)}/${+d.data.slice(5,7)}`,"próximo debate",esc(d.evento.replace(/,\s*agendado$/i,""))];})(),
 ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
 
 function posicao(n){
@@ -2823,6 +2834,8 @@ function renderWall(){
   const sub=$("#cand-sub");
   if(sub)sub.textContent=`${nCandExt().charAt(0).toUpperCase()+nCandExt().slice(1)} ${C.length===1?"registrado":"registrados"} no TSE, ${nDef} ${nDef===1?"deferido":"deferidos"}${nInd?` e ${nInd} ${nInd===1?"indeferido":"indeferidos"}`:""}. "Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.`;
 }
+// a contagem sai do dado: escrita à mão ficou em 13 quando a 14ª candidatura entrou
+{const bt=$("#bt-todos");if(bt)bt.textContent=`Todos os ${C.length}`;}
 $$("#v-candidatos .seg button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;$$("#v-candidatos .seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWall();}));
 $("#sort").addEventListener("change",e=>{sortBy=e.target.value;renderWall();});
 function drawBens(){

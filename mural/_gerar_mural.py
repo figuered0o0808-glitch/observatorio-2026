@@ -47,6 +47,17 @@ def modo_de(met):
     if "digital" in m or "online" in m or "eletrôn" in m or "web" in m or "formulário" in m or "internet" in m: return "digital"
     return "não informada"
 modo_rodada = {k: modo_de(v["metodologia"]) for k, v in rodadas.items()}
+# A coleta automática pela Wikipédia não traz a ficha técnica, e desde setembro de 2026 toda rodada
+# nova chegava como "não informada": o painel das réguas por modo parou em 31/8. Quando a rodada
+# não diz o modo, vale o do próprio instituto, desde que ele tenha ao menos duas rodadas com modo
+# conhecido e todas iguais (Datafolha sempre presencial, AtlasIntel sempre digital). Instituto que
+# já usou mais de um modo, ou com uma rodada conhecida só, continua "não informada".
+from collections import Counter as _Contador
+_modos_inst = defaultdict(_Contador)
+for (_i, _d), _m in modo_rodada.items():
+    if _m != "não informada": _modos_inst[_i][_m] += 1
+MODO_INSTITUTO = {i: next(iter(c)) for i, c in _modos_inst.items() if len(c) == 1 and sum(c.values()) >= 2}
+modo_rodada = {k: (MODO_INSTITUTO.get(k[0], m) if m == "não informada" else m) for k, m in modo_rodada.items()}
 polls_main, polls_2t, rej = [], [], []
 for r in pesq:
     inst, dt, cen, cand = r["instituto"], r["data_divulgacao"], r["cenario"], r["candidato"]
@@ -166,7 +177,9 @@ SITUACAO = {
  "Rui Costa Pimenta": "0,1% na Atlas. Registro deferido. Atingido por operação da PF de 11/8 sobre fundos partidários; lançou candidatura em Porto Alegre em 29/8.",
  "Wilson Grassi": "Veterinário, primeiro presidenciável do Democrata (ex-PMB), 0,1% na Atlas. Propõe tirar o voto de beneficiários do Bolsa Família.",
 }
-RESTRITO = {"Renan Santos": "Campanha restrita pelo TSE (31/8)", "Pablo Marçal": "Impedido pelo TSE (20/8)"}
+# Renan Santos saiu daqui em 26/9/2026: a restrição de 31/8 foi revogada por Toffoli em 1/9
+# (eventos.csv, linha de 2026-09-01), e o cartão da capa seguia dizendo "campanha restrita".
+RESTRITO = {"Pablo Marçal": "Impedido pelo TSE (20/8)"}
 def link(handle, plat):
     if not handle: return ""
     h = handle.split(" (")[0].lstrip("@")
@@ -373,6 +386,8 @@ for u in ufs.values():
                    if u.get({"governador": "gov", "senador": "sen", "depfed": "depfed", "depest": "depest"}[k])]
     u["colig"] = {k: sorted(v) for k, v in sorted(u["colig"].items())}
 
+# o mesmo instituto aparece com nome curto nas páginas estaduais
+_INST_NAC = {"AtlasIntel": "AtlasIntel/Bloomberg", "Nexus": "BTG/Nexus", "MDA": "CNT/MDA", "Veritá": "Instituto Veritá"}
 # ---- pesquisas estaduais: consolidado (Wikipédia + Gazeta) quando existir; senão, só as rodadas da Gazeta
 cons_uf = ler_est("pesquisas-estados-consolidado.csv")
 MUTED = ["#8E9AAF", "#A98467", "#6C757D", "#B08968", "#7F8C8D", "#95A5A6", "#A0A0A0", "#8D99AE", "#9C6644", "#adb5bd"]
@@ -388,7 +403,7 @@ if cons_uf:
         rk = (r["uf"], r["cargo"], turno, r["instituto"], r["data_ref"], r["cenario"] if turno == 2 else "")
         if rk not in rod_idx:
             rod_idx[rk] = {"cargo": r["cargo"], "turno": turno, "inst": r["instituto"], "data": r["data_ref"], "div": r["data_divulgacao"],
-                           "reg": r["registro_tse"], "amostra": r["amostra"], "margem": r["margem_erro"], "modo": r["metodologia"] or "não informada",
+                           "reg": r["registro_tse"], "amostra": r["amostra"], "margem": r["margem_erro"], "modo": r["metodologia"] or MODO_INSTITUTO.get(r["instituto"]) or MODO_INSTITUTO.get(_INST_NAC.get(r["instituto"], "")) or "não informada",
                            "contratante": r["contratante"], "campo": (r["campo_inicio"] + " a " + r["campo_fim"]) if r["campo_inicio"] and r["campo_inicio"] != r["campo_fim"] else r["campo_fim"],
                            "url": "" if "wikipedia.org" in r["url"] else r["url"],
                            "fonte": "WG" if "Gazeta" in r["fonte"] and "Wikip" in r["fonte"] else ("G" if "Gazeta" in r["fonte"] or "TSE" in r["fonte"] else "W"),

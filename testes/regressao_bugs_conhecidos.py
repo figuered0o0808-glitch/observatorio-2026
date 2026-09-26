@@ -649,7 +649,7 @@ with sync_playwright() as p:
     #      largura do contêiner, mas eixoTempo seguia emitindo um rótulo a cada 3 dias como a 1180px, e "03/0806/0809/08…" virava uma mancha)
     b, page, errs = novo_ctx(p, viewport=(390, 844))
     medir_eixo = """(sel) => { const svg = document.querySelector(sel + ' svg');
-        const ts = [...svg.querySelectorAll('text.axis')].filter(t => t.getAttribute('text-anchor') === 'middle')
+        const ts = [...svg.querySelectorAll('text.axis')].filter(t => /^\d\d\/\d\d$/.test(t.textContent))
             .map(t => { const r = t.getBoundingClientRect(); return [t.textContent, Math.round(r.left), Math.round(r.right)]; }).sort((a, b) => a[1] - b[1]);
         let over = 0, gap = 999; for (let i = 1; i < ts.length; i++) { gap = Math.min(gap, ts[i][1] - ts[i - 1][2]); if (ts[i][1] < ts[i - 1][2]) over++; }
         return {n: ts.length, over, gap, labels: ts.map(t => t[0]).join(' ')}; }"""
@@ -1263,6 +1263,46 @@ with sync_playwright() as p:
     check("quem entra por http:// é levado ao https:// (capa e privacidade)",
           all(u.startswith("https://muraldoscandidatos.com/") for u in destinos.values())
           and destinos["/"].endswith("#geral"), destinos)
+    b.close()
+
+    # ---- pequenos erros no celular e cartões desatualizados (26/9/2026)
+    b, page, errs = novo_ctx(p, viewport=(360, 800))
+    colisoes = {}
+    for rota in ("geral", "pesquisas", "busca", "uf-sp-governo-pesquisas"):
+        page.goto(URL + "#" + rota)
+        page.wait_for_timeout(900)
+        # a primeira data do eixo encostava no "0%" do eixo vertical em todo gráfico de tempo
+        colisoes[rota] = page.evaluate("""() => { const out = [];
+            for (const svg of document.querySelectorAll('svg.tempo')) { const r0 = svg.getBoundingClientRect(); if (!r0.width) continue;
+              const ts = [...svg.querySelectorAll('text.axis')].map(t => [t.textContent, t.getBoundingClientRect()]);
+              for (let i = 0; i < ts.length; i++) for (let j = i + 1; j < ts.length; j++) { const a = ts[i][1], b = ts[j][1];
+                if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1) out.push(ts[i][0] + ' x ' + ts[j][0]); } }
+            return out; }""")
+    check("rótulos dos eixos dos gráficos de tempo não se sobrepõem a 360px",
+          not any(colisoes.values()), {k: v[:3] for k, v in colisoes.items() if v})
+    page.goto(URL + "#metodo")
+    page.wait_for_timeout(700)
+    sw = page.evaluate("document.documentElement.scrollWidth")
+    check("as fórmulas do método cabem em 360px sem rolar a página", sw <= 360, sw)
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    r = page.evaluate("""() => { const pis = [...document.querySelectorAll('.placar .pi')].map(e => [e.querySelector('.pl').textContent, e.querySelector('.pv').textContent, e.querySelector('.pd').textContent]);
+        const deb = pis.find(x => x[0] === 'próximo debate'), res = pis.find(x => /campanhas? restritas?/.test(x[0]));
+        const prox = TL.filter(e => e.categoria === 'debate' && e.data >= HOJE && !/cancelad/i.test(e.evento)).sort((a, b) => a.data.localeCompare(b.data))[0];
+        return {deb, res, prox: prox ? prox.data : null, restritos: C.filter(c => c.restrito).length}; }""")
+    deb = r["deb"]
+    d_ok = deb and (r["prox"] is None or deb[1] == f"{int(r['prox'][8:10])}/{int(r['prox'][5:7])}")
+    check("o cartão do próximo debate sai da linha do tempo e nunca aponta um debate passado ou cancelado", bool(d_ok), r)
+    check("o cartão de campanhas restritas conta o dado, sem restrição já revogada",
+          r["res"] and r["res"][1] == str(r["restritos"]) and "Renan" not in r["res"][2], r["res"])
+    page.goto(URL + "#candidatos")
+    page.wait_for_timeout(600)
+    r = page.evaluate("() => [document.querySelector('#bt-todos').textContent, C.length]")
+    check("o botão 'Todos os N' da aba Candidatos conta os registrados", r[0] == f"Todos os {r[1]}", r)
+    # o modo de coleta das rodadas sem ficha técnica vem do instituto quando ele usa sempre o mesmo
+    r = page.evaluate("() => DATA.polls.filter(p => p[0] === 'Datafolha' && p[1] >= '2026-09-01').map(p => p[5])")
+    check("rodadas do Datafolha de setembro, sem ficha, saem como presenciais", r and all(m == "presencial" for m in r), sorted(set(r)))
+    check("pequenos erros no celular sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
 print()
