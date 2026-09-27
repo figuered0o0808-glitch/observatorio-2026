@@ -1104,11 +1104,18 @@ with sync_playwright() as p:
     # placar, os alertas, o mapa e a tira de números do estado saíam de UMA rodada, enquanto o gráfico
     # ao lado desenhava média: dois números diferentes para a mesma disputa na mesma tela. E a
     # manchete de um estado inteiro podia ser de um instituto só (a Veritá assinava a de seis).
+    # O estado é escolhido pelo dado: o primeiro em que a rodada mais recente e a média se afastam
+    # mais de 2 pontos. Fixar o Pará barrou a atualização de 26/9, quando a rodada nova de lá (41%)
+    # caiu a 0,4 ponto da média (40,6%) e o teste deixou de conseguir distinguir uma da outra.
     b, page, errs = novo_ctx(p)
-    page.goto(URL + "#uf-pa-governo")
+    page.goto(URL)
+    page.wait_for_timeout(900)
+    uf_teste = page.evaluate("""() => { for (const uf of UFLIST) { const l = liderDe(uf, 'governador'), M = mediaUF(uf, 'governador');
+        if (l && M && M.insts >= 2 && Math.abs(l.pts[0][4] - M.lista[0].valor) > 2 && l.pts[0][3] === M.lista[0].nome) return uf; } return 'PA'; }""")
+    page.goto(URL + "#uf-" + uf_teste.lower() + "-governo")
     page.wait_for_timeout(1200)
-    est = page.evaluate("""() => {
-        const uf = 'PA', cargo = 'governador';
+    est = page.evaluate("""(uf) => {
+        const cargo = 'governador';
         const l = liderDe(uf, cargo), M = mediaUF(uf, cargo);
         const num = t => (t.match(/-?\\d+[,.]?\\d*/g) || []).map(x => +x.replace(',', '.'));
         return {rodadaTop: l.pts[0][4], mediaTop: M.lista[0].valor, rodadas: M.rs.length, insts: M.insts,
@@ -1116,8 +1123,8 @@ with sync_playwright() as p:
                 tagNums: num(document.querySelector('#e-tag').textContent),
                 eyebrow: document.querySelector('#e-eyebrow').textContent,
                 duelo: [...document.querySelectorAll('#e-duelo .dl-num')].map(e => +e.textContent.match(/-?\\d+[,.]?\\d*/)[0].replace(',', '.')),
-                mapaLider: liderPartido(uf, cargo).p.valor}; }""")
-    # o primeiro número da manchete é o da média, e não o da rodada (no PA a diferença passa de 15 pontos)
+                mapaLider: liderPartido(uf, cargo).p.valor, uf}; }""", uf_teste)
+    # o primeiro número da manchete é o da média, e não o da rodada
     check("a manchete do estado traz a média, não a rodada mais recente",
           abs(est["tagNums"][0] - est["mediaTop"]) < 0.11 and abs(est["tagNums"][0] - est["rodadaTop"]) > 1, est)
     check("o placar do estado traz a média", est["duelo"] and abs(est["duelo"][0] - est["mediaTop"]) < 0.11, est)
