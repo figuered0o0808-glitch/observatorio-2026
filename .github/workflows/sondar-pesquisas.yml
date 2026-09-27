@@ -21,3 +21,18 @@ jobs:
           curl -sS -A "observatorio-2026/0.3 (diagnostico)" "https://pt.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=8&rvprop=timestamp|comment|user&titles=Pesquisas_de_opini%C3%A3o_para_a_elei%C3%A7%C3%A3o_presidencial_no_Brasil_em_2026&format=json" | python3 -m json.tool | head -80
       - name: Simulação do coletor desde 18/9
         run: python3 coleta/wikipedia_pesquisas_nacional.py --dry-run --desde 2026-09-18
+      - name: Seções das rodadas datadas no futuro
+        run: |
+          cd coleta && python3 - <<'PY'
+          import wikipedia_pesquisas_nacional as w
+          html, revid, _ = w.baixar_pagina()
+          res = w.extrair(html, revid)
+          vistos = {}
+          for rd in res["primeiro"]:
+              vistos.setdefault(rd["secao"], []).append((rd["campo_fim"], rd["instituto_pagina"], rd["campo_texto"]))
+          for sec, rs in vistos.items():
+              print("SEÇÃO", sec, "|", len(rs), "rodadas | fins:", min(r[0] for r in rs), "a", max(r[0] for r in rs))
+              for r in rs[:2]: print("     ex.:", r)
+          for c, m in res["descartes"]:
+              print("DESCARTE", " > ".join(c), "|", m)
+          PY
