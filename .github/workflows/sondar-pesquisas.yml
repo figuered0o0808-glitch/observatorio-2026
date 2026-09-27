@@ -1,0 +1,23 @@
+# Diagnóstico: o que a página de pesquisas presidenciais da Wikipédia tem de recente e o que o
+# coletor faz com cada rodada (presente, nova, descartada), sem gravar nada.
+name: Sondar pesquisas nacionais
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sondar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Última revisão da página
+        run: |
+          curl -sS -A "observatorio-2026/0.3 (diagnostico)" "https://pt.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=8&rvprop=timestamp|comment|user&titles=Pesquisas_de_opini%C3%A3o_para_a_elei%C3%A7%C3%A3o_presidencial_no_Brasil_em_2026&format=json" | python3 -m json.tool | head -80
+      - name: Simulação do coletor desde 18/9
+        run: python3 coleta/wikipedia_pesquisas_nacional.py --dry-run --desde 2026-09-18
