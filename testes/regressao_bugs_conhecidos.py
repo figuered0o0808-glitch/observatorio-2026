@@ -1339,6 +1339,21 @@ with sync_playwright() as p:
     check("fotos sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- rodadas de 2024 e 2025 datadas como 2026 (27/9/2026): ficam na base, fora da conta
+    import csv as _csv, io as _io
+    excl = list(_csv.DictReader(_io.open(_P(__file__).resolve().parent.parent / "dados" / "rodadas-excluidas.csv", encoding="utf-8-sig")))
+    b, page, errs = novo_ctx(p)
+    page.goto(URL)
+    page.wait_for_timeout(800)
+    r = page.evaluate("""(ex) => { const k = new Set(ex.map(e => e[0] + '|' + e[1]));
+        return {polls: DATA.polls.filter(p => k.has(p[0] + '|' + p[1])).length,
+                fichas: DATA.fichas.filter(f => k.has(f.inst + '|' + f.dt)).length,
+                excluidas: DATA.meta.excluidas, primeira: DATA.meta.primeira}; }""", [[e["instituto"], e["data_divulgacao"]] for e in excl])
+    check("rodadas antigas datadas como 2026 ficam fora de pontos, fichas e contagens",
+          r["polls"] == 0 and r["fichas"] == 0 and r["excluidas"] == len(excl) and len(excl) >= 35, r)
+    check("rodadas excluídas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:

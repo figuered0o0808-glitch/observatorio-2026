@@ -22,6 +22,13 @@ def ler(nome):
 cands = ler("candidatos.csv")
 serie = ler("serie-diaria.csv")
 pesq = ler("pesquisas-registradas.csv")
+# Rodadas que a base guarda mas o mural não usa, cada uma com o motivo (dados/rodadas-excluidas.csv).
+# A base de pesquisas só aceita acréscimo, então erro de coleta se corrige aqui, à vista, e não
+# apagando linha. Em 27/9/2026 entraram nesta lista as rodadas de 2024 e 2025 que o coletor tinha
+# datado como 2026 (coleta/_rodadas_datadas_errado.py confere uma a uma pelos números).
+EXCLUIDAS = {(r["instituto"], r["data_divulgacao"], r["data_campo_fim"]): r["motivo"]
+             for r in ler("rodadas-excluidas.csv")} if os.path.exists(os.path.join(DADOS, "rodadas-excluidas.csv")) else {}
+pesq = [r for r in pesq if (r["instituto"], r["data_divulgacao"], r["data_campo_fim"]) not in EXCLUIDAS]
 ev = ler("eventos.csv")
 part = ler("partidos.csv")
 trends_rows = ler("trends-2026.csv")
@@ -102,7 +109,7 @@ for (inst, dt), ls in sorted(_linhas_1t.items(), key=lambda x: (x[0][1], x[0][0]
         somas_validos[f"{inst}|{dt}"] = round(s_cand, 2)
     else:
         fora_validos.append((inst, dt, round(s_cand, 1), round(s_tot, 1), sem_numero))
-meta = {"rodadas": len(rodadas), "institutos": len({k[0] for k in rodadas}),
+meta = {"rodadas": len(rodadas), "institutos": len({k[0] for k in rodadas}), "excluidas": len(EXCLUIDAS),
         "primeira": min(k[1] for k in rodadas), "ultima": max(k[1] for k in rodadas)}
 
 # fichas técnicas por rodada (para tooltip e tabela de rodadas)

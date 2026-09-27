@@ -121,6 +121,8 @@ INTOCAVEIS = (
     "dados/tse-presidenciaveis.csv",
     # créditos das fotos: só o fluxo "Fotos dos presidenciáveis", disparado à mão, reescreve
     "dados/fotos-presidenciaveis.csv",
+    # rodadas guardadas na base e deixadas fora da conta, com o motivo; decisão humana
+    "dados/rodadas-excluidas.csv",
     "dados/estados/wikipedia-verbetes-estados.csv",
     # RJ e SP, deputado federal e estadual: coleta manual pelo navegador, curadoria de imprensa;
     # nenhuma rotina automática reescreve esses dois
