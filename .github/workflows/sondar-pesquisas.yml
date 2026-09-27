@@ -36,3 +36,5 @@ jobs:
           for c, m in res["descartes"]:
               print("DESCARTE", " > ".join(c), "|", m)
           PY
+      - name: Rodadas antigas que entraram datadas como 2026
+        run: python3 coleta/_rodadas_datadas_errado.py

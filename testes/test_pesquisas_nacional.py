@@ -388,6 +388,28 @@ class Funcoes(unittest.TestCase):
         self.assertTrue(any("'Palver'" in a for a in avisos) and any("'Vox Brasil'" in a for a in avisos))
 
 
+class AnoPelaOrdem(unittest.TestCase):
+    """27/9/2026: o título '2025' da página não era lido como seção e as tabelas de 2025 e 2024
+    herdavam '2026'. O ano passa a descer quando a ordem dos meses vira."""
+
+    def test_sequencia_real_da_pagina(self):
+        o = wpn.AnoPelaOrdem()
+        seq = [("Setembro", 2026), ("Agosto", 2026), ("Março", 2026), ("Janeiro - Fevereiro", 2026),
+               ("Novembro - Dezembro", 2025), ("Setembro - Outubro", 2025), ("Julho - Agosto", 2025),
+               ("Janeiro e Fevereiro", 2025), ("De setembro a dezembro", 2024), ("De janeiro a agosto", 2024)]
+        self.assertEqual([o.ano(("Primeiro turno", "2026", t), 2026) for t, _ in seq], [a for _, a in seq])
+
+    def test_ano_explicito_no_caminho_continua_valendo(self):
+        o = wpn.AnoPelaOrdem()
+        self.assertEqual(o.ano(("Segundo turno", "Lula e Zema", "2026"), 2026), 2026)
+        self.assertEqual(o.ano(("Segundo turno", "Lula e Zema", "2025"), 2026), 2025)
+        self.assertEqual(o.ano(("Segundo turno", "Lula e Zema", "2024"), 2026), 2024)
+
+    def test_secoes_na_ordem_certa_nao_mudam_o_ano(self):
+        o = wpn.AnoPelaOrdem()
+        self.assertEqual({o.ano(("Primeiro turno", "2026", t), 2026) for t in ("Setembro", "Agosto", "Julho", "Maio")}, {2026})
+
+
 class Gravacao(unittest.TestCase):
     def test_acrescenta_no_fim_preservando_bom_e_crlf(self):
         original = CSV_REF.read_bytes()

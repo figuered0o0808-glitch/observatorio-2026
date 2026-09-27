@@ -602,6 +602,35 @@ def referencias(raiz):
     return saida
 
 
+def meses_do_titulo(t):
+    """Meses citados num título de seção ('Setembro - Outubro', 'De janeiro a agosto', 'Maio')."""
+    n = norm_texto(t)
+    return [m for nome, m in MESES.items() if re.search(r"\b%s\b" % nome, n)]
+
+
+class AnoPelaOrdem:
+    """Corrige o ano das tabelas pela ordem da página. As seções de meses vêm do mais recente
+    para o mais antigo; quando uma seção cita um mês posterior ao mais antigo da seção anterior
+    ('Novembro - Dezembro' depois de 'Janeiro - Fevereiro'), a página virou para o ano anterior.
+    Em 27/9/2026 o título '2025' da página não era lido como seção, e as tabelas de 2025 e 2024
+    herdavam '2026': rodadas antigas entraram no CSV como se fossem deste ano."""
+
+    def __init__(self):
+        self.estado = {}
+
+    def ano(self, caminho, padrao):
+        base = ano_do_caminho(caminho, padrao)
+        meses = meses_do_titulo(caminho[-1]) if caminho else []
+        chave = (caminho[0] if caminho else "", base)
+        desloc, menor = self.estado.get(chave, (0, None))
+        if meses:
+            if menor is not None and max(meses) > menor:
+                desloc += 1
+            menor = min(meses)
+        self.estado[chave] = (desloc, menor)
+        return base - desloc
+
+
 def ano_do_caminho(caminho, padrao):
     for t in reversed(caminho):
         anos = re.findall(r"\b(20\d\d)\b", t)
@@ -631,12 +660,13 @@ def extrair(html, revid=None, ano_padrao=2026):
     raiz = arvore(html)
     refs = referencias(raiz)
     primeiro, segundo, descartes, avisos = [], [], [], []
+    pela_ordem = AnoPelaOrdem()
     for caminho, tab in tabelas_com_caminho(raiz):
         secao = norm_texto(caminho[0]) if caminho else ""
         if any("agrega" in norm_texto(t) for t in caminho):
             descartes.append((caminho, "seção de agregadores"))
             continue
-        ano = ano_do_caminho(caminho, ano_padrao)
+        ano = pela_ordem.ano(caminho, ano_padrao)
         rodadas, cols, motivo = extrair_tabela(tab, ano)
         if motivo:
             descartes.append((caminho, motivo))
