@@ -676,11 +676,9 @@ io.open(os.path.join(AQUI, "mural-inteiro.html"), "w", encoding="utf-8").write(m
 # gerados; mural.html continua sendo o canônico.
 io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
 # ---- sem página de privacidade (29/9/2026)
-# O site não tem conta nem inscrição, e a página foi retirada a pedido. privacidade.html antiga
-# é apagada se sobrar de uma geração anterior, para não voltar a ser publicada.
-_pv_velha = os.path.join(AQUI, "..", "privacidade.html")
-if os.path.exists(_pv_velha):
-    os.remove(_pv_velha)
+# O site não tem conta nem inscrição, e a página foi retirada a pedido. privacidade.html na raiz
+# é só um redirecionamento fixo para a capa, porque o Google indexou a política antiga como
+# resultado principal; o gerador não a escreve mais.
 
 ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.values())
 print("mural.html", len(html), "bytes público +", len(js_prot), "bytes protegidos |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",

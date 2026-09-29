@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /$
+Allow: /mural/logo/
+Disallow: /mural/
+Disallow: /dados/
+Disallow: /coleta/
+Disallow: /notas/
+Disallow: /testes/
+Disallow: /evidencias/
+Disallow: /artigo/
+Disallow: /*.md$
+
+Sitemap: https://muraldoscandidatos.com/sitemap.xml

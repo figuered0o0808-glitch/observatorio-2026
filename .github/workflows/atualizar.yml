@@ -380,6 +380,8 @@ jobs:
              mural/logo/mural-icone-192.png mural/logo/mural-icone-180.png site/mural/logo/
           # o domínio próprio junto do artefato, pelo mesmo motivo comentado em publicar.yml
           cp CNAME site/CNAME
+          # a política antiga virou redirecionamento para a capa (o Google indexou ela); robots e sitemap apontam a capa
+          cp privacidade.html robots.txt sitemap.xml site/
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
           touch site/.nojekyll
 

@@ -983,10 +983,13 @@ with sync_playwright() as p:
     # 29/9/2026: a página de privacidade saiu (o site não tem conta) e o site não aponta para o código
     raiz_pv = _P(__file__).resolve().parent.parent
     html_pv = (raiz_pv / "index.html").read_text(encoding="utf-8")
-    check("sem página de privacidade, sem link para ela e sem menção ao repositório",
-          not (raiz_pv / "privacidade.html").exists() and "privacidade.html" not in html_pv
-          and "observatorio-2026" not in html_pv and "repositório" not in html_pv,
-          (raiz_pv / "privacidade.html").exists())
+    # o endereço antigo, que o Google indexou, só redireciona para a capa
+    pv_red = (raiz_pv / "privacidade.html").read_text(encoding="utf-8") if (raiz_pv / "privacidade.html").exists() else ""
+    check("sem política no site, sem link para ela e sem menção ao repositório",
+          "privacidade.html" not in html_pv and "observatorio-2026" not in html_pv and "repositório" not in html_pv
+          and 'rel="canonical" href="https://muraldoscandidatos.com/"' in pv_red
+          and 'http-equiv="refresh"' in pv_red and "Privacidade" not in pv_red and "github" not in pv_red.lower(),
+          len(pv_red))
     b.close()
 
     # com as chaves configuradas: cadeado nas abas e cadastro no lugar da editoria vazia

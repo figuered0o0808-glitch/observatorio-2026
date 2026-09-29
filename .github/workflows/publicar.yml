@@ -15,6 +15,9 @@ on:
     branches: [main]
     paths:
       - index.html
+      - privacidade.html
+      - robots.txt
+      - sitemap.xml
       - mural/logo/**
       - CNAME
       - .github/workflows/publicar.yml
@@ -65,6 +68,8 @@ jobs:
           # perder numa publicação; quando isso acontece o certificado cai junto e o site volta a
           # atender em http, que é o navegador dizendo "não seguro".
           cp CNAME site/CNAME
+          # a política antiga virou redirecionamento para a capa (o Google indexou ela); robots e sitemap apontam a capa
+          cp privacidade.html robots.txt sitemap.xml site/
           # a carga protegida só entra no site enquanto o bucket privado do Supabase não estiver
           # configurado; com MURAL_CARGA_URL apontando para storage:, ela deixa de ser servida aqui
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi
