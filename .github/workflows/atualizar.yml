@@ -348,8 +348,6 @@ jobs:
             fi
             MURAL_ATUALIZADO="$ATUALIZADO" python3 mural/_gerar_mural.py
             git add index.html mural/mural.html
-            # a política também é regravada pelo gerador (só a data muda); ela não faz parte desta rodada
-            git checkout -- privacidade.html 2>/dev/null || true
             GIT_EDITOR=true git rebase --continue
           fi
           git push origin HEAD:main
@@ -370,16 +368,6 @@ jobs:
           MURAL_CARGA_URL: ${{ secrets.MURAL_CARGA_URL }}
         run: python3 mural/_gerar_mural.py
 
-      # Cadastro no ar exige política de privacidade completa. É dado pessoal de brasileiro, a
-      # LGPD se aplica, e formulário publicado ao lado de uma política com lacuna é exatamente o
-      # que não pode passar por descuido. Só barra quando a chave da conta existe de verdade.
-      - name: Não publicar cadastro com política incompleta
-        run: |
-          if [ -n "${{ secrets.MURAL_SUPABASE_URL }}" ] && grep -q "PREENCHER" privacidade.html; then
-            echo "::error::O cadastro está configurado, mas notas/organizacao.json ainda tem campos por preencher. Preencha antes de publicar."
-            exit 1
-          fi
-
       - name: Separar o que o site serve
         if: steps.commit.outputs.commitou == 'true' || github.event_name == 'workflow_dispatch'
         run: |
@@ -390,7 +378,6 @@ jobs:
           # os ícones da guia e da busca como arquivo, pelo motivo comentado em publicar.yml
           cp mural/logo/mural-icone.svg mural/logo/mural-favicon-32.png \
              mural/logo/mural-icone-192.png mural/logo/mural-icone-180.png site/mural/logo/
-          cp privacidade.html site/privacidade.html
           # o domínio próprio junto do artefato, pelo mesmo motivo comentado em publicar.yml
           cp CNAME site/CNAME
           if [ -z "${{ secrets.MURAL_CARGA_URL }}" ]; then cp mural-completo.json site/; fi

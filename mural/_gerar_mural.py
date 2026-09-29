@@ -675,30 +675,12 @@ io.open(os.path.join(AQUI, "mural-inteiro.html"), "w", encoding="utf-8").write(m
 # site, e não /mural/mural.html. Os dois arquivos são idênticos e ambos são
 # gerados; mural.html continua sendo o canônico.
 io.open(os.path.join(AQUI, "..", "index.html"), "w", encoding="utf-8").write(html)
-# ---- politica de privacidade
-# Gerada a partir do que o site faz de fato, com a identificacao de quem responde pelos dados
-# vinda de notas/organizacao.json. Desde 23/9/2026 só o email de contato aparece: sem inscrições,
-# o site não guarda dado pessoal que precise de responsável nomeado, e nome da organização,
-# CNPJ, endereço e encarregado saíram da página. Enquanto o email estiver por preencher, a pagina sai
-# com um aviso visivel e a regressao barra a publicacao com o cadastro ligado: cadastro no ar
-# com politica incompleta e o tipo de coisa que nao pode passar por descuido.
-ORG_PATH = os.path.join(AQUI, "..", "notas", "organizacao.json")
-org = json.load(io.open(ORG_PATH, encoding="utf-8")) if os.path.exists(ORG_PATH) else {}
-falta = [k for k in ("email",)
-         if str(org.get(k, "")).startswith("PREENCHER") or not org.get(k)]
-_meses_pv = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho",
-             "agosto", "setembro", "outubro", "novembro", "dezembro"]
-_hoje_pv = _dt.datetime.now(_ZI("America/Sao_Paulo")) if hasattr(_dt, "datetime") else _dt.now(_ZI("America/Sao_Paulo"))
-aviso = ("" if not falta else
-         '<p class="falta"><b>Esta politica ainda esta incompleta.</b> Faltam preencher: '
-         + ", ".join(falta) + '. Enquanto isso, o cadastro nao deve ser aberto ao publico.</p>')
-pv = io.open(os.path.join(AQUI, "_privacidade.html"), encoding="utf-8").read()
-_troca = [("__DATA_POLITICA__", "%d de %s de %d" % (_hoje_pv.day, _meses_pv[_hoje_pv.month - 1], _hoje_pv.year)),
-          ("__AVISO_LACUNA__", aviso),
-          ("__ORG_EMAIL__", org.get("email", ""))]
-for _k, _v in _troca:
-    pv = pv.replace(_k, _v)
-io.open(os.path.join(AQUI, "..", "privacidade.html"), "w", encoding="utf-8").write(pv)
+# ---- sem página de privacidade (29/9/2026)
+# O site não tem conta nem inscrição, e a página foi retirada a pedido. privacidade.html antiga
+# é apagada se sobrar de uma geração anterior, para não voltar a ser publicada.
+_pv_velha = os.path.join(AQUI, "..", "privacidade.html")
+if os.path.exists(_pv_velha):
+    os.remove(_pv_velha)
 
 ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.values())
 print("mural.html", len(html), "bytes público +", len(js_prot), "bytes protegidos |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",

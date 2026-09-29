@@ -15,9 +15,6 @@ on:
     branches: [main]
     paths:
       - index.html
-      - privacidade.html
-      - mural/_privacidade.html
-      - notas/organizacao.json
       - mural/logo/**
       - CNAME
       - .github/workflows/publicar.yml
@@ -53,16 +50,6 @@ jobs:
           MURAL_SUPABASE_ANON: ${{ secrets.MURAL_SUPABASE_ANON }}
           MURAL_CARGA_URL: ${{ secrets.MURAL_CARGA_URL }}
         run: python3 mural/_gerar_mural.py
-      # Cadastro no ar exige política de privacidade completa. É dado pessoal de brasileiro, a
-      # LGPD se aplica, e formulário publicado ao lado de uma política com lacuna é exatamente o
-      # que não pode passar por descuido. Só barra quando a chave da conta existe de verdade.
-      - name: Não publicar cadastro com política incompleta
-        run: |
-          if [ -n "${{ secrets.MURAL_SUPABASE_URL }}" ] && grep -q "PREENCHER" privacidade.html; then
-            echo "::error::O cadastro está configurado, mas notas/organizacao.json ainda tem campos por preencher. Preencha antes de publicar."
-            exit 1
-          fi
-
       - name: Separar o que o site serve
         run: |
           mkdir -p site/mural/logo
@@ -73,7 +60,6 @@ jobs:
           # consegue rastrear numa URL; embutido em data: ele não busca.
           cp mural/logo/mural-icone.svg mural/logo/mural-favicon-32.png \
              mural/logo/mural-icone-192.png mural/logo/mural-icone-180.png site/mural/logo/
-          cp privacidade.html site/privacidade.html
           # O domínio próprio vai junto do artefato. Publicando por Actions não existe branch de
           # onde o Pages leia o CNAME, e artefato sem ele é o jeito conhecido de o domínio se
           # perder numa publicação; quando isso acontece o certificado cai junto e o site volta a

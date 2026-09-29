@@ -35,7 +35,7 @@ jobs:
           done
       - name: Redirecionamentos
         run: |
-          for u in http://muraldoscandidatos.com/ https://muraldoscandidatos.com/ http://www.muraldoscandidatos.com/ https://www.muraldoscandidatos.com/ https://muraldoscandidatos.com/privacidade.html; do
+          for u in http://muraldoscandidatos.com/ https://muraldoscandidatos.com/ http://www.muraldoscandidatos.com/ https://www.muraldoscandidatos.com/; do
             echo "== $u"
             curl -sS -o /dev/null -m 20 -w 'status %{http_code} -> %{redirect_url} | ssl_verify %{ssl_verify_result}\n' "$u" || echo "falhou"
           done

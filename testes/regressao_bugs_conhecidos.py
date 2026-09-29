@@ -980,14 +980,13 @@ with sync_playwright() as p:
         }""")
         check("sem trava, a página publicada mostra candidatura em toda disputa",
               all(n > 0 for n in aberto.values()), aberto)
-    pol = (_P(__file__).resolve().parent.parent / "privacidade.html")
-    check("a política de privacidade é gerada e o rodapé leva até ela",
-          pol.exists() and page.evaluate("!!document.querySelector('a[href=\"privacidade.html\"]')"),
-          pol.exists())
-    texto_pol = pol.read_text(encoding="utf-8") if pol.exists() else ""
-    check("a política diz o que o site faz de fato: sem rastreador, e o que fica no navegador",
-          "Google Analytics" in texto_pol and "mural.prefs" in texto_pol
-          and "CPF" in texto_pol and "art. 18" in texto_pol, len(texto_pol))
+    # 29/9/2026: a página de privacidade saiu (o site não tem conta) e o site não aponta para o código
+    raiz_pv = _P(__file__).resolve().parent.parent
+    html_pv = (raiz_pv / "index.html").read_text(encoding="utf-8")
+    check("sem página de privacidade, sem link para ela e sem menção ao repositório",
+          not (raiz_pv / "privacidade.html").exists() and "privacidade.html" not in html_pv
+          and "observatorio-2026" not in html_pv and "repositório" not in html_pv,
+          (raiz_pv / "privacidade.html").exists())
     b.close()
 
     # com as chaves configuradas: cadeado nas abas e cadastro no lugar da editoria vazia
@@ -1261,22 +1260,21 @@ with sync_playwright() as p:
     # pelo próprio teste, nas duas versões, e conferimos para onde o navegador termina.
     raiz_ = _P(__file__).resolve().parent.parent
     b, page, errs = novo_ctx(p)
-    corpos = {"/": (raiz_ / "index.html").read_text(encoding="utf-8"),
-              "/privacidade.html": (raiz_ / "privacidade.html").read_text(encoding="utf-8")}
+    corpos = {"/": (raiz_ / "index.html").read_text(encoding="utf-8")}
     def servir(r):
         u = urlsplit(r.request.url)
         doc = r.request.resource_type == "document" and u.hostname == "muraldoscandidatos.com"
         r.fulfill(status=200, content_type="text/html; charset=utf-8", body=corpos.get(u.path, "") if doc else "")
     page.route("**/*", servir)
     destinos = {}
-    for caminho in ("", "privacidade.html"):
+    for caminho in ("",):
         try:
             page.goto("http://muraldoscandidatos.com/" + caminho + "#geral", wait_until="commit")
             page.wait_for_url("https://**", timeout=5000)
         except Exception:
             pass
         destinos[caminho or "/"] = page.url
-    check("quem entra por http:// é levado ao https:// (capa e privacidade)",
+    check("quem entra por http:// é levado ao https://",
           all(u.startswith("https://muraldoscandidatos.com/") for u in destinos.values())
           and destinos["/"].endswith("#geral"), destinos)
     b.close()
