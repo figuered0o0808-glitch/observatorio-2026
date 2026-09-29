@@ -790,13 +790,22 @@ with sync_playwright() as p:
         for (const n of OITO) { const pts = serieDe(n);
             const rec = pts.filter(p => p.t > T1 - 12 * 864e5).map(p => p.v), ant = pts.filter(p => p.t > T1 - 42 * 864e5 && p.t <= T1 - 30 * 864e5).map(p => p.v);
             if (rec.length < 3 || ant.length < 3) continue;
-            const p = posicao(n); out[n] = {bruto: med(rec) - med(ant), media: p && p.delta != null ? p.delta : null, nRec: rec.length, nAnt: ant.length}; }
+            const p = posicao(n); out[n] = {bruto: med(rec) - med(ant), agora: p ? p.agora : null, medRec: med(rec), medAnt: med(ant), nRec: rec.length, nAnt: ant.length}; }
         return out; }""")
+    # Até 29/9/2026 a regra comparava o bruto com a variação de 30 dias da própria média. As duas
+    # medem janelas diferentes: com a Quaest de 28/9, o "30 dias atrás" da média caiu em cima do
+    # salto de Cury de 29 a 31/8 (de ~2% a ~10%), a média daquele instante já pegava metade dele e a
+    # variação saiu 0,7 contra 3,6 do bruto, embora a média de hoje (4,9) estivesse colada nas
+    # rodadas recentes (~5,5). O que "achatar" quer dizer é a média não chegar aonde as rodadas
+    # chegaram: agora a regra mede isso, com a mesma base bruta dos dois lados.
     quem = max(mov, key=lambda n: abs(mov[n]["bruto"])) if mov else None
     m = mov.get(quem) if quem else None
     grande = m is not None and abs(m["bruto"]) >= 3
-    passa = (not grande) or (m["media"] is not None and (m["media"] > 0) == (m["bruto"] > 0) and abs(m["media"]) >= 0.6 * abs(m["bruto"]))
-    check("a média não achata movimento real: quem mais se moveu nas rodadas brutas move a média no mesmo sentido, ao menos 60%",
+    passa = (not grande) or (m["agora"] is not None
+                             and (m["agora"] - m["medAnt"] > 0) == (m["bruto"] > 0)
+                             and abs(m["agora"] - m["medAnt"]) >= 0.6 * abs(m["bruto"])
+                             and abs(m["agora"] - m["medRec"]) <= max(1.5, 0.4 * abs(m["bruto"])))
+    check("a média não achata movimento real: quem mais se moveu nas rodadas brutas leva a média ao nível das rodadas recentes",
           passa, {"quem": quem, **({k: (round(v, 2) if isinstance(v, float) else v) for k, v in m.items()} if m else {})})
     # o gráfico da home e a legenda-placar precisam mostrar o mesmo número (bug: o gráfico da home
     # ficou na média antiga quando a agregação entrou, e dizia 33,8% onde a legenda dizia 33,4%)
