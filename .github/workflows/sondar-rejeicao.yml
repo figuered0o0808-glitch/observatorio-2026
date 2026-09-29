@@ -1,0 +1,29 @@
+# Diagnóstico: procura rejeição presidencial na imprensa a partir do runner (coleta/_sonda_rejeicao.py).
+# Não grava nada; os números são conferidos e gravados à mão, com a fonte de cada um.
+name: Sondar rejeição
+
+on:
+  workflow_dispatch:
+    inputs:
+      institutos:
+        description: 'Institutos separados por vírgula'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Procurar
+        env:
+          INSTITUTOS: ${{ inputs.institutos }}
+        run: |
+          IFS=',' read -ra L <<< "$INSTITUTOS"
+          python3 coleta/_sonda_rejeicao.py "${L[@]}" | tee sonda.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sonda-rejeicao
+          path: sonda.txt
