@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       institutos:
-        description: 'Institutos separados por vírgula'
+        description: 'Institutos ou buscas prontas, separados por ponto e vírgula'
         required: true
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
         env:
           INSTITUTOS: ${{ inputs.institutos }}
         run: |
-          IFS=',' read -ra L <<< "$INSTITUTOS"
+          IFS=';' read -ra L <<< "$INSTITUTOS"
           python3 coleta/_sonda_rejeicao.py "${L[@]}" | tee sonda.txt
       - uses: actions/upload-artifact@v4
         with:

@@ -8,6 +8,7 @@ data de publicação, o endereço e as linhas que citam rejeição ou "não vota
 A conferência e a gravação ficam para depois, feitas à mão com a fonte de cada número.
 
     python3 coleta/_sonda_rejeicao.py "Quaest" "Datafolha" ...
+    python3 coleta/_sonda_rejeicao.py "rejeição AtlasIntel Bloomberg 16 de setembro"   (busca pronta)
 """
 import html, re, sys, time, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
@@ -46,7 +47,10 @@ def linhas(url):
 def main():
     vistos = set()
     for inst in sys.argv[1:]:
-        for q in ('rejeição %s presidente Lula Flávio setembro' % inst, '"%s" rejeição "não votaria" presidente' % inst):
+        # argumento com espaço é uma busca pronta; sem espaço, o nome do instituto
+        buscas = [inst] if " " in inst else ['rejeição %s presidente Lula Flávio setembro' % inst,
+                                             '"%s" rejeição "não votaria" presidente' % inst]
+        for q in buscas:
             print("#" * 100); print("BUSCA", q, flush=True)
             try:
                 res = bing(q)
