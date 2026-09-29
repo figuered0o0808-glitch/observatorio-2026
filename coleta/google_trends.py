@@ -31,6 +31,10 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 SAIDA = os.path.join("dados", "trends-2026.csv")
 INICIO = "2026-01-01"
+# O Trends só devolve pontos diários para janelas de até 269 dias; acima disso passa a semanal
+# (visto em 28/9/2026: 3497 linhas viraram 520 e o guarda de dados recusou). A janela anda:
+# começa em INICIO enquanto couber e depois fica sempre nos últimos DIAS_DIARIOS dias.
+DIAS_DIARIOS = 269
 GEO = "BR"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
@@ -162,11 +166,19 @@ def gravar(caminho, linhas):
         f.write(b"\xef\xbb\xbf" + buf.getvalue().encode("utf-8"))
 
 
+def inicio_da_janela(fim, desde=INICIO):
+    """Primeiro dia da janela diária que termina em fim: desde, ou fim - 268 dias se passar de 269."""
+    fim_d = datetime.strptime(fim, "%Y-%m-%d").date()
+    minimo = fim_d - timedelta(days=DIAS_DIARIOS - 1)
+    return max(datetime.strptime(desde, "%Y-%m-%d").date(), minimo).isoformat()
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Série do Google Trends para os termos nacionais")
     ap.add_argument("--raiz", default=RAIZ)
     ap.add_argument("--saida", default=None)
-    ap.add_argument("--desde", default=INICIO, help="primeiro dia da janela (padrão 2026-01-01)")
+    ap.add_argument("--desde", default=INICIO, help="primeiro dia da janela (padrão 2026-01-01, "
+                    "adiantado para caber em %d dias)" % DIAS_DIARIOS)
     ap.add_argument("--ate", default=None, help="último dia da janela (padrão: ontem em Brasília)")
     ap.add_argument("--pausa", type=float, default=6.0, help="segundos entre lotes")
     ap.add_argument("--dry-run", action="store_true")
@@ -174,6 +186,7 @@ def main(argv=None):
 
     hoje = datetime.now(BR).date()
     fim = a.ate or (hoje - timedelta(days=1)).isoformat()
+    a.desde = inicio_da_janela(fim, a.desde)
     saida = a.saida or os.path.join(a.raiz, SAIDA)
     carimbo = datetime.now(BR).strftime("%-d/%-m/%Y, %-Hh%M de Brasília")
 

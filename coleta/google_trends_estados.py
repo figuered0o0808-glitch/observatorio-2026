@@ -24,7 +24,7 @@ from datetime import datetime, timedelta, timezone
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 sys.path.insert(0, AQUI)
-from google_trends import Sessao, ErroTrends  # noqa: E402
+from google_trends import Sessao, ErroTrends, inicio_da_janela  # noqa: E402
 
 DUMP = os.path.join("dados", "estados", "_trends-estados.json")
 INICIO = "2026-01-01"
@@ -81,6 +81,7 @@ def main(argv=None):
 
     hoje = datetime.now(BR).date()
     fim = a.ate or (hoje - timedelta(days=1)).isoformat()
+    a.desde = inicio_da_janela(fim, a.desde)   # janela de até 269 dias, para os pontos seguirem diários
     chaves = sorted(plano)
     if a.lotes:
         chaves = chaves[:a.lotes]
