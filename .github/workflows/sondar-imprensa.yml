@@ -1,0 +1,40 @@
+# Diagnóstico: lê matérias de pesquisa (Gazeta do Povo e outras) a partir do runner, que alcança
+# os sites que o ambiente de trabalho não alcança, e mostra datas e números citados. Não grava nada.
+name: Sondar imprensa
+
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 'URLs separadas por espaço'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ler as matérias
+        env:
+          URLS: ${{ inputs.urls }}
+        run: |
+          python3 - <<'PY'
+          import os, re, html, urllib.request
+          for u in os.environ["URLS"].split():
+              print("=" * 100); print(u)
+              try:
+                  req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0 (observatorio-2026)"})
+                  t = urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace")
+              except Exception as e:
+                  print("ERRO", e); continue
+              m = re.search(r'"datePublished"\s*:\s*"([^"]+)"', t); print("publicado:", m.group(1) if m else "?")
+              t = re.sub(r"(?s)<(script|style)[^>]*>.*?</\1>", " ", t)
+              t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
+              linhas = [l.strip() for l in t.splitlines() if l.strip()]
+              vistos = set()
+              for l in linhas:
+                  if (re.search(r"\d+(,\d+)?\s*%", l) or re.search(r"(registr|entrevist|margem|campo|realizad|BR-\d)", l, re.I)) and len(l) < 400 and l not in vistos:
+                      vistos.add(l); print("  ", l)
+          PY
