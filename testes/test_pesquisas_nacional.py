@@ -388,6 +388,29 @@ class Funcoes(unittest.TestCase):
         self.assertTrue(any("'Palver'" in a for a in avisos) and any("'Vox Brasil'" in a for a in avisos))
 
 
+class LinhaForaDeColuna(unittest.TestCase):
+    """Linha deslocada na página não vira rodada (Datafolha de 1/10/2026, revisão 73101609)."""
+
+    def rodada(self, amostra="2506", margem="2", cands=(("Lula", "42"), ("Flávio Bolsonaro", "38"), ("Augusto Cury", "5"))):
+        return {"amostra": amostra, "margem": margem,
+                "cenarios": [{"candidatos": list(cands), "outros": "5", "indecisos": "2"}]}
+
+    def test_o_caso_real(self):
+        rd = self.rodada(amostra="42", margem="38", cands=(("Lula", "4"), ("Flávio Bolsonaro", "3"), ("Augusto Cury", "3")))
+        self.assertIn("amostra", wpn.implausivel(rd))
+
+    def test_margem_absurda(self):
+        self.assertIn("margem", wpn.implausivel(self.rodada(margem="38")))
+
+    def test_soma_baixa(self):
+        rd = self.rodada(cands=(("Lula", "4"), ("Flávio Bolsonaro", "3")))
+        self.assertIn("somando", wpn.implausivel(rd))
+
+    def test_rodada_normal_passa(self):
+        self.assertIsNone(wpn.implausivel(self.rodada()))
+        self.assertIsNone(wpn.implausivel(self.rodada(amostra="", margem="")))
+
+
 class AnoPelaOrdem(unittest.TestCase):
     """27/9/2026: o título '2025' da página não era lido como seção e as tabelas de 2025 e 2024
     herdavam '2026'. O ano passa a descer quando a ordem dos meses vira."""

@@ -29,6 +29,12 @@ pesq = ler("pesquisas-registradas.csv")
 EXCLUIDAS = {(r["instituto"], r["data_divulgacao"], r["data_campo_fim"]): r["motivo"]
              for r in ler("rodadas-excluidas.csv")} if os.path.exists(os.path.join(DADOS, "rodadas-excluidas.csv")) else {}
 pesq = [r for r in pesq if (r["instituto"], r["data_divulgacao"], r["data_campo_fim"]) not in EXCLUIDAS]
+# Rodada excluída por erro de coleta pode voltar refeita à mão, com a matéria de cada número, em
+# dados/pesquisas-corrigidas.csv (mesmas colunas). Entra depois do filtro, então a versão errada
+# continua guardada na base e fora do mural. Primeiro caso: Datafolha de 1/10/2026, que veio
+# deslocada da Wikipédia.
+if os.path.exists(os.path.join(DADOS, "pesquisas-corrigidas.csv")):
+    pesq += ler("pesquisas-corrigidas.csv")
 ev = ler("eventos.csv")
 part = ler("partidos.csv")
 trends_rows = ler("trends-2026.csv")

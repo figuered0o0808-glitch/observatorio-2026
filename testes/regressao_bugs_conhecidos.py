@@ -1351,7 +1351,11 @@ with sync_playwright() as p:
 
     # ---- rodadas de 2024 e 2025 datadas como 2026 (27/9/2026): ficam na base, fora da conta
     import csv as _csv, io as _io
-    excl = list(_csv.DictReader(_io.open(_P(__file__).resolve().parent.parent / "dados" / "rodadas-excluidas.csv", encoding="utf-8-sig")))
+    excl_todas = list(_csv.DictReader(_io.open(_P(__file__).resolve().parent.parent / "dados" / "rodadas-excluidas.csv", encoding="utf-8-sig")))
+    # rodada excluída que voltou refeita à mão (dados/pesquisas-corrigidas.csv) é conferida à parte
+    _corr = _P(__file__).resolve().parent.parent / "dados" / "pesquisas-corrigidas.csv"
+    corrigidas = {(c["instituto"], c["data_divulgacao"]) for c in _csv.DictReader(_io.open(_corr, encoding="utf-8-sig"))} if _corr.exists() else set()
+    excl = [e for e in excl_todas if (e["instituto"], e["data_divulgacao"]) not in corrigidas]
     b, page, errs = novo_ctx(p)
     page.goto(URL)
     page.wait_for_timeout(800)
@@ -1360,7 +1364,12 @@ with sync_playwright() as p:
                 fichas: DATA.fichas.filter(f => k.has(f.inst + '|' + f.dt)).length,
                 excluidas: DATA.meta.excluidas, primeira: DATA.meta.primeira}; }""", [[e["instituto"], e["data_divulgacao"]] for e in excl])
     check("rodadas antigas datadas como 2026 ficam fora de pontos, fichas e contagens",
-          r["polls"] == 0 and r["fichas"] == 0 and r["excluidas"] == len(excl) and len(excl) >= 35, r)
+          r["polls"] == 0 and r["fichas"] == 0 and r["excluidas"] == len(excl_todas) and len(excl) >= 35, r)
+    # Datafolha de 1/10/2026: a linha da Wikipédia veio deslocada (Lula com 4%); no mural fica a refeita
+    df = page.evaluate("""() => ({lula: DATA.polls.filter(p => p[0] === 'Datafolha' && p[1] === '2026-10-01' && p[2] === 'Lula').map(p => p[3]),
+        t2: DATA.polls2t.filter(p => p[0] === 'Datafolha' && p[1] === '2026-10-01').map(p => p[2] + ' ' + p[3]).sort()})""")
+    check("rodada refeita à mão substitui a deslocada (Datafolha 1/10: Lula 42, 2º turno 48 a 45)",
+          df["lula"] == [42] and df["t2"] == ["Flávio Bolsonaro 45", "Lula 48"], df)
     check("rodadas excluídas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 

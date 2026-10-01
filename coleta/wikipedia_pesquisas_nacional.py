@@ -913,6 +913,31 @@ def carregar_html(caminho, revid=None):
 
 
 # ------------------------------------------------------------------ programa
+AMOSTRA_MINIMA = 300   # pesquisa nacional registrada nunca tem menos que isso
+MARGEM_MAXIMA = 10.0
+SOMA_MINIMA, SOMA_MAXIMA = 70.0, 115.0   # o maior legítimo até 1/10/2026: Veritá, 110,6
+
+
+def implausivel(rd):
+    """Motivo para recusar uma linha da página que saiu deslocada, ou None.
+
+    Em 1/10/2026 a linha do Datafolha veio fora de coluna (revisão 73101609): a amostra entrou
+    como n=42 e a margem como 38, que eram os 42% de Lula e os 38% de Flávio, e o 1º turno
+    somava 21%. Nada disso é pesquisa de verdade; a rodada fica de fora até a página ser
+    corrigida, e a coleta seguinte a relê sozinha."""
+    if rd["amostra"] and int(rd["amostra"]) < AMOSTRA_MINIMA:
+        return "amostra n=%s" % rd["amostra"]
+    if rd["margem"] and float(rd["margem"]) > MARGEM_MAXIMA:
+        return "margem de erro %s" % rd["margem"]
+    if rd["cenarios"]:
+        c = rd["cenarios"][0]
+        soma = sum(float(v) for _, v in c["candidatos"])
+        soma += sum(float(c[k]) for k in ("outros", "indecisos") if c.get(k))
+        if not SOMA_MINIMA <= soma <= SOMA_MAXIMA:
+            return "1º turno somando %.1f%%" % soma
+    return None
+
+
 def processar(html, revid, linhas_csv, hoje=None, desde=""):
     """Núcleo sem efeitos colaterais: devolve (novas, presentes, res) onde novas e presentes
     são listas de rodadas do 1º turno já completadas."""
@@ -929,6 +954,11 @@ def processar(html, revid, linhas_csv, hoje=None, desde=""):
             continue
         if rd["futura"]:
             res["avisos"].append("data de campo no futuro, rodada ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
+            continue
+        motivo = implausivel(rd)
+        if motivo:
+            res["avisos"].append("linha fora de coluna na página, rodada ignorada (%s): %s %s"
+                                 % (motivo, rd["instituto_pagina"], rd["campo_fim"]))
             continue
         chave = rodada_presente(rd, existentes)
         if chave:
