@@ -32,21 +32,24 @@ def bing(q):
     return out
 
 
-def linhas(url):
+def linhas(url, chave=None):
     t = pedir(url)
     m = re.search(r'"datePublished"\s*:\s*"([^"]+)"', t)
     t = re.sub(r"(?s)<(script|style)[^>]*>.*?</\1>", " ", t)
     t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
     ls, vistos = [], set()
     for l in (x.strip() for x in t.splitlines()):
-        if l and len(l) < 600 and l not in vistos and CHAVE.search(l) and re.search(r"\d", l):
+        if l and len(l) < 600 and l not in vistos and (chave or CHAVE).search(l) and re.search(r"\d", l):
             vistos.add(l); ls.append(l)
     return (m.group(1) if m else "?"), ls
 
 
 def main():
-    vistos = set()
+    vistos, chave = set(), None
     for inst in sys.argv[1:]:
+        # "chave=REGEX" troca o filtro de linhas (padrão: rejeição) para as buscas seguintes
+        if inst.startswith("chave="):
+            chave = re.compile(inst[6:], re.I); continue
         # argumento com espaço é uma busca pronta; sem espaço, o nome do instituto
         buscas = [inst] if " " in inst else ['rejeição %s presidente Lula Flávio setembro' % inst,
                                              '"%s" rejeição "não votaria" presidente' % inst]
@@ -61,7 +64,7 @@ def main():
                     continue
                 vistos.add(url)
                 try:
-                    data, ls = linhas(url)
+                    data, ls = linhas(url, chave)
                 except Exception as e:
                     print("  ERRO", url, e); continue
                 if not ls:
