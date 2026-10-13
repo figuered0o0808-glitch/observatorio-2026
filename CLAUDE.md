@@ -180,6 +180,11 @@ projeto:
   gráfico ou texto do 2º turno refaz a média por conta própria. O resultado do
   TSE vem de `RES` (`resPres`, `resGov`, `resSen`), exibido com `fPct2`; as
   contas do 1º turno se ancoram em `ULT1T` (3/10), não em `ULT`.
+- O erro das pesquisas no 1º turno tem uma função só, `erro1T()`: erro é pesquisa menos urna, a
+  margem é a do primeiro de `FINAL` menos a do segundo, e a média de referência é a publicada na
+  véspera (`DATA.vespera`), com a conta refeita ao lado. É medida, nunca correção: a média do 2º turno
+  não usa nada dela. A editoria Pesquisas abre pelo 2º turno (`#ch-corrida`, em votos válidos) e
+  guarda a corrida do 1º turno no histórico (`#ch-corrida-1t`), com a régua de cada dia.
 - A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
   factuais, montadas por `ORDEM()` (média móvel do dia) e por `liderDe()`
   (última rodada do estado). Não escrever leitura editorial ali: o observatório

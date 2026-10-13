@@ -309,6 +309,15 @@ dialog.drawer .toast{bottom:calc(80px + env(safe-area-inset-bottom))}
 .lead-line{stroke:var(--ink-3);stroke-width:1;opacity:.6}
 details.rodadas{margin-top:12px;color:var(--ink-2);font-size:13px}
 details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
+/* Pesquisas no 2º turno (13/10/2026): o painel pesquisas x urna do 1º turno, a dobra da conta do 1º
+   turno nas fórmulas do Método e o seletor da tabela de rodadas */
+#p-erro1t .erro1t-h{margin:18px 0 6px;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+#p-erro1t .cap{max-width:84ch}
+#tb-erro1t-c tr.soma td{border-top:1.5px solid var(--ink-3)}
+#ch-erro1t{margin:8px 0 4px}
+.formulas details.fx-1t{margin-top:12px}
+.formulas details.fx-1t>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13.5px}
+.formulas details.fx-1t>p{margin-top:6px}
 .empty{padding:22px 18px;border:1px dashed var(--line);border-radius:4px;color:var(--ink-3);font-size:13.5px;text-align:center}
 .empty b{display:block;color:var(--ink);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 72,"wght" 900;font-stretch:72%;font-weight:900;font-size:20px;text-transform:uppercase;margin-bottom:4px}
 
@@ -1383,33 +1392,57 @@ table th{background:#000;color:#fff;border-bottom:0}
 </section>
 
 <section class="view" id="v-pesquisas" role="tabpanel" data-title="Pesquisas">
-  <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display">A corrida</h2></div>
-  <p class="sub">Cada ponto é uma rodada de primeiro turno, na pergunta estimulada. A linha é a média móvel de <span class="sig-dias">4 dias</span> dos institutos selecionados, e essa janela encurta um dia a cada dez até a eleição.</p>
-  <details class="howto"><summary>Como ler</summary><p>O gráfico reúne pesquisas feitas de formas diferentes. A AtlasIntel, que coleta pela internet, costuma dar a Lula mais do que as pesquisas presenciais e por telefone. Para comparar só pesquisas feitas do mesmo jeito, use os filtros de instituto e de modo de coleta. O período e os candidatos em destaque são escolhidos em Personalizar.</p></details>
-  <div class="panel main">
-    <div class="ph"><h3>Intenção de voto no primeiro turno</h3></div>
+  <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display">O segundo turno</h2></div>
+  <p class="sub">Cada ponto é uma rodada de segundo turno, convertida em votos válidos (a parte de cada um na soma dos dois). A linha é a média de <span class="sig2-dias">1 dia</span> das rodadas feitas depois de <span class="dia-1t">4/10</span>.</p>
+  <details class="howto"><summary>Como ler</summary><p id="corrida-como">O gráfico reúne pesquisas feitas de formas diferentes. Para comparar só pesquisas feitas do mesmo jeito, use os filtros de instituto e de modo de coleta.</p></details>
+  <div class="panel main" id="p-corrida">
+    <div class="ph"><h3 id="corrida-tit">O confronto do 2º turno, em votos válidos</h3><span class="seg" role="group" aria-label="Período do gráfico" id="corrida-seg"><button type="button" data-cj="2t" aria-pressed="true">Desde o 1º turno</button><button type="button" data-cj="ano" aria-pressed="false">O ano todo</button></span></div>
     <div id="ch-corrida"></div>
+    <p class="cap" id="cap-2t"></p>
     <div class="chips legenda" id="f-cands"></div>
     <div class="legend" id="lg-corrida"></div>
     <details class="filtros"><summary>Filtrar institutos e modos (<span id="f-n"></span>)</summary><div class="chips" id="f-inst"></div><div class="chips" id="f-modos"></div></details>
-    <details class="rodadas"><summary id="rod-sum"></summary><div class="tablewrap" style="margin-top:10px"><table id="tb-rodadas"><thead><tr><th>Divulgação</th><th>Instituto</th><th>Campo</th><th>Metodologia</th><th>Registro TSE</th></tr></thead><tbody></tbody></table></div></details>
+    <details class="rodadas"><summary id="rod-sum"></summary><div class="seg" role="group" aria-label="Quais rodadas listar" id="rod-seg" style="margin-top:10px"><button type="button" data-rt="pos" aria-pressed="true">Depois do 1º turno</button><button type="button" data-rt="todas" aria-pressed="false">Todas</button></div><div class="tablewrap" style="margin-top:10px"><table id="tb-rodadas"><thead><tr><th>Divulgação</th><th>Instituto</th><th>Campo</th><th>Metodologia</th><th>Registro TSE</th><th>Turno</th></tr></thead><tbody></tbody></table></div><p class="cap" id="rod-nota"></p></details>
   </div>
-  <div class="grid2">
-    <div class="panel"><h3>Segundo turno: Lula x Flávio Bolsonaro</h3><div class="cap">Cada ponto é uma rodada em votos válidos, a parte de cada um na soma dos dois. A linha é a média das rodadas feitas depois do 1º turno; as simulações anteriores ficam apagadas.</div><div id="ch-2t"></div><p class="cap" id="cap-2t"></p></div>
-    <div class="panel"><h3>Rejeição</h3><div class="cap">"Não votaria de jeito nenhum". Cada instituto faz a pergunta de um jeito, então a comparação só vale dentro do mesmo instituto.</div><div id="ch-rej"></div></div>
+  <div class="panel" id="p-erro1t" hidden>
+    <div class="ph"><h3>O 1º turno: pesquisas x urna</h3><span class="cap" style="margin:0" id="erro1t-cap"></span></div>
+    <p class="cap" id="erro1t-txt"></p>
+    <div class="tablewrap"><table id="tb-erro1t-c"><thead><tr><th>Candidato</th><th class="num">Média na véspera</th><th class="num">Urna (TSE)</th><th class="num">Erro</th><th class="num">Refeita hoje</th></tr></thead><tbody></tbody></table></div>
+    <p class="cap" id="erro1t-ref"></p>
+    <h4 class="erro1t-h">Instituto por instituto, a última rodada antes da votação</h4>
+    <div id="ch-erro1t"></div>
+    <div class="legend" id="lg-erro1t"></div>
+    <details class="rodadas" id="erro1t-fold"><summary>Ver os números de cada instituto</summary><div class="tablewrap" style="margin-top:10px"><table id="tb-erro1t"><thead><tr><th>Instituto</th><th class="num" id="erro1t-ha"></th><th class="num" id="erro1t-hb"></th><th class="num">Erro na margem</th></tr></thead><tbody></tbody></table></div></details>
+    <p class="cap" id="erro1t-resumo"></p>
   </div>
+  <div class="panel" id="p-rej"><h3 id="rej-tit">Rejeição</h3><div class="cap">"Não votaria de jeito nenhum". Cada instituto faz a pergunta de um jeito, então cada linha liga só as rodadas do mesmo instituto, e a comparação só vale dentro dele.</div><div id="ch-rej"></div><div class="legend" id="lg-rej"></div><p class="cap" id="rej-nota"></p></div>
   <section class="block">
-    <div class="blkhead"><span class="eyebrow">Metodologia</span><h2 class="t display">Cada candidato testado em diferentes ambientes</h2></div>
-    <p class="sub">Pesquisas presenciais, por telefone e pela internet ouvem públicos diferentes e chegam a números diferentes para o mesmo candidato. Aqui cada modo de coleta aparece separado.</p>
-    <details class="howto"><summary>Como ler</summary><p>O modo de cada rodada vem da ficha técnica registrada no TSE. O desvio por instituto compara cada rodada com a média dos outros institutos num período de 28 dias. Valor positivo indica que o instituto costuma dar ao candidato mais do que os concorrentes. A diferença reflete o método de cada instituto e não mostra qual deles está mais perto do resultado.</p></details>
+    <div class="blkhead"><span class="eyebrow">Metodologia</span><h2 class="t display">Cada modo de coleta, uma régua</h2></div>
+    <p class="sub">Pesquisas presenciais, por telefone e pela internet ouvem públicos diferentes e chegam a números diferentes. No 2º turno a pergunta é uma só, a distância entre os dois em votos válidos, e aqui cada modo de coleta aparece separado.</p>
+    <details class="howto"><summary>Como ler</summary><p id="meta-como">O modo de cada rodada vem da ficha técnica registrada no TSE. Duas medidas aparecem aqui, e elas respondem a perguntas diferentes. O desvio compara cada rodada com as dos outros institutos na mesma semana: valor positivo indica que o instituto costuma dar a margem maior que os concorrentes. Ele reflete o método e não diz qual instituto está mais perto do resultado. O erro compara a pesquisa com a urna e só existe depois da votação, por isso só há erro medido no 1º turno.</p></details>
     <div class="grid2" style="grid-template-columns:1fr">
       <div class="panel"><div class="ph"><h3>As réguas</h3><div class="seg" role="group" aria-label="Como dividir" id="meta-seg"><button type="button" data-mv="modo" aria-pressed="true">Por metodologia</button><button type="button" data-mv="cand" aria-pressed="false">Por candidato</button></div></div><div class="cap" id="meta-cap"></div><div class="chips" id="f-modo-cand"></div><div class="chips" id="f-modo-modo"></div><div id="ch-modo"></div><div class="legend" id="lg-modo"></div></div>
     </div>
-    <details class="fold"><summary><span class="btn">Ver o desvio médio por instituto</span><span class="cap" style="margin:0">quanto cada instituto mede Lula e Flávio acima ou abaixo dos concorrentes</span></summary>
-      <div class="panel"><h3>Desvio médio por instituto</h3><div class="cap">Em pontos, contra a média dos outros institutos nos mesmos 28 dias. Valor positivo indica que o instituto dá ao candidato mais do que os outros.</div><div class="tablewrap"><table id="tb-vies"><thead><tr><th>Instituto</th><th>Modo</th><th class="num">Rodadas</th><th class="num">Lula</th><th class="num">Flávio</th></tr></thead><tbody></tbody></table></div></div>
+    <details class="fold"><summary><span class="btn">Ver o desvio por instituto</span><span class="cap" style="margin:0" id="vies-sum">quanto cada instituto mede a margem do 2º turno acima ou abaixo dos concorrentes, e o erro dele no 1º turno</span></summary>
+      <div class="panel"><h3>Desvio por instituto</h3><div class="cap" id="vies-cap">Em pontos de votos válidos, contra a mediana dos outros institutos na mesma semana.</div><div class="tablewrap"><table id="tb-vies"><thead><tr><th>Instituto</th><th>Modo</th><th class="num">Rodadas</th><th class="num">Desvio na margem, 2º turno</th><th class="num">Erro na margem, 1º turno</th></tr></thead><tbody></tbody></table></div><p class="cap" id="vies-nota"></p></div>
     </details>
-    <details class="fold"><summary><span class="btn">Ver a disputa em cada régua</span><span class="cap" style="margin:0">a última rodada de cada modo de coleta, candidato por candidato</span></summary>
-    <div class="panel"><div class="ph"><h3>A disputa em cada régua</h3><span class="cap" style="margin:0">última rodada de cada modo de coleta. Em destaque, o modo que deu o número mais alto nos últimos 14 dias</span></div><div class="tablewrap"><table id="tb-reguas"><thead><tr><th>Candidato</th><th class="num">Presencial</th><th class="num">Telefônica</th><th class="num">Digital</th><th class="num">Não informada</th><th class="num">Média móvel, todas</th></tr></thead><tbody></tbody></table></div></div>
+    <details class="fold"><summary><span class="btn">Ver a disputa em cada régua</span><span class="cap" style="margin:0">a última rodada de 2º turno de cada modo de coleta</span></summary>
+    <div class="panel"><div class="ph"><h3>A disputa em cada régua</h3><span class="cap" style="margin:0" id="reguas-cap">última rodada de cada modo de coleta, em votos válidos</span></div><div class="tablewrap"><table id="tb-reguas"><thead><tr><th></th><th class="num">Presencial</th><th class="num">Telefônica</th><th class="num">Digital</th><th class="num">Não informada</th><th class="num">Média, todas</th></tr></thead><tbody></tbody></table></div></div>
+    </details>
+  </section>
+  <section class="block">
+    <div class="blkhead"><span class="eyebrow">Histórico</span><h2 class="t display">O 1º turno nas pesquisas</h2></div>
+    <p class="sub">A média das pesquisas de 1º turno até a véspera da votação, candidato por candidato, como o mural publicou. Esta parte não muda mais: a última rodada de 1º turno é de <span class="dia-ult1t">3/10</span>.</p>
+    <details class="fold" id="fold-1t"><summary><span class="btn">Ver a corrida do 1º turno</span><span class="cap" style="margin:0">intenção de voto dos principais candidatos, rejeição dos eliminados e a disputa em cada modo de coleta</span></summary>
+      <div class="panel"><div class="ph"><h3>Intenção de voto no 1º turno</h3></div>
+        <div class="cap" id="cap-corrida-1t">Cada ponto é uma rodada de primeiro turno, na pergunta estimulada. A linha segue a régua de cada dia, que encurtou até a votação.</div>
+        <div id="ch-corrida-1t"></div>
+        <div class="chips legenda" id="f-cands-1t"></div>
+        <div class="legend" id="lg-corrida-1t"></div>
+      </div>
+      <div class="panel"><h3>Rejeição no 1º turno</h3><div class="cap">"Não votaria de jeito nenhum", dos candidatos que ficaram no 1º turno. Cada instituto faz a pergunta de um jeito, então a comparação só vale dentro do mesmo instituto.</div><div id="ch-rej-1t"></div></div>
+      <div class="panel"><div class="ph"><h3>A disputa em cada régua no 1º turno</h3><span class="cap" style="margin:0">última rodada de cada modo de coleta até a véspera, em intenção total</span></div><div class="tablewrap"><table id="tb-reguas-1t"><thead><tr><th>Candidato</th><th class="num">Presencial</th><th class="num">Telefônica</th><th class="num">Digital</th><th class="num">Não informada</th><th class="num">Média na véspera</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="panel"><h3>Desvio médio por instituto no 1º turno</h3><div class="cap">Em pontos de intenção total, contra a média dos outros institutos nos mesmos 28 dias. Valor positivo indica que o instituto dava ao candidato mais do que os outros.</div><div class="tablewrap"><table id="tb-vies-1t"><thead><tr><th>Instituto</th><th>Modo</th><th class="num">Rodadas</th><th class="num">Lula</th><th class="num">Flávio</th></tr></thead><tbody></tbody></table></div></div>
     </details>
   </section>
 </section>
@@ -1490,20 +1523,22 @@ table th{background:#000;color:#fff;border-bottom:0}
 <section class="view" id="v-metodo" role="tabpanel" data-title="Método">
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e fontes</h2></div>
   <p class="sub">De onde vem cada número, como ele entra no mural e o que ainda falta.</p>
-  <div class="panel main"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas e Wikipédia são atualizadas duas vezes por dia, e as outras fontes a cada coleta. Todo número tem data e fonte.</div><div class="pipe" id="pipe"></div></div>
+  <div class="panel main"><h3>O caminho do dado</h3><div class="cap">Quatro etapas. Pesquisas, Wikipédia e o resultado do TSE são atualizados duas vezes por dia, e na noite de 25/10 a cada 20 ou 30 minutos; as outras fontes, a cada coleta. Todo número tem data e fonte.</div><div class="pipe" id="pipe"></div></div>
   <div class="grid2 wide-left">
     <div class="panel"><h3>Cobertura por candidato e fonte</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele candidato nesta edição. O quadro mostra quanta informação existe sobre cada um e não avalia os candidatos.</div><div id="ch-cobertura"></div></div>
-    <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta é identificado por palavras-chave na ficha técnica registrada no TSE. Quando a rodada chega sem ficha, vale o modo do próprio instituto, se ele usou sempre o mesmo em pelo menos duas rodadas. Rodadas do ano por modo:</div><div id="ch-modos"></div></div>
+    <div class="panel"><h3>Como cada pesquisa é classificada</h3><div class="cap">O modo de coleta é identificado por palavras-chave na ficha técnica registrada no TSE. Quando a rodada chega sem ficha, vale o modo do próprio instituto, se ele usou sempre o mesmo em pelo menos duas rodadas. Rodadas nacionais do ano por modo, de 1º e de 2º turno:</div><div id="ch-modos"></div></div>
   </div>
   <div class="panel formulas" id="p-formulas"><div class="ph"><h3>As fórmulas da média</h3><span class="cap" style="margin:0">o cálculo da média, passo a passo</span></div>
     <p class="cap">Os valores que aparecem nas fórmulas vêm do mesmo código que calcula a média. Se a regra mudar, as fórmulas mudam também.</p>
     <ol class="fx">
       <li><h4>A régua do tempo</h4>
         <math display="block"><mi>σ</mi><mo>=</mo><mi>max</mi><mo>(</mo><mn class="rg-min">1</mn><mo>,</mo><mspace width="0.3em"/><mn class="rg-s0">4</mn><mo>−</mo><mo>⌊</mo><mi>d</mi><mo>/</mo><mn class="rg-passo">10</mn><mo>⌋</mo><mo>)</mo></math>
-        <p><i>d</i> é o número de dias desde <span class="rg-ini">4/9/2026</span>. A janela encurta um dia a cada <span class="rg-passo">10</span>, e assim as pesquisas mais recentes ganham peso perto da eleição. Hoje, <i>σ</i> = <b class="sig-dias">3 dias</b>.</p></li>
+        <p><i>d</i> é o número de dias desde <span class="rg-ini">4/9/2026</span>. A janela encurtou um dia a cada <span class="rg-passo">10</span>, para as pesquisas mais recentes ganharem peso perto da eleição, e chegou a <span class="rg-fim-dias">1 dia</span> em <span class="rg-fim">4/10</span>.</p>
+        <math display="block"><msub><mi>σ</mi><mn>2</mn></msub><mo>=</mo><mi>max</mi><mo>(</mo><mn class="rg2-min">1</mn><mo>,</mo><mspace width="0.3em"/><mn class="rg2-s0">1</mn><mo>−</mo><mo>⌊</mo><msub><mi>d</mi><mn>2</mn></msub><mo>/</mo><mn class="rg2-passo">10</mn><mo>⌋</mo><mo>)</mo></math>
+        <p>No 2º turno vale outra régua, contada desde <span class="rg2-ini">5/10/2026</span> (<i>d</i><sub>2</sub> é o número de dias desde então). Hoje, <i>σ</i><sub>2</sub> = <b class="sig2-dias">1 dia</b>.</p></li>
       <li><h4>A janela que alarga</h4>
         <math display="block"><mi>s</mi><mo>=</mo><mi>min</mi><mo>{</mo><mi>s</mi><mo>≥</mo><mi>σ</mi><mo>:</mo><mspace width="0.3em"/><mtext>institutos com </mtext><mo>|</mo><msub><mi>t</mi><mi>i</mi></msub><mo>−</mo><mi>t</mi><mo>|</mo><mo>≤</mo><mn>2</mn><mi>s</mi><mspace width="0.3em"/><mo>≥</mo><mspace width="0.3em"/><mn class="ag-inst">5</mn><mo>}</mo></math>
-        <p>A janela cresce um dia de cada vez até reunir pesquisas de <span class="ag-inst">5</span> institutos diferentes, para que nenhuma pesquisa isolada defina a média. Dentro da janela, cada instituto entra só com a rodada mais próxima da data. Assim, um instituto que publica toda semana não pesa mais do que outro que publica uma vez por mês.</p></li>
+        <p>A janela cresce um dia de cada vez até reunir pesquisas de <span class="ag-inst">5</span> institutos diferentes, para que nenhuma pesquisa isolada defina a média. Dentro da janela, cada instituto entra só com a rodada mais próxima da data. Assim, um instituto que publica toda semana não pesa mais do que outro que publica uma vez por mês. No 2º turno o mínimo é de <span class="ag2-inst">5</span> institutos.</p></li>
       <li><h4>O peso do tempo</h4>
         <math display="block"><msubsup><mi>w</mi><mi>i</mi><mrow><mo>(</mo><mn>0</mn><mo>)</mo></mrow></msubsup><mo>=</mo><msup><mi>e</mi><mrow><mo>−</mo><msup><mrow><mo>(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>−</mo><mi>t</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>/</mo><mn>2</mn><msup><mi>s</mi><mn>2</mn></msup></mrow></msup></math>
         <p>O peso segue uma curva normal centrada na data do cálculo. Uma rodada de hoje vale 1, uma de <i>s</i> dias atrás vale 0,61 e uma de 2<i>s</i> dias atrás vale 0,14.</p></li>
@@ -1525,19 +1560,23 @@ table th{background:#000;color:#fff;border-bottom:0}
         <math display="block"><msub><mi>n</mi><mtext>ef</mtext></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><munder><mo>∑</mo><mi>i</mi></munder><msubsup><mi>w</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mspace width="1.2em"/><mi>ε</mi><mo>=</mo><msqrt><mrow><mfrac><mrow><msub><mi>Var</mi><mi>w</mi></msub><mo>(</mo><msub><mi>x</mi><mi>a</mi></msub><mo>−</mo><msub><mi>x</mi><mi>b</mi></msub><mo>)</mo></mrow><msub><mi>n</mi><mtext>ef</mtext></msub></mfrac><mo>+</mo><msub><mi>V</mi><mtext>viés</mtext></msub></mrow></msqrt></math>
         <math display="block"><mtext>empate técnico se </mtext><mo>|</mo><msub><mi>m</mi><mi>a</mi></msub><mo>−</mo><msub><mi>m</mi><mi>b</mi></msub><mo>|</mo><mo>&lt;</mo><mi>ε</mi></math>
         <p><i>n</i><sub>ef</sub> é o número efetivo de rodadas, em que uma rodada com peso pequeno conta como uma fração de rodada. <i>V</i><sub>viés</sub> soma à margem o erro da estimativa do viés, já que a correção do viés reduz a dispersão e, sem esse termo, a margem ficaria menor do que deveria. Quando a diferença entre os dois primeiros colocados é menor que <i>ε</i>, o resultado aparece como empate técnico.</p></li>
-      <li><h4>Votos válidos e o primeiro turno</h4>
+      <li><h4>Votos válidos no segundo turno</h4>
+        <math display="block"><msub><mi>v</mi><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mo>=</mo><mn>100</mn><mo>·</mo><mfrac><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>c</mi></mrow></msub><mrow><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>A</mi></mrow></msub><mo>+</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>B</mi></mrow></msub></mrow></mfrac></math>
+        <math display="block"><msub><mi>V</mi><mi>A</mi></msub><mo>=</mo><mn>100</mn><mo>·</mo><mfrac><msub><mi>m</mi><mi>A</mi></msub><mrow><msub><mi>m</mi><mi>A</mi></msub><mo>+</mo><msub><mi>m</mi><mi>B</mi></msub></mrow></mfrac><mspace width="1.2em"/><msub><mi>V</mi><mi>B</mi></msub><mo>=</mo><mn>100</mn><mo>−</mo><msub><mi>V</mi><mi>A</mi></msub></math>
+        <math display="block"><mtext>empate técnico se </mtext><mo>|</mo><msub><mi>V</mi><mi>A</mi></msub><mo>−</mo><msub><mi>V</mi><mi>B</mi></msub><mo>|</mo><mo>&lt;</mo><mi>ε</mi></math>
+        <p>No 2º turno decide quem tem mais da metade dos votos válidos, que são os votos dados aos dois. Cada rodada vira votos válidos pela parte de cada um na soma dos dois, <i>v</i><sub><i>i</i>,<i>c</i></sub>, e a média <i>m</i><sub><i>c</i></sub> é a dos passos acima, com os mesmos pesos e o mesmo desconto de cada instituto. Parte das rodadas é publicada só em votos válidos, e assim todas entram na mesma escala. Como o desconto corrige cada nome em separado, as duas médias são reescaladas para somar 100. A média usa as rodadas com campo terminado depois de <span class="dia-1t">4/10</span>, e só começa com <span class="min-pos1t">3 rodadas de 2 institutos</span>; antes disso o mural mostra as simulações feitas até a véspera. <i>ε</i> é a incerteza da diferença entre os dois, do passo 8.</p>
+        <details class="fx-1t"><summary>A conta do 1º turno</summary>
         <math display="block"><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>c</mi></munder><msub><mi>x</mi><mrow><mi>c</mi><mo>,</mo><mi>i</mi></mrow></msub><mspace width="1.2em"/><msub><mi>v</mi><mi>c</mi></msub><mo>=</mo><mi>F</mi><mo>·</mo><msub><mi>m</mi><mi>c</mi></msub></math>
         <math display="block"><mi>F</mi><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub><mo>·</mo><mn>100</mn><mo>/</mo><msub><mi>S</mi><mi>i</mi></msub></mrow><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>w</mi><mi>i</mi></msub></mrow></mfrac></math>
         <math display="block"><msub><mi>ε</mi><mi>v</mi></msub><mo>=</mo><msqrt><mrow><mfrac><mrow><msub><mi>Var</mi><mi>w</mi></msub><mo>(</mo><mn>100</mn><mo>·</mo><msub><mi>x</mi><mrow><mi>a</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>/</mo><msub><mi>S</mi><mi>i</mi></msub><mo>)</mo></mrow><msub><mi>n</mi><mtext>ef</mtext></msub></mfrac><mo>+</mo><msub><mi>V</mi><mtext>viés</mtext></msub></mrow></msqrt></math>
-        <math display="block"><mtext>vitória no 1º turno se</mtext><mspace width="0.5em"/><msub><mi>v</mi><mi>a</mi></msub><mo>−</mo><mn>50</mn><mo>&gt;</mo><msub><mi>ε</mi><mi>v</mi></msub></math>
-        <math display="block"><mtext>segundo turno se</mtext><mspace width="0.5em"/><mn>50</mn><mo>−</mo><msub><mi>v</mi><mi>a</mi></msub><mo>&gt;</mo><msub><mi>ε</mi><mi>v</mi></msub></math>
-        <p>Vence no primeiro turno quem tem mais de 50% dos votos válidos, que são os votos dados a candidatos. <i>S</i><sub><i>i</i></sub> é a soma dos candidatos da rodada <i>i</i>, com brancos, nulos e indecisos fora, e inclui quem não está no painel, porque esses votos também são válidos. <i>F</i> converte a média de intenção total em votos válidos e usa os mesmos pesos <i>w</i><sub><i>i</i></sub> da média, então a ordem dos candidatos nos válidos é sempre a mesma da média total. Nas rodadas nacionais, entra no fator a rodada que fecha: registra brancos, nulos ou indecisos e soma entre 96% e 104%, ou os candidatos sozinhos já somam entre 96% e 104%. Nos estados a base não registra brancos nem indecisos, e entra a rodada cujos candidatos somam ao menos <span class="vv-min">60%</span>. Quando a distância do líder até 50% é menor que <i>ε</i><sub><i>v</i></sub>, a média não diz se haverá segundo turno, e é isso que o mural escreve.</p></li>
+        <p>No 1º turno, vencia quem passasse de 50% dos votos válidos. <i>S</i><sub><i>i</i></sub> era a soma dos candidatos da rodada <i>i</i>, com brancos, nulos e indecisos fora, incluindo quem não estava no painel, porque esses votos também são válidos. <i>F</i> convertia a média de intenção total em votos válidos com os mesmos pesos <i>w</i><sub><i>i</i></sub> da média, e assim a ordem dos candidatos nos válidos era sempre a da média total. Nas rodadas nacionais, entrava no fator a rodada que fechava: registrava brancos, nulos ou indecisos e somava entre 96% e 104%, ou os candidatos sozinhos já somavam entre 96% e 104%. Quando a distância do líder até 50% ficava menor que <i>ε</i><sub><i>v</i></sub>, a média não dizia se haveria segundo turno, e era isso que o mural escrevia. Nos estados a base não registra brancos nem indecisos, e entra no fator a rodada cujos candidatos somam ao menos <span class="vv-min">60%</span>; é a conta que vale para governador e Senado onde ainda não há resultado.</p>
+        </details></li>
     </ol>
   </div>
   <div class="panel"><div class="ph"><h3>A régua de cada instituto</h3><span class="cap" style="margin:0" id="casa-cap"></span></div>
-    <div class="tablewrap"><table id="tb-casa"><thead><tr><th>Instituto</th><th class="num">Rodadas</th><th class="num">1º turno, Lula</th><th class="num">1º turno, Flávio</th><th class="num">2º turno, margem</th></tr></thead><tbody></tbody></table></div>
+    <div class="tablewrap"><table id="tb-casa"><thead><tr><th>Instituto</th><th class="num">Rodadas de 2º turno, antes e depois de <span class="dia-1t">4/10</span></th><th class="num">Margem do 2º turno</th><th class="num">Erro na margem, 1º turno</th><th class="num">Rodadas de 1º turno</th><th class="num" id="casa-h1a">Lula, até 4/10</th><th class="num" id="casa-h1b">Flávio, até 4/10</th></tr></thead><tbody></tbody></table></div>
     <p class="cap" id="casa-nota"></p></div>
-  <details class="fold"><summary><span class="btn">Ler as notas completas de método</span><span class="cap" style="margin:0">pesquisas, metodologias, redes, busca, partidos, TSE e eventos</span></summary><div class="panel"><div class="notes" id="notes"></div></div></details>
+  <details class="fold"><summary><span class="btn">Ler as notas completas de método</span><span class="cap" style="margin:0">pesquisas, metodologias, resultado oficial, redes, busca, partidos, TSE e eventos</span></summary><div class="panel"><div class="notes" id="notes"></div></div></details>
 </section>
 <section class="view" id="v-e-geral" role="tabpanel" data-title="Visão geral do estado">
   <div class="e-lead">
@@ -1847,6 +1886,14 @@ function preencherFormulas(){
   const put=(sel,val)=>document.querySelectorAll(sel).forEach(e=>e.textContent=val);
   put(".rg-min",br(REGUA.minimo));put(".rg-s0",br(REGUA.sigma0));put(".rg-passo",br(REGUA.passo));
   put(".rg-ini",d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear());
+  // o dia em que a régua do 1º turno chegou ao mínimo (4/10/2026), contado das constantes
+  const fim=new Date(Date.parse(REGUA.inicio+"T12:00:00")+(REGUA.sigma0-REGUA.minimo)*REGUA.passo*864e5);
+  put(".rg-fim",fim.getDate()+"/"+(fim.getMonth()+1));put(".rg-fim-dias",diasTxt(REGUA.minimo));
+  const d2=new Date(REGUA2T.inicio+"T12:00:00");
+  put(".rg2-min",br(REGUA2T.minimo));put(".rg2-s0",br(REGUA2T.sigma0));put(".rg2-passo",br(REGUA2T.passo));
+  put(".rg2-ini",d2.getDate()+"/"+(d2.getMonth()+1)+"/"+d2.getFullYear());
+  // media2T não passa minInst, então o 2º turno usa o mesmo mínimo de institutos (AG.inst)
+  put(".ag2-inst",br(AG.inst));
   put(".ag-inst",br(AG.inst));put(".ag-enc",br(AG.encolhe));put(".ag-tetocasa",br(AG.tetoCasa));
   put(".ag-piso",br(AG.piso));put(".ag-k",br(AG.k));put(".ag-voltas",br(AG.voltas));
   put(".ag-teto",br(Math.round(AG.teto*100))+"%");put(".vv-min",br(VV_UF_MIN)+"%");
@@ -2900,58 +2947,311 @@ function bandaDe(pts,sigma=7,jan=14){
 // nos eventos pegaria também "Fim do horário eleitoral do 1º turno".
 const MARCOS=(()=>{const seen=new Set();return TL.filter(e=>e.data.length>=10&&!/previst/i.test(e.evento)&&(e.categoria==="debate"||(e.categoria==="justiça eleitoral"&&e.candidato!=="todos"&&/suspend|impedid|revog|ineleg|restabelec/i.test(e.evento)))).filter(e=>{const k=e.data+e.categoria;if(seen.has(k))return false;seen.add(k);return true;}).map(e=>({t:Date.parse(e.data),txt:e.evento,tip:`<b>${dBR(e.data)}</b> · ${esc(e.candidato)}<br>${esc(e.evento)}`,cor:e.categoria==="debate"?"var(--m2)":"var(--crit)"}))
   .concat([[TURNOS.t1,"Votação do 1º turno"],[TURNOS.t2,"Votação do 2º turno"]].map(([d,txt])=>({t:Date.parse(d),txt,tip:`<b>${dBR(d)}</b> · ${txt}`,cor:"var(--ink-3)"}))).sort((a,b)=>a.t-b.t);})();
+// ---- o 2º turno na editoria Pesquisas (13/10/2026). O gráfico principal deixou de ser a corrida do 1º
+// turno, que virou histórico mais abaixo (#ch-corrida-1t), e passou a ser o confronto final em votos
+// válidos, com a conta de media2T. Os filtros de instituto e de modo escolhem os pontos e as rodadas da
+// média, mas o efeito casa continua medido em todas as rodadas do confronto (o.base): um instituto não
+// perde a correção só porque os vizinhos dele saíram do filtro.
+let corridaJan="2t", verAntes2T=true;
+// datas em prosa sem o zero à esquerda ("4/10"); dBR fica para carimbos e tabelas
+const diaMes=d=>d?`${+d.slice(8,10)}/${+d.slice(5,7)}`:"";
+// "Desde o 1º turno" começa três dias antes da votação, para o marco de 4/10 e as últimas simulações
+// aparecerem; "O ano todo" vai a 1/1. A borda direita é a do 2º turno (tf2).
+const janCorrida=()=>({tIni:corridaJan==="ano"?Date.parse("2026-01-01"):Date.parse(TURNOS.t1)-3*864e5,tFim:tf2()});
+const filtroPesqAtivo=()=>DATA.institutos.some(i=>!instOn.has(i))||MODOS.some(([m])=>!modoOn.has(m));
+// as rodadas do confronto que passam nos filtros e a média delas no instante da última, pela mesma conta
+// de media2T; sem filtro é a própria media2T, e o rótulo do gráfico é o número do placar
+function corrida2T(){
+  const filtra=filtroPesqAtivo(),ok=r=>instOn.has(r.inst)&&modoOn.has(r.modo||"não informada");
+  const camp=filtra?rodadas2TCampanha().filter(ok):rodadas2TCampanha(),antes=filtra?rodadas2TAntes().filter(ok):rodadas2TAntes();
+  const fase=temPos1T(camp)?"campanha":"antes",rods=fase==="campanha"?camp:antes,o={base:rodadas2TVV()};
+  let m=null;
+  if(!filtra)m=media2T();
+  else if(rods.length){
+    const t=rods[rods.length-1].t,sigma=fase==="campanha"?SIG2:sigmaRegua(dISO(t)),x=agregarEm(rods,FINAL,sigma,t,o),[n1,n2]=FINAL;
+    if(x[n1]!=null&&x[n2]!=null){const [a,b]=x[n1]>=x[n2]?[n1,n2]:[n2,n1],va=100*x[a]/(x[a]+x[b]);m={fase,a,b,va,vb:100-va,sigma,ultima:dISO(t)};}
+  }
+  return {camp,antes,fase,m,o,filtra};
+}
+// As séries do confronto em válidos, como as de series2T: a linha da campanha (rodadas depois de 4/10,
+// régua do 2º turno) e, à parte, a das simulações feitas antes do 1º turno, apagada e sem rótulo, para
+// a média nunca atravessar a votação. Sem média da campanha, a linha e o rótulo são os das simulações.
+// O foco não apaga nenhum dos dois: quem está no 2º turno é sempre mostrado.
+function seriesCorrida2T(C,r){
+  const {camp,antes,fase,m,o}=C,camp1=fase==="campanha";
+  const lc=camp1?linhaAgregada(camp,FINAL,SIG2,o):{};
+  const la=antes.length&&(verAntes2T||!camp1)?linhaAgregada(antes,FINAL,sigmaRegua(dISO(antes[antes.length-1].t)),o):{};
+  const total=(x,n)=>{const p=DATA.polls2t.find(q=>q[0]===x.inst&&q[1]===x.dt&&q[2]===n&&(q[4]||"")===x.url);return p?p[3]:null;};
+  const ponto=(n,x)=>({t:x.t,v:x.v[n],inst:x.inst,d:x.dt,tip:`<b>${esc(n)}</b> · ${fPct(x.v[n])}% dos válidos (${x.base==="v"?"publicada em válidos":fPct(total(x,n))+"% na intenção total"})<br>${esc(x.inst)}, ${dBR(x.dt)}${x.modo&&x.modo!=="não informada"?" · "+esc(x.modo):""}`});
+  const out=[];
+  for(const n of FINAL){
+    const rot=m?`${esc(curto(n))} ${fPct(n===m.a?m.va:m.vb)}%`:undefined;
+    if(antes.length&&(verAntes2T||!camp1))out.push({nome:n,cor:COR[n],sombra:camp1,linha:la[n]||[],r:camp1?r*.85:r,pts:antes.map(x=>ponto(n,x)),rotulo:camp1?false:rot});
+    if(camp.length)out.push({nome:n,cor:COR[n],linha:camp1?lc[n]||[]:[],r,pts:camp.map(x=>ponto(n,x)),rotulo:camp1?rot:false});
+  }
+  return out;
+}
 function drawCorrida(){
-  const nomes=OITO.filter(n=>candOn.has(n)&&!some(n));
-  const bruto={};for(const n of nomes)bruto[n]=serieDe(n).filter(p=>instOn.has(p.inst)&&modoOn.has(p.modo));
-  const linhas=linhaAgregada(emRodadas(bruto),nomes,SIG);
-  const series=nomes.map(n=>{const pts=bruto[n];return {nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas[n],r:3.2,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
-  const j=jan1T(),[ymax,ticks]=escalaY(series,52,ZOOM["#ch-corrida"]?ZOOM["#ch-corrida"][0]:j.tIni);
-  pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:340,ml:44,mr:120,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
-  const M=chartTempo.last.marcos;
-  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel de ${diasTxt(SIG)}</span>`+(M.length?`<details class="marcos-fold" style="flex-basis:100%"><summary>${M.length} marcos numerados no gráfico · ver a lista</summary><ol class="marcos">${M.map((m,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(m.t))} ${esc(m.txt)}</span></li>`).join("")}</ol></details>`:"");
+  const el=$("#ch-corrida");if(!el)return;
+  $("#corrida-tit").textContent=`${FINAL.join(" x ")}, votos válidos`;
+  $$("#corrida-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cj===corridaJan));
+  chipAntes2T();comoLer2T();
+  const C=corrida2T();
+  if(!C.camp.length&&!C.antes.length){el.innerHTML=`<div class="empty"><b>Sem rodada</b>Nenhuma rodada do segundo turno nesta edição${C.filtra?" com esses filtros":""}.</div>`;$("#lg-corrida").innerHTML="";return;}
+  const j=janCorrida(),series=seriesCorrida2T(C,3.2),z=ZOOM["#ch-corrida"],ex=eixoVV(series,z?z[0]:j.tIni);
+  pinta("#ch-corrida",chartTempo({id:"#ch-corrida",H:340,ml:44,mr:120,...ex,ref:50,...j,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[MARCO1T],fase:FAIXA2T,aria:`${FINAL.join(" e ")} no 2º turno ao longo de 2026, em votos válidos, rodada a rodada e na média de todos os institutos`}),{marcos:true});
+  const M=chartTempo.last.marcos,m=C.m,ultAntes=C.antes.length?diaMes(C.antes[C.antes.length-1].dt):"";
+  const linha=C.fase==="campanha"?`média móvel de ${diasTxt(SIG2)} das rodadas feitas depois de ${diaMes(TURNOS.t1)}`
+    :`média das simulações feitas até ${ultAntes}, antes do 1º turno; a média da campanha começa com ${MIN_POS1T.rodadas} rodadas de ${MIN_POS1T.inst} institutos feitas depois de ${diaMes(TURNOS.t1)}`;
+  $("#lg-corrida").innerHTML=`<span><i style="background:var(--ink);width:14px;height:2px"></i>${linha}</span>`
+    +(C.fase==="campanha"&&C.antes.length&&verAntes2T?`<span><i style="background:var(--ink-3);opacity:.45;width:8px;height:8px;border-radius:50%"></i>apagadas: as simulações feitas antes do 1º turno</span>`:"")
+    +`<span><i style="border-top:1.5px dashed var(--ink-2);width:14px;height:0;background:none"></i>50% dos votos válidos</span>`
+    +(C.filtra?`<span>com filtro, a média usa só as rodadas escolhidas${m?` e dá ${esc(curto(m.a))} ${fPct(m.va)}% e ${esc(curto(m.b))} ${fPct(m.vb)}%`:""}; o texto acima é o de todas</span>`:"")
+    +(M.length?`<details class="marcos-fold" style="flex-basis:100%"><summary>${M.length} ${M.length===1?"marco numerado":"marcos numerados"} no gráfico · ver a lista</summary><ol class="marcos">${M.map((x,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(x.t))} ${esc(x.txt)}</span></li>`).join("")}</ol></details>`:"");
+}
+// o chip que mostra ou esconde as simulações do confronto feitas antes do 1º turno
+function chipAntes2T(){
+  const el=$("#f-cands");if(!el)return;const n=rodadas2TAntes().length;
+  el.innerHTML=n?`<button type="button" class="chipbtn" data-antes2t="1" aria-pressed="${verAntes2T}" style="--chipc:var(--ink-3)"><i></i>mostrar ${n===1?"a simulação feita":"as "+n+" simulações feitas"} antes do 1º turno</button>`:"";
+}
+// O "Como ler" sai do efeito casa do 2º turno (casaDe sobre todas as rodadas do confronto em válidos),
+// e não de uma frase fixa: até 13/10/2026 ele dizia que a AtlasIntel dava mais a Lula, o que era o
+// retrato do 1º turno.
+function comoLer2T(){
+  const el=$("#corrida-como");if(!el)return;
+  const [A,B]=FINAL,c=casaDe(rodadas2TVV(),FINAL),aj=(i,n)=>c[i]&&c[i][n]?c[i][n].aj:0;
+  const mg=Object.keys(c).map(i=>({i,m:aj(i,A)-aj(i,B)})).filter(x=>Math.abs(x.m)>=1);
+  const lista=a=>a.slice(0,2).map(x=>`${esc(x.i)} (${x.m>0?"+":""}${fPct(x.m)} ${pts(x.m)})`).join(" e ");
+  const mais=mg.filter(x=>x.m>0).sort((a,b)=>b.m-a.m),menos=mg.filter(x=>x.m<0).sort((a,b)=>a.m-b.m);
+  const casa=mg.length?`Medida contra os outros institutos na mesma semana, a margem de ${esc(curto(A))} sobre ${esc(curto(B))} sai ${mais.length?`maior em ${lista(mais)}`:""}${mais.length&&menos.length?" e ":""}${menos.length?`menor em ${lista(menos)}`:""}. A média desconta essas diferenças, reduzidas para quem tem poucas rodadas, e os pontos mostram o número que cada instituto publicou.`
+    :`Nenhum instituto se afasta dos outros em 1 ponto ou mais na margem do confronto, medida na mesma semana.`;
+  el.innerHTML=`O gráfico reúne pesquisas feitas de formas diferentes, e cada instituto tem a sua régua. ${casa} Para comparar só pesquisas feitas do mesmo jeito, use os filtros de instituto e de modo de coleta.`;
 }
 DRAW["#ch-corrida"]=drawCorrida;DRAW["#ch-regua"]=()=>drawRegua();DRAW["#ch-bens"]=()=>drawBens();
-DRAW["#ch-2t"]=()=>draw2T();
+// draw2T continua no redraw, mas o gráfico do 2º turno passou para #ch-corrida em 13/10/2026: aqui
+// ficam o texto único (#cap-2t, o mesmo da capa) e os painéis de baixo da editoria, que também são
+// refeitos a cada redraw
 function draw2T(){
-  const m=media2T(),el=$("#ch-2t");if(!el)return;
-  if(!m){el.innerHTML=`<div class="empty"><b>Sem rodada</b>Nenhuma rodada de 2º turno nesta edição.</div>`;$("#cap-2t").innerHTML="";return;}
-  const j=jan2T(),series=series2T(m,3),ex=eixoVV(series,ZOOM["#ch-2t"]?ZOOM["#ch-2t"][0]:j.tIni);
-  pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:230,ml:44,mr:74,...ex,ref:50,fmtY:v=>fPct(v)+"%",series,marcos:[MARCO1T],fase:FAIXA2T,...j,aria:`${FINAL.join(" e ")} no 2º turno, em votos válidos`,fs:11.5}));
-  $("#cap-2t").innerHTML=texto2T(m);
+  const el=$("#cap-2t");if(el){const m=media2T();el.innerHTML=m?texto2T(m):"Nenhuma rodada do segundo turno nesta edição.";}
+  drawRodadas();drawErro1T();drawCorrida1T();drawRej1T();
 }
+// ---- as rodadas com ficha técnica. Desde 13/10/2026 a tabela diz o turno de cada rodada e abre nas
+// feitas depois do 1º turno (campo terminado depois de 4/10, o mesmo corte da média).
+let rodVer="pos";
+const cfFicha=f=>{const c=String(f.campo||"").slice(13);return /^\d{4}-\d\d-\d\d$/.test(c)?c:f.dt;};
+const fichaPos1T=f=>String(f.t||"").includes("2")&&cfFicha(f)>TURNOS.t1;
+function drawRodadas(){
+  const tb=$("#tb-rodadas tbody");if(!tb)return;
+  const M=DATA.meta,pos=DATA.fichas.filter(fichaPos1T),n1=(M.t1||{}).rodadas||0;
+  if(!pos.length&&rodVer==="pos")rodVer="todas";
+  $$("#rod-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rt===rodVer));
+  $("#rod-sum").textContent=pos.length?`Ver ${pos.length===1?"a rodada do 2º turno feita":"as "+pos.length+" rodadas do 2º turno feitas"} depois de ${diaMes(TURNOS.t1)} e as ${n1} do 1º turno`:`Ver as ${n1} rodadas do 1º turno`;
+  const turno=f=>{const t=String(f.t||"");return t.includes("1")&&t.includes("2")?"1º e 2º":t==="1"?"1º":t==="2"?"2º":"só rejeição ou outro cenário";};
+  const lista=(rodVer==="pos"?pos:DATA.fichas).slice().reverse();
+  tb.innerHTML=lista.map(f=>`<tr><td class="dt">${dBR(f.dt)}/${f.dt.slice(0,4)}</td><td>${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.inst)}</a>`:esc(f.inst)}</td><td class="dt">${f.campo&&f.campo.length>=23?`${dBR(f.campo.slice(0,10))} a ${dBR(f.campo.slice(13))}`:""}</td><td>${esc(f.met)}</td><td>${esc(f.reg)}</td><td>${turno(f)}${String(f.t||"").includes("2")&&soValidos2T(f.inst,f.dt)?` <small style="color:var(--ink-3)">em votos válidos</small>`:""}</td></tr>`).join("");
+  // a falta de registro é dita uma vez, contada do dado (meta.t1 e meta.t2 do gerador)
+  const s1=(M.t1||{}).sem_reg,s2=(M.t2||{}).sem_reg;
+  $("#rod-nota").textContent=s1!=null&&s2!=null?`Nem toda fonte traz o número de registro no TSE: ele falta em ${s1} das ${n1} rodadas de 1º turno e em ${s2} das ${(M.t2||{}).rodadas} rodadas com o confronto do 2º turno, contadas as do ano todo.`:"";
+}
+$$("#rod-seg button").forEach(b=>b.addEventListener("click",()=>{rodVer=b.dataset.rt;drawRodadas();}));
+
+// ---- o 1º turno: pesquisas x urna (13/10/2026)
+// As rodadas que entraram na base depois da edição da véspera (3/10/2026, 23h12): chegaram na rodada
+// automática de 4/10, às 12h33 (commit 76d2812), datadas de 3/10. É por elas que a média refeita hoje
+// com o mesmo corte não é a publicada. A base não guarda quando cada rodada entrou, então a lista fica
+// aqui, conferida no histórico do git em 13/10/2026.
+const DEPOIS_DA_VESPERA=[["AtlasIntel/Bloomberg","2026-10-03"],["Futura Inteligência (100% Cidades)","2026-10-03"],["Instituto Veritá","2026-10-03"]];
+// erro1T() junta o que se mede do erro das pesquisas no 1º turno, para a editoria Pesquisas (#p-erro1t),
+// a capa, o Método e o dossiê. Convenção: erro = pesquisa - urna (negativo quando a pesquisa deu menos
+// que a urna), e a margem é a do primeiro de FINAL menos a do segundo, na ordem dos votos (Flávio - Lula).
+// Sem resultado do TSE ou sem a média da véspera, devolve null. O erro é medida e não correção: a média
+// do 2º turno não usa nada disto.
+// Devolve {a, b, vespera (dia), edicao, sigma, inc, cand:[{nome, media, urna, erro, refeita, pos}],
+// margem:{media, urna, refeita, erro}, depois:[{inst, dt}], inst:[{inst, dt, cf, modo, url, va, vb, ea,
+// eb, margem, erro, troca}], resumo:{n, mae, abaixo, porModo:[{modo, n, mae}]}}.
+function erro1T(){
+  if(erro1T._c!==undefined)return erro1T._c;
+  const V=DATA.vespera,R=resPres("1"),[A,B]=FINAL;
+  const urna=n=>{const c=R&&R.c.find(x=>x[0]===n);return c?c[5]:null;};
+  if(!V||!V.m||V.m[A]==null||V.m[B]==null||urna(A)==null||urna(B)==null)return erro1T._c=null;
+  const dia=String(V.edicao||"").slice(0,10)||ULT1T,tv=Date.parse(dia);
+  // a mesma conta da véspera (a régua daquele dia, rodadas até 3/10), sobre um array novo: casaDe guarda
+  // o efeito casa pela identidade do array, e a média do 1º turno do resto do mural não muda por isto
+  let ref=null;try{ref=validosEm(rodadas1T().filter(r=>r.t<=tv),OITO,V.sigma||sigmaRegua(dia),tv,somaVV1T);}catch(e){}
+  const cand=vespera1T().map(x=>({...x,erro:x.media-x.urna,refeita:ref&&ref.m[x.nome]!=null?ref.m[x.nome]:null}));
+  const margem={media:V.m[A]-V.m[B],urna:urna(A)-urna(B),refeita:ref&&ref.m[A]!=null&&ref.m[B]!=null?ref.m[A]-ref.m[B]:null};
+  margem.erro=margem.media-margem.urna;
+  const depois=DEPOIS_DA_VESPERA.filter(([i,d])=>rodadas1T().some(r=>r.inst===i&&dISO(r.t)===d)).map(([inst,dt])=>({inst,dt}));
+  // Instituto por instituto: a última rodada com campo terminado na semana antes da votação (de 27/9 a
+  // 3/10). Quando ela não fecha em votos válidos (Gerp e Veritá de 3/10/2026 não publicaram brancos,
+  // nulos e indecisos), vale a anterior do mesmo instituto, desde que o campo tenha terminado nas duas
+  // semanas antes da votação, e a tabela diz isso.
+  const ini=dISO(Date.parse(TURNOS.t1)-7*864e5),ini2=dISO(Date.parse(TURNOS.t1)-14*864e5);
+  const fichas=new Map(DATA.fichas.map(f=>[f.inst+"|"+f.dt,f]));
+  const porInst={};
+  for(const r of rodadas1T()){const f=fichas.get(r.inst+"|"+dISO(r.t)),cf=f?cfFicha(f):dISO(r.t);if(cf>dia)continue;(porInst[r.inst]=porInst[r.inst]||[]).push({r,cf,f});}
+  const fecha=x=>somaVV1T(x.r)>0&&x.r.v[A]!=null&&x.r.v[B]!=null;
+  const inst=[];
+  for(const i in porInst){
+    const rs=porInst[i].sort((x,y)=>x.cf.localeCompare(y.cf)||x.r.t-y.r.t),ult=rs[rs.length-1];
+    if(ult.cf<ini)continue;
+    const usa=fecha(ult)?ult:rs.slice().reverse().find(x=>x.cf>=ini2&&fecha(x));
+    if(!usa)continue;
+    const S=somaVV1T(usa.r),va=usa.r.v[A]*100/S,vb=usa.r.v[B]*100/S,dt=dISO(usa.r.t),f=usa.f||{};
+    const modo=f.modo||(DATA.polls.find(p=>p[0]===i&&p[1]===dt)||[])[5]||"não informada";
+    inst.push({inst:i,dt,cf:usa.cf,modo,url:f.url||"",va,vb,ea:va-urna(A),eb:vb-urna(B),margem:va-vb,erro:va-vb-margem.urna,troca:usa===ult?null:dISO(ult.r.t)});
+  }
+  inst.sort((x,y)=>Math.abs(x.erro)-Math.abs(y.erro));
+  const mae=a=>a.length?a.reduce((s,x)=>s+Math.abs(x.erro),0)/a.length:null;
+  const porModo=MODOS.map(([m])=>{const a=inst.filter(x=>x.modo===m);return {modo:m,n:a.length,mae:mae(a)};}).filter(x=>x.n);
+  return erro1T._c={a:A,b:B,vespera:dia,edicao:V.edicao,sigma:V.sigma,inc:V.inc,cand,margem,depois,inst,
+    resumo:{n:inst.length,mae:mae(inst),abaixo:inst.filter(x=>x.ea<0).length,porModo}};
+}
+// "3/10, 23h12", da data e hora da edição guardada em DATA.vespera
+const horaEdicao=s=>{const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(s||"");return m?`${+m[3]}/${+m[2]}, ${+m[4]}h${m[5]}`:"";};
+// número com sinal ("+3,2", "-1,3"); o que arredonda para zero sai sem sinal ("0", e não "-0")
+const sinalPts=(v,f=fPct)=>{if(v==null)return "";const t=f(Math.abs(v));return /^0([,.]0+)?$/.test(t)?t:(v>0?"+":"-")+t;};
+const curtoInst=i=>String(i).split("/")[0].split(" (")[0];
+DRAW["#ch-erro1t"]=()=>drawErro1T();
+function drawErro1T(){
+  const el=$("#p-erro1t");if(!el)return;
+  const E=erro1T();
+  if(!E){el.hidden=true;return;}el.hidden=false;
+  const A=E.a,B=E.b,cA=esc(curto(A)),cB=esc(curto(B)),R=resPres("1"),ed=horaEdicao(E.edicao)||diaMes(E.vespera);
+  const frente=(mg,f=fPct)=>`${mg>=0?cA:cB} ${f(Math.abs(mg))} ${pts(mg)} à frente`;
+  const fonteTSE=`TSE, ${fPct2(R.tot.pst)}% das seções totalizadas${R.tot.at?", "+horaTSE(R.tot.at):""}`;
+  $("#erro1t-cap").textContent=`média publicada em ${ed} e resultado oficial`;
+  const e=Math.abs(E.margem.erro);
+  $("#erro1t-txt").innerHTML=`Na véspera (edição de ${ed}), a média do mural em votos válidos dava ${frente(E.margem.media)}; a urna deu ${frente(E.margem.urna,fPct2)}. O erro na margem, de ${fPct(e)} ${pts(e)}, ficou ${E.inc!=null&&e>E.inc?"acima":"dentro"} da incerteza que o mural publicou${E.inc!=null?` (${fPct(E.inc)} ${pts(E.inc)})`:""}. É medida, não correção: a média do 2º turno não usa este erro.`;
+  const td=(v,f,cls="")=>`<td class="num${cls}">${v==null?`<span style="color:var(--ink-3)">n/d</span>`:f(v)}</td>`;
+  const pc=v=>fPct(v)+"%",pc2=v=>fPct2(v)+"%";
+  $("#tb-erro1t-c tbody").innerHTML=E.cand.map(x=>`<tr><td><b style="color:${COR[x.nome]}">${esc(x.nome)}</b></td>${td(x.media,pc)}${td(x.urna,pc2)}${td(x.erro,v=>sinalPts(v))}${td(x.refeita,pc)}</tr>`).join("")
+    +`<tr class="soma"><td><b>Margem de ${cA} sobre ${cB}</b></td>${td(E.margem.media,v=>sinalPts(v))}${td(E.margem.urna,v=>sinalPts(v,fPct2))}${td(E.margem.erro,v=>sinalPts(v))}${td(E.margem.refeita,v=>sinalPts(v))}</tr>`;
+  const nd=E.depois.length,nomesDep=E.depois.map(x=>esc(x.inst)),juntar=a=>a.length>1?a.slice(0,-1).join(", ")+" e "+a[a.length-1]:a.join("");
+  const ra=E.cand.find(x=>x.nome===A),rb=E.cand.find(x=>x.nome===B);
+  $("#erro1t-ref").innerHTML=`Erro é a pesquisa menos a urna: negativo quando a média deu menos do que o candidato teve. A coluna "refeita hoje" é a mesma conta, com o mesmo corte (rodadas até ${diaMes(E.vespera)}, régua de ${diasTxt(E.sigma||1)}), sobre a base de hoje${ra&&rb&&ra.refeita!=null&&rb.refeita!=null?`: ${cA} ${fPct(ra.refeita)}% e ${cB} ${fPct(rb.refeita)}%`:""}.${nd?` Ela não é a publicada porque ${nd===1?"uma rodada datada":(POREXT[nd]||nd)+" rodadas datadas"} de ${diaMes(E.depois[0].dt)} só ${nd===1?"entrou":"entraram"} na base depois da edição: ${juntar(nomesDep)}.`:""} O número que vale aqui é o publicado, que foi o que o leitor viu.`;
+  // instituto por instituto
+  $("#erro1t-ha").textContent=`${curto(A)}, pesquisa e erro`;$("#erro1t-hb").textContent=`${curto(B)}, pesquisa e erro`;
+  $("#tb-erro1t tbody").innerHTML=E.inst.map(x=>`<tr><td>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener"><b>${esc(x.inst)}</b></a>`:`<b>${esc(x.inst)}</b>`}<span class="desc" style="max-width:none">${dBR(x.dt)} · ${esc(x.modo)}${x.troca?` · a de ${dBR(x.troca)} não fecha em votos válidos`:""}</span></td><td class="num"><b class="tnum">${fPct(x.va)}%</b><span class="desc" style="max-width:none">${sinalPts(x.ea)}</span></td><td class="num"><b class="tnum">${fPct(x.vb)}%</b><span class="desc" style="max-width:none">${sinalPts(x.eb)}</span></td><td class="num"><b class="tnum">${sinalPts(x.erro)}</b></td></tr>`).join("");
+  const Rs=E.resumo;
+  $("#erro1t-resumo").innerHTML=Rs.n?`Nas ${Rs.n} pesquisas, o erro médio na margem, sem o sinal, foi de ${fPct(Rs.mae)} ${pts(Rs.mae)}, e ${Rs.abaixo===Rs.n?"todas":Rs.abaixo===0?"nenhuma":Rs.abaixo} ${Rs.abaixo<=1?"deu":"deram"} a ${cA} menos do que a urna. Por modo de coleta: ${Rs.porModo.map(x=>`${esc(x.modo)}, ${fPct(x.mae)} ${pts(x.mae)} (${pl(x.n,"pesquisa")})`).join("; ")}. Fonte: média do mural na edição de ${ed}, guardada em dados/medias-publicadas.csv; urna: ${RES&&RES.fonte?`<a href="${esc(RES.fonte)}" target="_blank" rel="noopener">${fonteTSE}</a>`:fonteTSE}.`:"";
+  pinta("#ch-erro1t",svgErro1T(E,larguraDe("#ch-erro1t")));
+  $("#lg-erro1t").innerHTML=MODOS.filter(([m])=>E.inst.some(x=>x.modo===m)).map(([m,c])=>`<span><i style="background:${c};width:10px;height:10px;border-radius:50%"></i>${m}</span>`).join("")
+    +`<span><i style="background:var(--ink);width:3px;height:12px"></i>urna (TSE)</span><span><i style="border-left:2px dashed var(--ink-3);width:0;height:12px;background:none"></i>média do mural na véspera</span>`;
+}
+// Um ponto por instituto na margem em votos válidos, na cor do modo de coleta; a linha cheia é a urna e
+// a tracejada, a média publicada na véspera. Desenhado na largura do contêiner.
+function svgErro1T(E,W){
+  const rows=E.inst.slice().sort((x,y)=>x.margem-y.margem);if(!rows.length)return "";
+  // a margem esquerda cabe o nome mais longo (uns 6,4px por letra a 12px), até 40% da largura
+  const nmax=Math.max(...rows.map(r=>curtoInst(r.inst).length));
+  const lh=24,mt=30,mb=34,ml=Math.min(Math.round(W*0.4),Math.max(70,Math.round(nmax*6.4+16))),mr=18,H=mt+mb+rows.length*lh,iw=W-ml-mr;
+  const vs=[...rows.map(r=>r.margem),E.margem.urna,E.margem.media];
+  const passo=Math.max(...vs)-Math.min(...vs)>24?5:2;
+  const lo=Math.floor((Math.min(...vs)-.5)/passo)*passo,hi=Math.ceil((Math.max(...vs)+.5)/passo)*passo;
+  const X=v=>ml+(v-lo)/(hi-lo)*iw,A=esc(curto(E.a)),B=esc(curto(E.b));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`Margem de ${curto(E.a)} sobre ${curto(E.b)} em votos válidos na última pesquisa de cada instituto antes do 1º turno, a média do mural na véspera e o resultado da urna`)}" data-w="${W}" data-w0="${Math.max(W,1180)}"><g class="grid">`;
+  for(let v=lo;v<=hi;v+=passo)s+=`<line x1="${X(v).toFixed(1)}" x2="${X(v).toFixed(1)}" y1="${mt-6}" y2="${H-mb}"${v===0?' stroke="var(--ink-3)"':""}/><text class="axis" x="${X(v).toFixed(1)}" y="${H-mb+16}" text-anchor="middle">${v>0?"+":""}${v}</text>`;
+  s+=`</g><text class="axis" x="${ml}" y="${H-4}">← ${B} à frente</text><text class="axis" x="${W-mr}" y="${H-4}" text-anchor="end">${A} à frente →</text>`;
+  rows.forEach((r,i)=>{const y=mt+i*lh+lh/2,cor=CORM[r.modo]||"var(--ink-3)";
+    s+=`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text class="axis" x="${ml-8}" y="${y+4}" text-anchor="end">${esc(curtoInst(r.inst))}</text>`
+     +`<circle cx="${X(r.margem).toFixed(1)}" cy="${y}" r="6" fill="${cor}" stroke="var(--paper)" stroke-width="1.5" data-tip="${esc(`<b>${esc(r.inst)}</b>, ${dBR(r.dt)} · ${esc(r.modo)}<br>${A} ${fPct(r.va)}% e ${B} ${fPct(r.vb)}% dos válidos<br>margem ${sinalPts(r.margem)}, erro na margem ${sinalPts(r.erro)}${r.troca?`<br>a rodada de ${dBR(r.troca)} não fecha em votos válidos`:""}`)}"/>`;});
+  const xu=X(E.margem.urna),xm=X(E.margem.media),uDir=xu>=xm;
+  s+=`<line x1="${xm.toFixed(1)}" x2="${xm.toFixed(1)}" y1="${mt-6}" y2="${H-mb}" stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="4 4"/>`
+    +`<line x1="${xu.toFixed(1)}" x2="${xu.toFixed(1)}" y1="${mt-6}" y2="${H-mb}" stroke="var(--ink)" stroke-width="2.5"/>`
+    +`<text class="axis" x="${(xu+(uDir?6:-6)).toFixed(1)}" y="${mt-12}" text-anchor="${uDir?"start":"end"}" style="fill:var(--ink);font-weight:600">urna ${sinalPts(E.margem.urna,fPct2)}</text>`
+    +`<text class="axis" x="${(xm+(uDir?-6:6)).toFixed(1)}" y="${mt-12}" text-anchor="${uDir?"end":"start"}">média ${sinalPts(E.margem.media)}</text>`;
+  return s+`</svg>`;
+}
+
+// ---- a régua de cada instituto, no Método. A correção de efeito casa muda a média, então ela precisa
+// estar visível e conferível: quem é medido para qual lado, com quantas rodadas, e o quanto disso o mural
+// desconta. Desde 13/10/2026 a tabela abre pela margem do 2º turno em votos válidos (a conta que a média
+// usa hoje), traz o erro de cada instituto no 1º turno e deixa as colunas do 1º turno no fim.
 DRAW["#tb-casa"]=()=>drawCasa();
-// a correção de efeito casa muda a média, então ela precisa estar visível e conferível: quem é
-// medido para qual lado, com quantas rodadas, e o quanto disso o mural desconta
 function drawCasa(){
-  const c1=casaDe(rodadas1T(),OITO), c2=casaDe(rodadas2T(),["Lula","Flávio Bolsonaro"]);
-  const insts=[...new Set([...Object.keys(c1),...Object.keys(c2)])];
-  const nR=i=>rodadas1T().filter(r=>r.inst===i).length+rodadas2T().filter(r=>r.inst===i).length;
+  const [A,B]=FINAL,todas=rodadas2TVV(),c2=casaDe(todas,FINAL),c1=casaDe(rodadas1T(),OITO),E=erro1T();
   const aj=(c,i,n)=>(c[i]&&c[i][n])?c[i][n].aj:null;
-  const margem=i=>{const a=aj(c2,i,"Lula"),b=aj(c2,i,"Flávio Bolsonaro");return (a==null&&b==null)?null:(a||0)-(b||0);};
-  const linhas=insts.map(i=>({i,n:nR(i),lula:aj(c1,i,"Lula"),flavio:aj(c1,i,"Flávio Bolsonaro"),m:margem(i)}))
-    .filter(x=>x.lula!=null||x.flavio!=null||x.m!=null)
-    .sort((a,b)=>(a.m==null?0:a.m)-(b.m==null?0:b.m));
-  const cel=v=>v==null?'<td class="num"><span style="color:var(--ink-3)">n/d</span></td>'
-    :`<td class="num" style="color:${Math.abs(v)<0.5?"var(--ink-3)":(v>0?"var(--c1)":"var(--c2)")}">${v>0?"+":""}${fPct(v)}</td>`;
-  $("#tb-casa tbody").innerHTML=linhas.map(x=>`<tr><td><b>${esc(x.i)}</b></td><td class="num">${x.n}</td>${cel(x.lula)}${cel(x.flavio)}${cel(x.m)}</tr>`).join("");
-  const forte=linhas.filter(x=>x.m!=null&&Math.abs(x.m)>=2);
-  $("#casa-cap").textContent=`quanto cada instituto difere dos outros, em pontos, já com o ajuste para quem tem poucas rodadas`;
-  $("#casa-nota").innerHTML=`Nas colunas de primeiro turno, valor positivo indica que o instituto dá ao candidato mais do que os outros. `
-    +`Na margem do segundo turno, valor positivo indica vantagem maior para Lula, e negativo, para Flávio. `
-    +`Cada rodada é comparada com a mediana das rodadas dos outros institutos na mesma semana, e o viés do instituto é a mediana dessas diferenças ao longo do ano. `
-    +`Esse valor é reduzido para institutos com poucas rodadas e limitado a ${fPct(AG.tetoCasa)} pontos. A média do mural já usa os valores corrigidos, e o erro dessa correção é somado à margem. `
-    +`Nos gráficos, cada ponto continua com o número que o instituto publicou. `
-    +(forte.length?`Hoje, os maiores desvios na margem do segundo turno são de ${forte.slice(0,3).map(x=>`<b>${esc(x.i)}</b> (${x.m>0?"+":""}${fPct(x.m)})`).join(", ")}.`:"");
+  const margem=i=>{const a=aj(c2,i,A),b=aj(c2,i,B);return (a==null&&b==null)?null:(a||0)-(b||0);};
+  const erro=i=>{const x=E&&E.inst.find(y=>y.inst===i);return x?x.erro:null;};
+  const insts=[...new Set([...todas.map(r=>r.inst),...Object.keys(c1)])];
+  const linhas=insts.map(i=>({i,antes:todas.filter(r=>r.inst===i&&!r.pos).length,depois:todas.filter(r=>r.inst===i&&r.pos).length,n1:rodadas1T().filter(r=>r.inst===i).length,
+      m:margem(i),e:erro(i),a1:aj(c1,i,A),b1:aj(c1,i,B)}))
+    .filter(x=>x.m!=null||x.e!=null||x.a1!=null||x.b1!=null)
+    .sort((x,y)=>(y.m==null?-99:y.m)-(x.m==null?-99:x.m));
+  const cel=(v,corPos,corNeg)=>v==null?'<td class="num"><span style="color:var(--ink-3)">n/d</span></td>'
+    :`<td class="num" style="color:${Math.abs(v)<0.5?"var(--ink-3)":(v>0?corPos:corNeg)}">${sinalPts(v)}</td>`;
+  $("#casa-h1a").textContent=`${curto(A)}, até ${diaMes(TURNOS.t1)}`;$("#casa-h1b").textContent=`${curto(B)}, até ${diaMes(TURNOS.t1)}`;
+  $("#tb-casa tbody").innerHTML=linhas.map(x=>`<tr><td><b>${esc(x.i)}</b></td><td class="num">${x.antes} · ${x.depois}</td>${cel(x.m,COR[A],COR[B])}${cel(x.e,"var(--ink)","var(--ink)")}<td class="num">${x.n1}</td>${cel(x.a1,"var(--ink)","var(--ink-2)")}${cel(x.b1,"var(--ink)","var(--ink-2)")}</tr>`).join("");
+  const forte=linhas.filter(x=>x.m!=null&&Math.abs(x.m)>=1).sort((x,y)=>Math.abs(y.m)-Math.abs(x.m));
+  $("#casa-cap").textContent=`quanto cada instituto difere dos outros, em pontos, já com o ajuste para quem tem poucas rodadas, e quanto errou no 1º turno`;
+  $("#casa-nota").innerHTML=`Na margem do 2º turno, em votos válidos, valor positivo indica que o instituto dá a ${esc(curto(A))} uma vantagem maior que a dos outros institutos, e negativo, menor. `
+    +`Cada rodada é comparada com a mediana das rodadas dos outros institutos na mesma semana, e o desvio do instituto é a mediana dessas diferenças, medida em todas as rodadas do confronto, antes e depois de ${diaMes(TURNOS.t1)}. `
+    +`Esse valor é reduzido para institutos com poucas rodadas e limitado a ${fPct(AG.tetoCasa)} pontos. A média do mural já usa os valores corrigidos, e o erro dessa correção é somado à incerteza. `
+    +`Desvio não é erro: o desvio compara o instituto com os outros, e o erro compara com a urna. O erro na margem do 1º turno é o da última rodada do instituto antes da votação, em votos válidos, contra o resultado do TSE (o painel "pesquisas x urna", em Pesquisas, mostra a conta). `
+    +`As duas últimas colunas são o desvio em intenção total no 1º turno, até a votação. Nos gráficos, cada ponto continua com o número que o instituto publicou.`
+    +(forte.length?` Hoje, os maiores desvios na margem do 2º turno são de ${forte.slice(0,3).map(x=>`<b>${esc(x.i)}</b> (${sinalPts(x.m)})`).join(", ")}.`:"");
 }
+
+// ---- a rejeição dos dois do 2º turno (13/10/2026): uma série por candidato e instituto, sem linha
+// suavizada ligando institutos, porque cada um faz a pergunta de um jeito. O foco não apaga nenhum dos
+// dois. A rejeição dos outros nomes fica no histórico do 1º turno (#ch-rej-1t).
 DRAW["#ch-rej"]=()=>drawRej();
 function drawRej(){
-  const series=OITO.filter(n=>!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:10,r:3,lw:1.8,pts:DATA.rej.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:`<b>${esc(n)}</b> · rejeição ${fPct(p.v)}%<br>${esc(p.inst)}, ${dBR(p.d)}`}))}));
-  const j=janelaDe(Math.max(...DATA.rej.map(p=>Date.parse(p[1])).filter(t=>t<=Date.parse(HOJE)),Date.parse("2026-01-01"))),[ymax,ticks]=escalaY(series,65,ZOOM["#ch-rej"]?ZOOM["#ch-rej"][0]:j.tIni);
-  pinta("#ch-rej",chartTempo({id:"#ch-rej",W:560,H:260,ml:44,mr:80,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,aria:"Rejeição por candidato ao longo de 2026",fs:11.5}));
+  const el=$("#ch-rej");if(!el)return;
+  $("#rej-tit").textContent=`Rejeição de ${FINAL.map(curto).join(" e ")}`;
+  const hoje=Date.parse(HOJE),R=DATA.rej.filter(p=>ehFinal(p[2])&&Date.parse(p[1])<=hoje);
+  if(!R.length){el.innerHTML=`<div class="empty"><b>Sem rodada</b>Nenhuma rodada de rejeição dos dois nesta base.</div>`;$("#lg-rej").innerHTML="";$("#rej-nota").textContent="";return;}
+  const grupos=new Map();for(const p of R){const k=p[2]+"|"+p[0];if(!grupos.has(k))grupos.set(k,[]);grupos.get(k).push(p);}
+  const series=[...grupos.entries()].map(([k,ps])=>{const [n,inst]=k.split("|");
+    const pts=ps.map(p=>({t:Date.parse(p[1]),v:p[3],inst,d:p[1],tip:`<b>${esc(n)}</b> · rejeição ${fPct(p[3])}%<br>${esc(inst)}, ${dBR(p[1])}`})).sort((a,b)=>a.t-b.t);
+    return {nome:`${n}, ${inst}`,cor:COR[n],r:3,lw:1.4,linha:pts,pts,rotulo:false};});
+  const ult=Math.max(...R.map(p=>Date.parse(p[1]))),j=janelaDe(ult);j.tFim=Math.max(j.tFim,TF1);
+  const [ymax,ticks]=escalaY(series,65,ZOOM["#ch-rej"]?ZOOM["#ch-rej"][0]:j.tIni);
+  pinta("#ch-rej",chartTempo({id:"#ch-rej",H:260,ml:44,mr:20,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,marcos:[MARCO1T],cross:false,aria:`Rejeição de ${FINAL.join(" e ")} ao longo de 2026, por instituto`}));
+  $("#lg-rej").innerHTML=FINAL.map(n=>`<span><i style="background:${COR[n]}"></i>${esc(n)}</span>`).join("")+`<span>cada linha liga as rodadas de um mesmo instituto</span>`;
+  const t1=Date.parse(TURNOS.t1),pos=R.filter(p=>Date.parse(p[1])>t1);
+  if(pos.length)$("#rej-nota").textContent=`Depois do 1º turno: ${pl(new Set(pos.map(p=>p[0]+"|"+p[1])).size,"rodada")} de rejeição, de ${pl(new Set(pos.map(p=>p[0])).size,"instituto")}.`;
+  else{const ult1={};for(const p of R)if(!ult1[p[0]]||p[1]>ult1[p[0]])ult1[p[0]]=p[1];
+    const lista=Object.entries(ult1).sort((a,b)=>b[1].localeCompare(a[1])).slice(0,6).map(([i,d])=>`${i}, ${diaMes(d)}: ${FINAL.map(n=>{const p=R.find(q=>q[0]===i&&q[1]===d&&q[2]===n);return p?`${curto(n)} ${fPct(p[3])}%`:null;}).filter(Boolean).join(" e ")}`);
+    $("#rej-nota").textContent=`Nenhuma rodada de rejeição depois do 1º turno nesta base. A última de cada instituto: ${lista.join("; ")}.`;}
+}
+
+// ---- o histórico do 1º turno (13/10/2026): a corrida dos oito como era, com a borda em 5/10, os filtros
+// de instituto e de modo da editoria e o destaque do Personalizar. A linha segue a régua de cada dia, e
+// não a de hoje: com a régua de hoje (1 dia), a linha de setembro seria refeita com a janela de outubro.
+function linhaRegua1T(rods,nomes){
+  const ts=[...new Set(rods.map(r=>r.t))].sort((a,b)=>a-b),out={},lim={};
+  for(const n of nomes){const seus=rods.filter(r=>r.v[n]!=null).map(r=>r.t);out[n]=[];if(seus.length)lim[n]=[Math.min(...seus),Math.max(...seus)];}
+  for(const t of ts){const m=agregarEm(rods,nomes,sigmaRegua(dISO(t)),t);
+    for(const n of nomes){const L=lim[n];if(!L||t<L[0]||t>L[1])continue;if(m[n]!=null)out[n].push({t,v:m[n]});}}
+  return out;
+}
+DRAW["#ch-corrida-1t"]=()=>drawCorrida1T();
+function drawCorrida1T(){
+  const el=$("#ch-corrida-1t");if(!el)return;
+  const nomes=OITO.filter(n=>candOn.has(n)&&!some(n));
+  const bruto={};for(const n of nomes)bruto[n]=serieDe(n).filter(p=>instOn.has(p.inst)&&modoOn.has(p.modo));
+  const linhas=linhaRegua1T(emRodadas(bruto),nomes);
+  const series=nomes.map(n=>{const pts=bruto[n];return {nome:n,cor:COR[n],dim:dimDe(n),linha:linhas[n],r:3.2,pts:pts.map(p=>({...p,tip:tipP(n,p)+" · "+p.modo})),banda:bandaDe(pts)};});
+  const j=jan1T(),[ymax,ticks]=escalaY(series,52,ZOOM["#ch-corrida-1t"]?ZOOM["#ch-corrida-1t"][0]:j.tIni);
+  pinta("#ch-corrida-1t",chartTempo({id:"#ch-corrida-1t",H:340,ml:44,mr:120,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,marcos:prefs.marcos?MARCOS:[],aria:"Intenção de voto no primeiro turno ao longo de 2026"}),{marcos:true});
+  const M=chartTempo.last.marcos;
+  $("#cap-corrida-1t").textContent=`Cada ponto é uma rodada de primeiro turno, na pergunta estimulada. A linha segue a régua de cada dia: ${diasTxt(REGUA.sigma0)} até ${diaMes(REGUA.inicio)}, encurtando um dia a cada ${REGUA.passo} até ${diasTxt(REGUA.minimo)} na votação.`;
+  $("#lg-corrida-1t").innerHTML=`<span><i style="background:var(--ink-3);opacity:.3;width:22px;height:10px;border-radius:2px"></i>faixa: do 1º ao 3º quartil das rodadas nos 28 dias em volta</span><span><i style="background:var(--ink);width:14px;height:2px"></i>média móvel com a régua de cada dia</span>`
+    +(M.length?`<details class="marcos-fold" style="flex-basis:100%"><summary>${M.length} ${M.length===1?"marco numerado":"marcos numerados"} no gráfico · ver a lista</summary><ol class="marcos">${M.map((x,i)=>`<li><b>${i+1}</b><span>${dBR(dISO(x.t))} ${esc(x.txt)}</span></li>`).join("")}</ol></details>`:"");
+}
+DRAW["#ch-rej-1t"]=()=>drawRej1T();
+function drawRej1T(){
+  const el=$("#ch-rej-1t");if(!el)return;
+  const series=OITO.filter(n=>!ehFinal(n)&&!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:10,r:3,lw:1.8,pts:DATA.rej.filter(p=>p[2]===n&&p[1]<=ULT1T).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1],tip:`<b>${esc(n)}</b> · rejeição ${fPct(p[3])}%<br>${esc(p[0])}, ${dBR(p[1])}`}))})).filter(s=>s.pts.length);
+  if(!series.length){el.innerHTML=`<div class="empty"><b>Sem rodada</b>Nenhuma rodada de rejeição dos outros candidatos nesta base.</div>`;return;}
+  const j=jan1T(),[ymax,ticks]=escalaY(series,65,ZOOM["#ch-rej-1t"]?ZOOM["#ch-rej-1t"][0]:j.tIni);
+  pinta("#ch-rej-1t",chartTempo({id:"#ch-rej-1t",H:260,ml:44,mr:110,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,aria:"Rejeição dos candidatos que ficaram no 1º turno ao longo de 2026"}));
 }
 const MODOS=[["presencial","var(--m1)"],["telefônica","var(--m2)"],["digital","var(--m3)"],["não informada","var(--ink-3)"]];
 const CORM=Object.fromEntries(MODOS);
-let modoCand="Lula", modoSel="presencial", metaView="modo", modosOn=new Set(MODOS.map(m=>m[0])), metaCands=new Set(OITO);
+let metaView="modo", modosOn=new Set(MODOS.map(m=>m[0]));
 // jan: a janela do gráfico (a do 1º turno, que terminou em 4/10; o dossiê pede o ano todo)
 function svgModo(nome,W=560,H=300,mr=104,modos=null,cw=0,jan=jan1T()){
   const pts0=serieDe(nome).filter(p=>!modos||modos.has(p.modo));
@@ -2961,49 +3261,103 @@ function svgModo(nome,W=560,H=300,mr=104,modos=null,cw=0,jan=jan1T()){
   for(const s of series)if(s.sigma)s.rotulo=`${s.nome} ${fPct(mediaMovel(s.pts.slice().sort((a,b)=>a.t-b.t),14).pop().v)}`;
   return chartTempo({id:W>600?"#ch-modo":null,W,H,ml:44,mr,ymax:vmax,ticks:tks,fmtY:v=>fPct(v)+"%",series,...jan,aria:"Intenção de voto de "+nome+" por modo de coleta",fs:12,cw,Hm:cw?200:undefined});
 }
-function svgPorModo(modo,W=560,H=300,mr=104){
-  const series=OITO.filter(n=>metaCands.has(n)&&!some(n)).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),r:3,lw:2,sigma:10,pts:serieDe(n).filter(p=>p.modo===modo).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fPct(p.v)}% (${modo})<br>${esc(p.inst)}, ${dBR(p.d)}`}))})).filter(s=>s.pts.length);
-  if(!series.length)return `<div class="empty"><b>Sem medição</b>Nenhuma rodada ${modo==="não informada"?"sem modo informado":modo} para os candidatos escolhidos.</div>`;
-  const j=jan1T(),[ymax,ticks]=escalaY(series,52,ZOOM["#ch-modo"]?ZOOM["#ch-modo"][0]:j.tIni);
-  return chartTempo({id:"#ch-modo",W,H,ml:44,mr,ymax,ticks,fmtY:v=>fPct(v)+"%",series,...j,aria:"Intenção de voto medida por pesquisas "+modo,fs:12});
-}
 const legendaModos=()=>MODOS.map(([m,c])=>`<span><i style="background:${c}"></i>${m}</span>`).join("");
+// ---- as réguas por modo de coleta no 2º turno (13/10/2026). "Por metodologia" é a margem do confronto
+// em votos válidos, uma linha por modo; "Por candidato", a parte de um dos dois. As simulações feitas
+// antes de 4/10 ficam apagadas, com linha própria, e a linha da campanha começa depois da votação. A
+// versão do 1º turno, candidato por candidato, ficou na tabela do histórico (#tb-reguas-1t) e no dossiê.
+let modoCand2T=FINAL[0];
 function chipsModo(){
-  const c1=$("#f-modo-cand"),c2=$("#f-modo-modo");
+  const c1=$("#f-modo-cand"),c2=$("#f-modo-modo"),[A,B]=FINAL;
+  const modosHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="${modosOn.has(m)}" style="--chipc:${c}"><i></i>${esc(m)}</button>`).join("");
+  const ligaModos=el=>el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modosOn.has(k)?modosOn.delete(k):modosOn.add(k);b.setAttribute("aria-pressed",modosOn.has(k));drawModo();}));
   if(metaView==="cand"){
-    c1.innerHTML=OITO.map(n=>`<button type="button" class="chipbtn" data-k="${esc(n)}" aria-pressed="${n===modoCand}" style="--chipc:${COR[n]}"><i></i>${CURTO[n]}</button>`).join("");
-    c1.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{modoCand=b.dataset.k;c1.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k===modoCand));drawModo();}));
-    c2.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="${modosOn.has(m)}" style="--chipc:${c}"><i></i>${esc(m)}</button>`).join("");
-    c2.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modosOn.has(k)?modosOn.delete(k):modosOn.add(k);b.setAttribute("aria-pressed",modosOn.has(k));drawModo();}));
-    $("#meta-cap").textContent="Um candidato, uma linha por modo de coleta (média móvel de 28 dias de cada modo). Clique nos modos para tirar ou devolver.";
+    c1.innerHTML=FINAL.map(n=>`<button type="button" class="chipbtn" data-k="${esc(n)}" aria-pressed="${n===modoCand2T}" style="--chipc:${COR[n]}"><i></i>${esc(curto(n))}</button>`).join("");
+    c1.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{modoCand2T=b.dataset.k;c1.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k===modoCand2T));drawModo();}));
+    c2.innerHTML=modosHTML;ligaModos(c2);
+    $("#meta-cap").textContent="A parte de um dos dois nos votos válidos, medida só pelas pesquisas de cada modo de coleta. Clique nos modos para tirar ou devolver.";
   }else{
-    c1.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="${m===modoSel}" style="--chipc:${c}"><i></i>${esc(m)}</button>`).join("");
-    c1.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{modoSel=b.dataset.k;c1.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k===modoSel));drawModo();}));
-    c2.innerHTML=OITO.map(n=>`<button type="button" class="chipbtn" data-k="${esc(n)}" aria-pressed="${metaCands.has(n)}" style="--chipc:${COR[n]}"><i></i>${CURTO[n]}</button>`).join("");
-    c2.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;metaCands.has(k)?metaCands.delete(k):metaCands.add(k);b.setAttribute("aria-pressed",metaCands.has(k));drawModo();}));
-    $("#meta-cap").textContent="A corrida medida só pelas pesquisas de um modo de coleta, em média móvel de 20 dias. Clique num candidato para tirá-lo do gráfico ou trazê-lo de volta.";
+    c1.innerHTML=modosHTML;ligaModos(c1);c2.innerHTML="";
+    $("#meta-cap").textContent=`A margem de ${curto(A)} sobre ${curto(B)} em votos válidos, medida só pelas pesquisas de cada modo de coleta; valor positivo é ${curto(A)} à frente. A linha de cada modo liga as rodadas feitas depois de ${diaMes(TURNOS.t1)}, e as simulações de antes ficam apagadas. Clique nos modos para tirar ou devolver.`;
   }
 }
 $$("#meta-seg button").forEach(b=>b.addEventListener("click",()=>{metaView=b.dataset.mv;$$("#meta-seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));chipsModo();drawModo();}));
 DRAW["#ch-modo"]=()=>drawModo();
-function drawModo(){
-  pinta("#ch-modo",metaView==="cand"?svgModo(modoCand,1180,380,130,modosOn):svgPorModo(modoSel,1180,380,130));
-  $("#lg-modo").innerHTML=metaView==="cand"?legendaModos():"";
-  drawTabelaReguas();
+function seriesModo2T(val,fmt){
+  const out=[];
+  for(const [modo,cor] of MODOS){if(!modosOn.has(modo))continue;
+    const rs=rodadas2TVV().filter(r=>(r.modo||"não informada")===modo);
+    const ponto=r=>({t:r.t,v:val(r),inst:r.inst,d:r.dt,tip:`<b>${esc(r.inst)}</b>, ${dBR(r.dt)} · ${esc(modo)}<br>${fmt(val(r))}${r.pos?"":", antes do 1º turno"}`});
+    const antes=rs.filter(r=>!r.pos).map(ponto),camp=rs.filter(r=>r.pos).map(ponto);
+    if(antes.length)out.push({nome:modo,cor,sombra:true,sigma:antes.length>2?10:0,linha:antes.length>2?null:[],r:2.6,pts:antes});
+    if(camp.length){const lin=camp.length>1?mediaMovel(camp,2):[];out.push({nome:modo,cor,r:3.4,lw:2.2,linha:lin,pts:camp,rotulo:lin.length?`${modo} ${fmt(lin[lin.length-1].v)}`:false});}
+  }
+  return out;
 }
+// eixo da margem: simétrico em volta do zero (empate), de 2 em 2 pontos, alargando se algum ponto sair
+function eixoMargem(series,t0){
+  const vs=series.flatMap(s=>s.pts.filter(p=>p.t>=t0).map(p=>Math.abs(p.v))),ext=Math.max(6,...vs);
+  const passo=ext>20?10:ext>10?5:2,lim=Math.ceil((ext+.5)/passo)*passo,ticks=[];
+  for(let v=-lim;v<=lim;v+=passo)ticks.push(v);
+  return {ymin:-lim,ymax:lim,ticks};
+}
+function drawModo(){
+  const el=$("#ch-modo");
+  if(el){
+    const cand=metaView==="cand",[A,B]=FINAL,n=modoCand2T;
+    const val=cand?(r=>r.v[n]):(r=>r.v[A]-r.v[B]),fmt=cand?(v=>fPct(v)+"%"):(v=>sinalPts(v));
+    const series=seriesModo2T(val,fmt),j=jan2T(),t0=ZOOM["#ch-modo"]?ZOOM["#ch-modo"][0]:j.tIni;
+    if(!series.length)el.innerHTML=`<div class="empty"><b>Sem medição</b>Nenhuma rodada do segundo turno com esses modos de coleta.</div>`;
+    else pinta("#ch-modo",chartTempo({id:"#ch-modo",H:380,ml:44,mr:130,...(cand?eixoVV(series,t0):eixoMargem(series,t0)),ref:cand?50:0,...j,fmtY:fmt,series,marcos:[MARCO1T],fase:FAIXA2T,fs:12,
+      aria:cand?`${n} no 2º turno, em votos válidos, por modo de coleta`:`Margem de ${A} sobre ${B} no 2º turno, em votos válidos, por modo de coleta`}));
+    $("#lg-modo").innerHTML=legendaModos()+`<span>pontos apagados: simulações feitas antes do 1º turno</span>`;
+  }
+  drawTabelaReguas();drawTabelaReguas1T();
+}
+// a última rodada da campanha de cada modo, em válidos, e a média de todas (media2T)
 function drawTabelaReguas(){
-  const rows=OITO.filter(n=>!some(n)).map(n=>{
-    const pts=serieDe(n);const por={};for(const [m] of MODOS){const ps=pts.filter(p=>p.modo===m);por[m]=ps.length?ps[ps.length-1]:null;}
+  const tb=$("#tb-reguas tbody");if(!tb)return;
+  const [A,B]=FINAL,m=media2T(),camp=rodadas2TCampanha(),ult={};
+  for(const [modo] of MODOS){const rs=camp.filter(r=>(r.modo||"não informada")===modo);ult[modo]=rs.length?rs[rs.length-1]:null;}
+  const media=m&&m.fase==="campanha"?{[m.a]:m.va,[m.b]:m.vb}:null;
+  $("#tb-reguas thead tr").innerHTML=`<th></th>${MODOS.map(([x])=>`<th class="num">${x[0].toUpperCase()+x.slice(1)}</th>`).join("")}<th class="num">Média de ${diasTxt(SIG2)}, todas</th>`;
+  const linha=(rot,cor,val,fmt)=>`<tr><td><b${cor?` style="color:${cor}"`:""}>${rot}</b></td>`
+    +MODOS.map(([x])=>{const q=ult[x];return q?`<td class="num"><b class="tnum">${fmt(val(q.v))}</b><span class="desc" style="max-width:none">${esc(curtoInst(q.inst))}, ${dBR(q.dt)}</span></td>`:`<td class="num" style="color:var(--ink-3)">sem rodada</td>`;}).join("")
+    +(media?`<td class="num"><b class="tnum">${fmt(val(media))}</b><span class="desc" style="max-width:none">${pl(m.n,"rodada")}</span></td>`:`<td class="num" style="color:var(--ink-3)">sem média ainda</td>`)+`</tr>`;
+  tb.innerHTML=linha(esc(A),COR[A],v=>v[A],v=>fPct(v)+"%")+linha(esc(B),COR[B],v=>v[B],v=>fPct(v)+"%")+linha(`Margem de ${esc(curto(A))}`,"",v=>v[A]-v[B],v=>sinalPts(v));
+  $("#reguas-cap").textContent=`última rodada de cada modo de coleta feita depois de ${diaMes(TURNOS.t1)}, em votos válidos`;
+}
+// O desvio por instituto é o efeito casa do 2º turno (casaDe sobre todas as rodadas do confronto em
+// válidos), a mesma medida que a média desconta, ao lado do erro do instituto no 1º turno (erro1T).
+// Até 13/10/2026 a tabela lia o desvio de intenção total do 1º turno feito no gerador (DATA.vies), que
+// ficou no histórico (#tb-vies-1t).
+function drawVies(){
+  const tb=$("#tb-vies tbody");
+  if(tb){
+    const [A,B]=FINAL,todas=rodadas2TVV(),c=casaDe(todas,FINAL),E=erro1T(),aj=(i,n)=>c[i]&&c[i][n]?c[i][n].aj:null;
+    const linhas=[...new Set(todas.map(r=>r.inst))].map(i=>{const rs=todas.filter(r=>r.inst===i),a=aj(i,A),b=aj(i,B),e=E&&E.inst.find(x=>x.inst===i);
+        return {i,n:rs.length,modo:rs[rs.length-1].modo||"não informada",d:a==null&&b==null?null:(a||0)-(b||0),e:e?e.erro:null};})
+      .filter(x=>x.d!=null||x.e!=null).sort((x,y)=>Math.abs(y.d||0)-Math.abs(x.d||0));
+    const f=x=>x==null?`<span style="color:var(--ink-3)">n/d</span>`:Math.abs(x)<0.05?`<span style="color:var(--ink-3)">0,0</span>`:`<span style="font-weight:${Math.abs(x)>=1?600:400}">${sinalPts(x)}</span>`;
+    tb.innerHTML=linhas.map(x=>`<tr><td>${esc(x.i)}</td><td><span class="tag">${esc(x.modo)}</span></td><td class="num">${x.n}</td><td class="num">${f(x.d)}</td><td class="num">${f(x.e)}</td></tr>`).join("");
+    $("#vies-cap").textContent=`Em pontos de votos válidos. O desvio compara cada rodada do confronto com a mediana dos outros institutos na mesma semana, já reduzido para quem tem poucas rodadas, como a média desconta; valor positivo indica margem maior para ${curto(A)}. O erro compara a última rodada do instituto antes da votação com a urna.`;
+  }
+  drawVies1T();
+}
+// ---- o histórico do 1º turno: a última rodada de cada modo até a véspera e o desvio do gerador
+function drawTabelaReguas1T(){
+  const tb=$("#tb-reguas-1t tbody");if(!tb)return;
+  const t=Date.parse(ULT1T),sg=sigmaRegua(ULT1T),med=agregar1T(sg,t);
+  const th=$("#tb-reguas-1t thead th:last-child");if(th)th.textContent=`Média em ${dBR(ULT1T)}`;
+  tb.innerHTML=OITO.filter(n=>!some(n)).map(n=>{
+    const pts=serieDe(n).filter(p=>p.t<=t);const por={};for(const [m] of MODOS){const ps=pts.filter(p=>p.modo===m);por[m]=ps.length?ps[ps.length-1]:null;}
     const lidos=MODOS.map(([m])=>por[m]).filter(Boolean);const tmax=Math.max(...lidos.map(p=>p.t),0);
     const vals=lidos.filter(p=>tmax-p.t<=14*864e5).map(p=>p.v);const top=vals.length>1?Math.max(...vals):null;
-    const p=posicao(n);
-    return `<tr${dimDe(n)?' style="opacity:.4"':''}><td><b style="color:${COR[n]}">${esc(n)}</b></td>`+MODOS.map(([m])=>{const q=por[m];if(!q)return `<td class="num" style="color:var(--ink-3)">sem medição</td>`;const hi=top!=null&&q.v===top&&tmax-q.t<=14*864e5&&vals.filter(v=>v===top).length===1;return `<td class="num"><b class="tnum" style="${hi?"color:var(--accent-text)":""}">${fPct(q.v)}%</b><span class="desc" style="max-width:none">${esc(q.inst.split("/")[0].split(" (")[0])}, ${dBR(q.d)}</span></td>`;}).join("")+`<td class="num"><b class="tnum">${p?fPct(p.agora)+"%":""}</b><span class="desc" style="max-width:none">${diasTxt(SIG)}, ${pts.length} medições</span></td></tr>`;
+    return `<tr${dimDe(n)?' style="opacity:.4"':''}><td><b style="color:${COR[n]}">${esc(n)}</b></td>`+MODOS.map(([m])=>{const q=por[m];if(!q)return `<td class="num" style="color:var(--ink-3)">sem medição</td>`;const hi=top!=null&&q.v===top&&tmax-q.t<=14*864e5&&vals.filter(v=>v===top).length===1;return `<td class="num"><b class="tnum" style="${hi?"color:var(--accent-text)":""}">${fPct(q.v)}%</b><span class="desc" style="max-width:none">${esc(q.inst.split("/")[0].split(" (")[0])}, ${dBR(q.d)}</span></td>`;}).join("")
+      +`<td class="num"><b class="tnum">${med[n]!=null?fPct(med[n])+"%":""}</b><span class="desc" style="max-width:none">${diasTxt(sg)}, ${pts.length} medições</span></td></tr>`;
   }).join("");
-  $("#tb-reguas tbody").innerHTML=rows;
 }
-function drawVies(){$("#tb-vies tbody").innerHTML=DATA.vies.map(v=>{const f=x=>x==null?"":(Math.abs(x)<0.05?`<span style="color:var(--ink-3)">0,0</span>`:`<span style="color:${x>0?"var(--ink)":"var(--ink-2)"};font-weight:${x>0?600:400}">${x>0?"+":""}${fPct(x)}</span>`);return `<tr><td>${esc(v.inst)}</td><td><span class="tag">${esc(v.modo)}</span></td><td class="num">${v.n}</td><td class="num">${f(v.dLula)}</td><td class="num">${f(v.dFlavio)}</td></tr>`;}).join("");}
-$("#rod-sum").textContent=`Ver as ${DATA.meta.rodadas} rodadas com ficha técnica`;
-$("#tb-rodadas tbody").innerHTML=DATA.fichas.slice().reverse().map(f=>`<tr><td class="dt">${dBR(f.dt)}/${f.dt.slice(0,4)}</td><td>${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.inst)}</a>`:esc(f.inst)}${f.t==="2"?` <small style="color:var(--ink-3)">só 2º turno${soValidos2T(f.inst,f.dt)?", em votos válidos":""}</small>`:""}</td><td class="dt">${dBR(f.campo.slice(0,10))} a ${dBR(f.campo.slice(13))}</td><td>${esc(f.met)}</td><td>${esc(f.reg)}</td></tr>`).join("");
+function drawVies1T(){const tb=$("#tb-vies-1t tbody");if(!tb)return;tb.innerHTML=(DATA.vies||[]).map(v=>{const f=x=>x==null?"":(Math.abs(x)<0.05?`<span style="color:var(--ink-3)">0,0</span>`:`<span style="color:${x>0?"var(--ink)":"var(--ink-2)"};font-weight:${x>0?600:400}">${x>0?"+":""}${fPct(x)}</span>`);return `<tr><td>${esc(v.inst)}</td><td><span class="tag">${esc(v.modo)}</span></td><td class="num">${v.n}</td><td class="num">${f(v.dLula)}</td><td class="num">${f(v.dFlavio)}</td></tr>`;}).join("");}
 
 // ---- busca e redes
 const sMMDD=arr=>(arr||[]).map(p=>({t:MMDD2T(p[0]),v:p[1]})).sort((a,b)=>a.t-b.t);
@@ -3212,9 +3566,10 @@ function renderLado(){
 
 // ---- linha do tempo (fluxo)
 const cats=[...new Set(TL.map(e=>e.categoria))].sort();
-const CATC={"justiça eleitoral":"var(--crit)","pesquisa":"var(--m3)","calendário":"var(--ink)","convenção":"var(--c4)","debate":"var(--c7)","declaração":"var(--c3)","contexto":"var(--ink-3)","cenário":"var(--c5)","entrevista":"var(--c2)","ataque":"var(--crit)","endosso":"var(--m2)","proposta":"var(--c2)","registro":"var(--ink)","rito de reclassificação":"var(--ink-3)"};
+const CATC={"justiça eleitoral":"var(--crit)","pesquisa":"var(--m3)","calendário":"var(--ink)","convenção":"var(--c4)","debate":"var(--c7)","declaração":"var(--c3)","contexto":"var(--ink-3)","cenário":"var(--c5)","entrevista":"var(--c2)","ataque":"var(--crit)","endosso":"var(--m2)","proposta":"var(--c2)","registro":"var(--ink)","rito de reclassificação":"var(--ink-3)","resultado":"var(--ink)"};
 let fCand="",fCat=new Set(),fTxt="",shown=24;
-$("#tl-sub").textContent=`${TL.length} eventos datados, do calendário oficial do TSE aos episódios de cada campanha, com fonte.`;
+// o subtítulo diz em que ponto da eleição a linha do tempo está, com os nomes do 2º turno lidos do dado
+$("#tl-sub").textContent=`${TL.length} eventos datados, do calendário oficial do TSE aos episódios de cada campanha, com fonte. O 1º turno foi em ${dExtenso(TURNOS.t1)}, e o 2º turno, entre ${FINAL.join(" e ")}, ${FASE==="entre"||FASE==="votacao"?"é":"foi"} em ${dExtenso(TURNOS.t2)}.`;
 $("#tl-tools").innerHTML=`<span id="tl-dia"></span><label class="sel">Candidato <select id="f-cand"><option value="">Todos</option><option value="__foco">Em foco (neste navegador)</option>${[...OITO,"todos",...C.filter(c=>c.grupo!=="principal").map(c=>c.nome)].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select></label><input type="search" id="f-txt" placeholder="Buscar palavra no evento" aria-label="Buscar palavra">`;
 $("#tl-cats").innerHTML=cats.map(k=>`<button type="button" class="chipbtn" data-cat="${esc(k)}" aria-pressed="true" style="--chipc:${CATC[k]||"var(--ink-3)"}"><i></i>${esc(k)}</button>`).join("");
 const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -3224,10 +3579,13 @@ function renderTL(){
   const rows=TL.filter(e=>okCand(e)&&(!fCat.size||!fCat.has(e.categoria))&&(!q||(e.evento+" "+e.descricao+" "+e.candidato).toLowerCase().includes(q))&&(!fDia||e.data===fDia));
   const chipDia=$("#tl-dia");if(chipDia)chipDia.innerHTML=fDia?`<button type="button" class="chipbtn plain" aria-pressed="true" data-limpa-dia="1">Dia ${dBR(fDia)} ✕</button>`:"";
   const fut=rows.filter(e=>e.data>HOJE).sort((a,b)=>a.data.localeCompare(b.data)),pas=rows.filter(e=>e.data<=HOJE);
-  $("#proximos").innerHTML=fut.length&&!q&&!fDia?`<div class="ph"><span class="eyebrow">A seguir</span></div><div class="prox">${fut.slice(0,8).map(e=>`<div class="px" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></div>`).join("")}</div>`:"";
+  $("#proximos").innerHTML=fut.length&&!q&&!fDia?`<div class="ph"><span class="eyebrow">${HOJE<TURNOS.t2?"Até o 2º turno":"A seguir"}</span></div><div class="prox">${fut.slice(0,8).map(e=>`<div class="px" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></div>`).join("")}</div>`:"";
   let h="",mes="";
   for(const e of pas.slice(0,shown)){
-    const m=e.data.slice(0,7);if(m!==mes){mes=m;h+=`<li class="month">${MES[+m.slice(5,7)-1]||m} ${m.slice(0,4)}</li>`;}
+    // no mês da votação do 1º turno, o separador diz também a fase: "outubro 2026 · 2º turno" para o que
+    // veio depois de 4/10 e "outubro 2026 · 1º turno" para o que veio antes
+    const m=e.data.slice(0,7),fase=m===TURNOS.t1.slice(0,7)?(e.data>TURNOS.t1?" · 2º turno":" · 1º turno"):"",k=m+fase;
+    if(k!==mes){mes=k;h+=`<li class="month">${MES[+m.slice(5,7)-1]||m} ${m.slice(0,4)}${fase}</li>`;}
     h+=`<li class="ev" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><div><span class="who">${e.candidato==="todos"?"eleição":esc(e.candidato)}</span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}<span class="tag">${esc(e.categoria)}</span>${e.descricao?`<span class="desc" title="Clique para ler tudo">${esc(e.descricao)}</span>`:""}</div></li>`;
   }
   $("#stream").innerHTML=h||`<li><div class="empty"><b>${fCand==="__foco"&&!prefs.foco.length?"Ninguém em foco":"Nada apurado"}</b>${fCand==="__foco"&&!prefs.foco.length?"Marque candidatos com a estrela nas fichas para filtrar por eles.":"Nenhum evento datado com esse filtro."}</div></li>`;
@@ -3254,9 +3612,9 @@ function drawRedesHoje(){
 // ---- método: caminho do dado, cobertura e modos
 function drawMetodo(){
   $("#pipe").innerHTML=[
-    ["Fontes",["TSE DivulgaCandContas (fichas, bens, situação)",`${DATA.meta.institutos} institutos, com ficha técnica no TSE`,"Google Trends e Wikimedia REST","Perfis públicos no Instagram","Imprensa e calendário oficial"]],
-    ["Coleta",["Pesquisas e Wikipédia, automaticamente às 8h e às 20h de Brasília","Trends, seguidores e TSE, a cada coleta","Acompanhamento da imprensa e das fichas técnicas","Todo número com data e fonte"]],
-    ["Dados",["Arquivos CSV versionados de pesquisas, série diária, Trends, Wikipédia, eventos, candidatos e partidos","Uma linha por candidato, plataforma e dia","Modo de coleta classificado pela ficha técnica"]],
+    ["Fontes",["TSE DivulgaCandContas (fichas, bens, situação)","Resultado oficial do TSE (resultados.tse.jus.br)",`${DATA.meta.institutos} institutos de pesquisa, com a ficha técnica quando a fonte traz`,"Google Trends e Wikimedia REST","Perfis públicos no Instagram","Imprensa e calendário oficial"]],
+    ["Coleta",["Pesquisas, Wikipédia, Google Trends e resultado do TSE a cada rodada automática, às 8h e às 20h de Brasília","Na noite de 25/10, a cada 20 ou 30 minutos, das 17h até 0h30","Seguidores e fichas dos candidatos nas datas indicadas, com acompanhamento da imprensa","Todo número com data e fonte"]],
+    ["Dados",["Arquivos CSV versionados de pesquisas, série diária, Trends, Wikipédia, eventos, candidatos e partidos","Resultados do TSE (dados/resultados)","Uma linha por candidato, plataforma e dia","Modo de coleta classificado pela ficha técnica"]],
     ["Mural",["O gerador monta a página a partir dos CSVs","Médias, alertas e faixas são calculados na hora","Foco, período e tema ficam salvos no seu navegador"]],
   ].map(([k,itens],i)=>(i?`<div class="parrow" aria-hidden="true">→</div>`:"")+`<div class="pnode"><span class="eyebrow">${k}</span>${itens.map(x=>`<span>${x}</span>`).join("")}</div>`).join("");
   const ABR=["TSE","Bens","Chapa","Perfis","Seguid.","Pesq.","Rejeiç.","Google","Wiki","Eventos"];
@@ -3265,6 +3623,8 @@ function drawMetodo(){
   const KW={"presencial":"presencial, domiciliar, face a face","telefônica":"telefone, telefônica, IVR","digital":"digital, online, eletrônica, web, formulário, internet","não informada":"ficha sem o modo"};
   const max=Math.max(...Object.values(cont),1);
   $("#ch-modos").innerHTML=`<div class="modos">${MODOS.map(([m,c])=>`<div class="mr"><span class="lab"><i style="background:${c}"></i>${m}</span><span class="bar"><i style="width:${Math.round((cont[m]||0)/max*100)}%;background:${c}"></i></span><span class="val">${cont[m]||0} rodadas</span><span class="kw">${KW[m]}</span></div>`).join("")}</div>`;
+  $$(".min-pos1t").forEach(e=>e.textContent=`${pl(MIN_POS1T.rodadas,"rodada")} de ${pl(MIN_POS1T.inst,"instituto")}`);
+  drawNotas();
 }
 // ---- calendário da linha do tempo
 let fDia="";
@@ -3691,17 +4051,33 @@ pr.addEventListener("change",e=>{
 });
 
 // ---- notas
-$("#notes").innerHTML=`<p><b>Como a média é feita.</b> A média de cada candidato é ponderada pela data das pesquisas, com uma janela que encurta conforme a eleição se aproxima. Dentro da janela, cada instituto entra com uma rodada só, e nenhuma rodada passa de ${Math.round(AG.teto*100)}% do peso. Há dois ajustes para resultados muito diferentes dos demais. A rodada que se afasta do conjunto além do que o erro amostral explica perde peso, e essa perda cresce com o quadrado da distância. O viés constante de cada instituto, medido ao longo do ano em relação aos outros, é descontado antes do cálculo, e a tabela "A régua de cada instituto", acima, mostra o tamanho e a direção de cada um. A incerteza publicada soma o erro amostral e o erro da estimativa do viés. Quando a diferença entre os dois primeiros é menor que essa incerteza, o resultado aparece como empate técnico. As fórmulas estão no painel acima.</p>
-<p><b>Atualização e verificação.</b> As pesquisas nacionais e estaduais e os acessos aos verbetes da Wikipédia são atualizados automaticamente duas vezes por dia, às 8h e às 20h de Brasília. Uma rotina automática lê a compilação pública da Wikipédia e a API oficial da Wikimedia, gera o mural de novo, confere o dado e publica. Google Trends, seguidores no Instagram e a ficha do TSE entram a cada coleta, com a data indicada ao lado. A "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato e indica só a quantidade de informação disponível. Foco, período, tema e densidade ficam salvos apenas no navegador de quem fez a escolha.</p>
-<p><b>Pesquisas.</b> ${DATA.meta.rodadas} rodadas nacionais de ${DATA.meta.institutos} institutos, todas com ficha técnica e registro no TSE, listadas na tabela "ver as rodadas". O gráfico da corrida reúne pesquisas feitas com métodos diferentes, e a AtlasIntel, que coleta pela internet, costuma dar a Lula mais do que as pesquisas presenciais e por telefone. A linha é a média das rodadas e não uma projeção. Os votos válidos, que decidem se há segundo turno, saem da mesma média: cada rodada que registra brancos, nulos e indecisos mostra quanto do total foi para candidatos, e esse fator, pesado como a média, converte a intenção total em válidos. Rodada que não permite fechar essa conta fica fora só da conversão. A janela da média tem ${diasTxt(SIG)} hoje e encurta até a eleição. Em 23/9 testamos essa escolha contra o histórico, prevendo cada rodada com a média do que tinha saído antes dela: janelas de 1 a 21 dias erram quase o mesmo, cerca de 4 pontos na margem entre os dois primeiros, porque o que pesa no erro é a diferença entre institutos. Por isso a régua ficou como estava. Também procuramos instituto que acompanha a média em vez de medir, e nenhum caso passou do que o acaso explica. Ela cresce até reunir ${AG.inst} institutos, e de cada instituto entra só a rodada mais próxima da data do cálculo. Na rejeição, cada instituto faz a pergunta de um jeito, e a comparação só vale dentro do mesmo instituto. Não foram localizadas as rodadas de janeiro e fevereiro do Datafolha e do PoderData. Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período. A AtlasIntel de 19/5 teve a divulgação suspensa por decisão judicial e entrou só em parte.${DATA.meta.excluidas?` ${DATA.meta.excluidas===1?"1 rodada guardada na base fica":DATA.meta.excluidas+" rodadas guardadas na base ficam"} fora da conta, cada uma com o motivo registrado: são pesquisas de 2024 e 2025 que a coleta automática tinha datado como 2026, porque a página da Wikipédia não marcava o ano delas no título da seção.`:""}</p>
+// Desde 13/10/2026 as notas são uma função, chamada por drawMetodo: elas citam o resultado do TSE, as
+// UFs de 2º turno (com o nome e o artigo de cada uma, definidos mais abaixo) e o erro do 1º turno, que
+// não existem ainda quando o script passa por aqui.
+// O Tocantins foi marcado "2º turno" no 1º turno e a configuração do 2º turno do TSE não o inclui;
+// conferido em 13/10/2026 (o arquivo do estado dá 404). A data vai no texto.
+const CONFERIDO_UFPEND="2026-10-13";
+function drawNotas(){
+  const M=DATA.meta,t1=M.t1||{},t2=M.t2||{},camp=rodadas2TCampanha(),ant=rodadas2TAntes(),E=erro1T(),R1=resPres("1");
+  const juntar=a=>a.length>1?a.slice(0,-1).join(", ")+" e "+a[a.length-1]:a.join("");
+  const fimRegua=dISO(Date.parse(REGUA.inicio)+(REGUA.sigma0-REGUA.minimo)*REGUA.passo*864e5);
+  const tse=C.map(c=>String(c.atualizado_tse||"").slice(0,10)).filter(d=>/^\d{4}-\d\d-\d\d$/.test(d)).sort();
+  const semLink=TL.filter(e=>!e.url).length;
+  const nomeUF=k=>UF[k]?UF[k].nome:k;
+  const pend=UFPEND.map(u=>{const [a,b]=u.c;return a&&b?` O TSE não declarou governador eleito ${emUF(u.uf)} no 1º turno: ${esc(a[1])} teve ${fPct2(a[5])}% e ${esc(b[1])}, ${fPct2(b[5])}% dos válidos. A configuração do 2º turno publicada pelo TSE, conferida em ${diaMes(CONFERIDO_UFPEND)}, não inclui o estado.`:"";}).join("");
+  $("#notes").innerHTML=`<p><b>Como a média é feita.</b> A média de cada candidato é ponderada pela data das pesquisas. No 1º turno, a janela começou com ${diasTxt(REGUA.sigma0)} em ${diaMes(REGUA.inicio)}, encurtou um dia a cada ${REGUA.passo} e chegou a ${diasTxt(REGUA.minimo)} em ${diaMes(fimRegua)}; no 2º turno vale a régua do 2º turno, hoje de ${diasTxt(SIG2)}. Nos dois casos a janela alarga sozinha até reunir ${AG.inst} institutos. Dentro da janela, cada instituto entra com uma rodada só, e nenhuma rodada passa de ${Math.round(AG.teto*100)}% do peso. Há dois ajustes para resultados muito diferentes dos demais. A rodada que se afasta do conjunto além do que o erro amostral explica perde peso, e essa perda cresce com o quadrado da distância. O viés constante de cada instituto, medido em relação aos outros, é descontado antes do cálculo, e a tabela "A régua de cada instituto", acima, mostra o tamanho e a direção de cada um. A incerteza publicada soma o erro amostral e o erro da estimativa do viés. Quando a diferença entre os dois é menor que essa incerteza, o resultado aparece como empate técnico. As fórmulas estão no painel acima.</p>
+<p><b>Atualização e verificação.</b> As pesquisas nacionais e estaduais, os acessos aos verbetes da Wikipédia, a busca no Google Trends e o resultado oficial do TSE são atualizados automaticamente duas vezes por dia, às 8h e às 20h de Brasília. Na noite de 25/10, a rotina roda a cada 20 ou 30 minutos, das 17h até 0h30, para acompanhar a apuração do 2º turno. Ela lê as fontes públicas, gera o mural de novo, confere o dado e publica. Seguidores no Instagram entram a cada coleta, com a data indicada ao lado. A "cobertura do dossiê" conta quantas das dez fontes do observatório existem para cada candidato e indica só a quantidade de informação disponível. Foco, período, tema e densidade ficam salvos apenas no navegador de quem fez a escolha.</p>
+<p><b>Pesquisas.</b> No 2º turno, entre ${esc(FINAL.join(" e "))}, o mural reúne ${camp.length?`${pl(camp.length,"rodada")} de ${pl(new Set(camp.map(r=>r.inst)).size,"instituto")} com campo terminado depois de ${diaMes(TURNOS.t1)}`:`nenhuma rodada com campo terminado depois de ${diaMes(TURNOS.t1)} ainda`}${ant.length?`, e mais ${pl(ant.length,"simulação","simulações")} do mesmo confronto feitas antes`:""}. Toda rodada entra em votos válidos, a parte de cada um na soma dos dois, porque parte delas é publicada só assim. A média usa só as rodadas feitas depois de ${diaMes(TURNOS.t1)}, com a régua do 2º turno, e começa quando há ${pl(MIN_POS1T.rodadas,"rodada")} de ${pl(MIN_POS1T.inst,"instituto")}; antes disso, o mural mostra as simulações. A linha é a média das rodadas e não uma projeção. O 1º turno fica como histórico: ${t1.rodadas} rodadas de ${t1.institutos} institutos, de ${diaMes(t1.primeira)} a ${diaMes(t1.ultima)}.${E?` Na véspera, a média do mural errou a margem entre os dois primeiros em ${fPct(Math.abs(E.margem.erro))} ${pts(E.margem.erro)}, e o erro de cada instituto está no painel "pesquisas x urna", em Pesquisas.`:""} No 1º turno, os votos válidos saíam da mesma média: cada rodada que registrava brancos, nulos e indecisos mostrava quanto do total foi para candidatos, e esse fator, pesado como a média, convertia a intenção total em válidos. Em 23/9 testamos a régua do 1º turno contra o histórico, prevendo cada rodada com a média do que tinha saído antes dela: janelas de 1 a 21 dias erravam quase o mesmo, cerca de 4 pontos na margem entre os dois primeiros, porque o que pesa no erro é a diferença entre institutos. Também procuramos instituto que acompanha a média em vez de medir, e nenhum caso passou do que o acaso explica. ${t1.sem_reg!=null&&t2.sem_reg!=null?`Nem toda fonte traz o número de registro no TSE: ele falta em ${t1.sem_reg} das ${t1.rodadas} rodadas de 1º turno e em ${t2.sem_reg} das ${t2.rodadas} rodadas com o confronto do 2º turno, listadas na tabela "ver as rodadas". `:""}Na rejeição, cada instituto faz a pergunta de um jeito, e a comparação só vale dentro do mesmo instituto. Não foram localizadas as rodadas de janeiro e fevereiro do Datafolha e do PoderData. Ipsos-Ipec e Meta/Ipsos não publicaram intenção de voto nacional no período. A AtlasIntel de 19/5 teve a divulgação suspensa por decisão judicial e entrou só em parte.${M.excluidas?` ${M.excluidas===1?"1 rodada guardada na base fica":M.excluidas+" rodadas guardadas na base ficam"} fora da conta, cada uma com o motivo registrado: são pesquisas de 2024 e 2025 que a coleta automática tinha datado como 2026, porque a página da Wikipédia não marcava o ano delas no título da seção.`:""}</p>
+${R1?`<p><b>Resultado oficial.</b> O resultado vem da divulgação oficial do TSE (${RES.fonte?`<a href="${esc(RES.fonte)}" target="_blank" rel="noopener">resultados.tse.jus.br</a>`:"resultados.tse.jus.br"}), lida pela rotina automática: presidente no 1º e no 2º turno, governador e Senado no 1º turno, e governador no 2º turno. Os percentuais são sobre os votos válidos e aparecem com duas casas, como o TSE publica, com a hora da totalização e o percentual de seções totalizadas; no 1º turno de presidente, ${fPct2(R1.tot.pst)}% das seções${R1.tot.at?` em ${horaTSE(R1.tot.at)}`:""}. Apuração que ainda não começou não é gravada.${UF2T.length?` Há 2º turno de governador em ${UF2T.length===1?"uma unidade da federação":(POREXT[UF2T.length]||UF2T.length)+" unidades da federação"}: ${esc(juntar(UF2T.map(nomeUF)))}.`:""}${pend}</p>`:""}
 ${(()=>{const cf=C.filter(c=>c.foto_cred);if(!cf.length)return "";
   const sem=C.filter(c=>!c.foto).map(c=>esc(c.nome));
   return `<p><b>Fotos.</b> As fotos dos candidatos vêm da Wikimedia Commons, pela imagem que o próprio Wikidata associa a cada um, e só entram depois de conferido que o verbete é da pessoa certa. Todas têm licença livre, que pede o crédito: ${cf.map(c=>`${esc(c.nome)} (${creditoFoto(c).replace(/^Foto: /,"").replace(/, via Wikimedia Commons$/,"")})`).join("; ")}.${sem.length?` Sem foto livre localizada: ${sem.join(", ")}.`:""}</p>`;})()}
-<p><b>Metodologias.</b> O modo de cada rodada (presencial, por telefone ou pela internet) é identificado na ficha técnica registrada e aparece como "não informada" quando a ficha não diz. O desvio por instituto compara cada rodada com a média dos outros institutos num período de 28 dias. Em janeiro e fevereiro havia poucas pesquisas por período, e o desvio desses meses é menos preciso. O desvio reflete diferenças de método e não indica qual instituto está mais perto do resultado.</p>
+<p><b>Metodologias.</b> O modo de cada rodada (presencial, por telefone ou pela internet) é identificado na ficha técnica registrada e aparece como "não informada" quando a ficha não diz. Duas medidas aparecem no mural e respondem a perguntas diferentes. O desvio compara cada rodada com a mediana dos outros institutos na mesma semana (${POREXT[Math.round(AG.semana/864e5)]||Math.round(AG.semana/864e5)} dias para cada lado) e mostra a régua de cada instituto em relação aos outros; ele reflete diferenças de método e não indica qual instituto está mais perto do resultado. O erro compara a pesquisa com a urna e só existe depois da votação: no 1º turno, foi medido com a última rodada de cada instituto antes de ${diaMes(TURNOS.t1)}, em votos válidos. A tabela de desvio do 1º turno, no histórico da editoria Pesquisas, comparava cada rodada com a média dos outros institutos num período de 28 dias; em janeiro e fevereiro havia poucas pesquisas por período, e o desvio desses meses é menos preciso.</p>
 <p><b>Redes.</b> Desde 1/9, o número de seguidores no Instagram vem de coleta própria. O observatório lê o valor exato no perfil público e grava uma linha por candidato e por dia de leitura. Essa leitura não é automática, porque o Instagram exige login, e por isso cada número aparece com a data ao lado. TikTok e YouTube seguem a mesma rotina. Para o histórico do ano, os números vêm da imprensa, em ${Object.values(DATA.ig).reduce((s,v)=>s+v.length,0)} pontos publicados por Democracia em Xeque, Bites, InsTrack, Social Blade, Vox Radar, AtivaWeb, Sólon e Fanpage Karma, com a fonte em cada ponto. A série tem poucos pontos e as fontes discordam entre si no mesmo dia, então as linhas ligam as medianas de cada dia. Os acessos à Wikipédia são atualizados automaticamente todo dia pela API oficial da Wikimedia.</p>
 <p><b>Busca e descoberta.</b> O Google Trends é coletado pelo observatório na própria página de consulta do Google, com dados diários do Brasil desde 1/1. O índice é relativo dentro de cada consulta, e os candidatos estão divididos em duas consultas que incluem Lula como referência. O Google devolveu zero para o dia 16/8, e esse dia foi tratado como falta de dado. A série é baixada inteira a cada coleta e aparece datada no gráfico. Os acessos à Wikipédia vêm da API oficial de pageviews da Wikimedia, contando só acessos de pessoas, desde 1/1, com atualização automática diária. Os dados estão em <code>dados/trends-2026.csv</code> e <code>dados/wikipedia-pageviews.csv</code>.</p>
-<p><b>Partidos.</b> As bancadas vêm da API da Câmara e da lista de senadores em exercício, de 1/9. O fundo eleitoral de 2026 vem da tabela oficial do TSE, que soma R$ 4,96 bilhões. Os filiados vêm da estatística do TSE de abril de 2026, e o tempo de TV, da Resolução TSE 23.776/2026. O fundo partidário de 2026 por partido ainda não entrou, porque o TSE o publica numa planilha que o observatório não conseguiu ler. Os governadores são os eleitos em 2022, e os estados de cada um aparecem ao passar o cursor.</p>
-<p><b>TSE e eventos.</b> As fichas dos candidatos vêm da API pública do DivulgaCandContas e são consultadas de novo a cada coleta. A linha do tempo reúne o calendário oficial, os marcos de cada campanha e a cobertura desde o debate da Band, com link para a fonte em quase todos os eventos. Os nove eventos sem link vêm do levantamento inicial de agosto.</p>`;
+<p><b>Partidos.</b> As bancadas vêm da API da Câmara e da lista de senadores em exercício, de 1/9. O fundo eleitoral de 2026 vem da tabela oficial do TSE, que soma R$ 4,96 bilhões. Os filiados vêm da estatística do TSE de abril de 2026, e o tempo de TV, da Resolução TSE 23.776/2026. O fundo partidário de 2026 por partido ainda não entrou, porque o TSE o publica numa planilha que o observatório não conseguiu ler. Os governadores são os eleitos em 2022, e os estados de cada um aparecem ao passar o cursor. Os eleitos em 2026 tomam posse em janeiro de 2027 e não entram nesta tabela.</p>
+<p><b>TSE e eventos.</b> As fichas dos candidatos vêm da API pública do DivulgaCandContas${tse.length?` e foram conferidas entre ${diaMes(tse[0])} e ${diaMes(tse[tse.length-1])}; não são consultadas de novo`:""}. A linha do tempo reúne o calendário oficial, os marcos de cada campanha e a cobertura desde o debate da Band, com link para a fonte em quase todos os eventos.${semLink?` ${semLink===1?"Um evento ainda está":(POREXT[semLink]?POREXT[semLink][0].toUpperCase()+POREXT[semLink].slice(1):semLink)+" eventos ainda estão"} sem link para a fonte.`:""}</p>`;
+}
 
 // ================= ESTADOS =================
 const pl=(n,s,p)=>n+" "+(Math.abs(n)===1?s:(p||s+"s"));
@@ -4446,7 +4822,7 @@ function carimboDe(id){
       case "e-metodo":return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}`;
     }return "";}
   switch(id){
-    case "pesquisas":return `${M.rodadas} rodadas · ${M.institutos} institutos · até ${dBR(M.ultima)}`;
+    case "pesquisas":{const n=rodadas2TCampanha().length;return n?`${pl(n,"rodada")} de 2º turno desde ${dBR(TURNOS.t1)} · até ${dBR(ult2T())}`:`${M.t1.rodadas} rodadas de 1º turno · até ${dBR(M.t1.ultima)}`;}
     case "busca":{const t=sMMDD(DATA.trends["Lula"]).pop(),w=sMMDD(DATA.wiki["Lula"]).pop(),ig=Object.values(DATA.ig).flat().map(p=>p.d).filter(d=>d<=HOJE).sort().pop();return [t?`Trends até ${dBR(dISO(t.t))}`:"",w?`Wikipédia até ${dBR(dISO(w.t))}`:"",ig?`Instagram ${dBR(ig)}`:""].filter(Boolean).join(" · ");}
     case "candidatos":return `${C.length} registrados · ${nDef} deferidos · TSE`;
     case "lado":return `${CRIT.length} critérios · até ${dBR(ULT)}`;
@@ -4468,9 +4844,17 @@ function aplicarTudo(){aplicarAparencia();aplicarJanela();}
 aplicarTudo();
 // todo painel com título solto ganha a linha .ph, que recebe o carimbo de data e as ferramentas de janela
 $$(".panel>h3").forEach(h=>{const ph=document.createElement("div");ph.className="ph";h.replaceWith(ph);ph.appendChild(h);});
-chipRow($("#f-cands"),OITO,candOn,drawCorrida,true);
-chipRow($("#f-inst"),DATA.institutos,instOn,drawCorrida,false);$("#f-n").textContent=DATA.institutos.length+MODOS.length;
-(()=>{const el=$("#f-modos");el.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="true" style="--chipc:${c}" title="Modo de coleta"><i></i>${esc(m)}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modoOn.has(k)?modoOn.delete(k):modoOn.add(k);b.setAttribute("aria-pressed",modoOn.has(k));drawCorrida();}));})();
+// os oito do 1º turno ficaram no histórico (#f-cands-1t); o #f-cands do gráfico principal é o chip das
+// simulações anteriores a 4/10. Os filtros de instituto e de modo valem para os dois gráficos.
+chipRow($("#f-cands-1t"),OITO,candOn,drawCorrida1T,true);
+const redesenharPesquisas=()=>{drawCorrida();drawCorrida1T();};
+chipRow($("#f-inst"),DATA.institutos,instOn,redesenharPesquisas,false);$("#f-n").textContent=DATA.institutos.length+MODOS.length;
+(()=>{const el=$("#f-modos");el.innerHTML=MODOS.map(([m,c])=>`<button type="button" class="chipbtn" data-k="${esc(m)}" aria-pressed="true" style="--chipc:${c}" title="Modo de coleta"><i></i>${esc(m)}</button>`).join("");el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;modoOn.has(k)?modoOn.delete(k):modoOn.add(k);b.setAttribute("aria-pressed",modoOn.has(k));redesenharPesquisas();}));})();
+$("#f-cands").addEventListener("click",e=>{if(!e.target.closest("[data-antes2t]"))return;verAntes2T=!verAntes2T;drawCorrida();});
+$$("#corrida-seg button").forEach(b=>b.addEventListener("click",()=>{corridaJan=b.dataset.cj;ZOOM["#ch-corrida"]=null;drawCorrida();}));
+// o histórico abre fechado: desenhado com a largura estimada, é refeito na largura real ao abrir
+$("#fold-1t").addEventListener("toggle",e=>{if(e.target.open)requestAnimationFrame(()=>{reajustarGraficos(e.target);rolarFim(e.target);ajustarRotulos(e.target);});});
+$$(".dia-1t").forEach(e=>e.textContent=diaMes(TURNOS.t1));$$(".dia-ult1t").forEach(e=>e.textContent=diaMes(ULT1T));
 chipsModo();drawVies();drawPartidos();drawMetodo();drawCasa();renderCal();
 lado=ladoPadrao();
 atualizarFoco();

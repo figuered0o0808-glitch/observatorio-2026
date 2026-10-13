@@ -547,6 +547,8 @@ with sync_playwright() as p:
     page.goto(URL + "#pesquisas")
     page.wait_for_timeout(800)
     r_corrida = page.evaluate(JS_MIN, "#ch-corrida, #ch-modo")
+    check("a 768px #ch-corrida (o 2º turno, desde 13/10/2026) e #ch-modo foram medidos, um de cada",
+          sorted(x["id"] for x in r_corrida) == ["ch-corrida", "ch-modo"], [x["id"] for x in r_corrida])
     page.goto(URL + "#uf-sp-governo-geral")
     page.wait_for_timeout(900)
     page.evaluate("() => document.querySelector('[data-edossie]').click()")
@@ -671,6 +673,12 @@ with sync_playwright() as p:
         page.goto(URL + "#" + rota)
         page.wait_for_timeout(500)
         for z in ("30", "90"):
+            # o botão de janela tem de existir, um só, antes do clique: desde 13/10/2026 #ch-corrida é o
+            # gráfico principal do 2º turno, e um painel sem a ferramenta faria o clique esperar até estourar
+            n_bt = page.locator(f".panel:has({sel}) .zb[data-z='{z}']").count()
+            if n_bt != 1:
+                eixos[f"{rota}/{z}"] = {"n": 0, "over": 0, "gap": 0, "botoes": n_bt}
+                continue
             page.click(f".panel:has({sel}) .zb[data-z='{z}']")
             page.wait_for_timeout(350)
             eixos[f"{rota}/{z}"] = page.evaluate(medir_eixo, sel)
@@ -707,11 +715,13 @@ with sync_playwright() as p:
     #      enquanto a série usava a janela do calendário)
     # Desde 13/10/2026 o span leva o texto inteiro ("1 dia", "3 dias"), escrito por diasTxt: com a
     # régua em 1 dia, o "<span>1</span> dias" fixo do HTML dava "1 dias".
+    # Desde 13/10/2026 o gráfico principal da editoria é o 2º turno, com a régua do 2º turno (SIG2), e o
+    # texto da janela é o .sig2-dias da editoria; a regra continua a mesma: a legenda diz a janela do dia.
     page.goto(URL + "#pesquisas")
     page.wait_for_timeout(500)
-    sete = page.evaluate("""() => { const sig = document.querySelector('#v-pesquisas .sig-dias').textContent.trim();
+    sete = page.evaluate("""() => { const sig = document.querySelector('#v-pesquisas .sig2-dias').textContent.trim();
         const txt = [document.querySelector('#lg-corrida').textContent, document.querySelector('#v-pesquisas').textContent].join(' ');
-        return {sig, esperado: diasTxt(SIG), sete: /m[eé]dia m[oó]vel de 7 dias/.test(txt), viva: txt.includes('média móvel de ' + sig),
+        return {sig, esperado: diasTxt(SIG2), sete: /m[eé]dia m[oó]vel de 7 dias/.test(txt), viva: document.querySelector('#lg-corrida').textContent.includes('média móvel de ' + sig),
                 umDias: (() => { const c = document.body.cloneNode(true); c.querySelectorAll('script,style').forEach(e => e.remove());
                     return /\b1 dias\b/.test(c.textContent); })()}; }""")
     check("nenhum 'média móvel de 7 dias' fixo na editoria de Pesquisas; a legenda usa a janela do dia, escrita por diasTxt",
@@ -1281,10 +1291,14 @@ with sync_playwright() as p:
         const br = x => String(x).replace('.', ',');
         const mostra = {k: q('.ag-k'), teto: q('.ag-teto'), inst: q('.ag-inst'), casa: q('.ag-tetocasa'),
                         enc: q('.ag-enc'), voltas: q('.ag-voltas'), piso: q('.ag-piso'),
-                        s0: q('.rg-s0'), passo: q('.rg-passo'), minimo: q('.rg-min'), vvmin: q('.vv-min')};
+                        s0: q('.rg-s0'), passo: q('.rg-passo'), minimo: q('.rg-min'), vvmin: q('.vv-min'),
+                        s02: q('.rg2-s0'), passo2: q('.rg2-passo'), minimo2: q('.rg2-min'), inst2: q('.ag2-inst')};
+        // desde 13/10/2026 a régua do 2º turno (REGUA2T) e o mínimo de institutos dele também aparecem
+        // no passo 1 e no passo 2, lidos do código como os outros
         const espera = {k: br(AG.k), teto: Math.round(AG.teto*100)+'%', inst: br(AG.inst), casa: br(AG.tetoCasa),
                         enc: br(AG.encolhe), voltas: br(AG.voltas), piso: br(AG.piso),
-                        s0: br(REGUA.sigma0), passo: br(REGUA.passo), minimo: br(REGUA.minimo), vvmin: br(VV_UF_MIN)+'%'};
+                        s0: br(REGUA.sigma0), passo: br(REGUA.passo), minimo: br(REGUA.minimo), vvmin: br(VV_UF_MIN)+'%',
+                        s02: br(REGUA2T.sigma0), passo2: br(REGUA2T.passo), minimo2: br(REGUA2T.minimo), inst2: br(AG.inst)};
         const erradas = Object.keys(espera).filter(k => !mostra[k].length || mostra[k].some(v => v !== espera[k]));
         return {passos: document.querySelectorAll('#p-formulas ol.fx > li').length,
                 formulas: document.querySelectorAll('#p-formulas math').length,
@@ -1301,6 +1315,181 @@ with sync_playwright() as p:
     check("nenhuma fórmula depende de delimitador esticável (que exige fonte matemática no aparelho)",
           r["esticavel"] == 0, r["esticavel"])
     check("fórmulas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
+    # ================= Pesquisas, Método e Linha do tempo no 2º turno (13/10/2026) =================
+    # ---- N4: as rodadas da campanha do 2º turno no CSV são as de DATA.polls2t, e o gráfico principal da
+    # editoria (#ch-corrida, desde 13/10/2026 o confronto em votos válidos) alcança a última delas, com o
+    # círculo dentro do eixo. O par conferido é (divulgação, url), e não o nome do instituto, porque o
+    # gerador acerta nomes na leitura (a rodada do Vox Brasil de 8/10 chegou da Wikipédia como "Vox").
+    import csv as _csv4, io as _io4
+    dados4 = Path(__file__).resolve().parent.parent / "dados"
+    def _ler4(nome):
+        f = dados4 / nome
+        return list(_csv4.DictReader(_io4.open(f, encoding="utf-8-sig"))) if f.exists() else []
+    excl4 = {(x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) for x in _ler4("rodadas-excluidas.csv")}
+    linhas4 = [x for x in _ler4("pesquisas-registradas.csv") if (x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) not in excl4]
+    linhas4 += _ler4("pesquisas-corrigidas.csv")
+    CENARIO_2T = "2º turno Lula x Flávio Bolsonaro"   # o mesmo de coleta/wikipedia_pesquisas_nacional.py
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(900)
+    n4 = page.evaluate("""() => { const t1 = (DATA.turnos || {}).t1 || '2026-10-04';
+        const pares = [...new Set(DATA.polls2t.filter(p => p[9]).map(p => p[1] + '|' + (p[4] || '')))];
+        const maior = DATA.polls2t.filter(p => p[9] && p[1] <= HOJE).map(p => p[1]).sort().pop() || null;
+        const el = document.querySelector('#ch-corrida'), m = el && el._chart;
+        const ult = maior && m ? [...el.querySelectorAll('.ser:not(.sombra) circle[data-tip]')].filter(c => c.getAttribute('data-tip').includes(', ' + dBR(maior))) : [];
+        return {t1, pares, maior, tMaior: maior ? Date.parse(maior) : null, dmaior: maior ? dBR(maior) : null, tFim: m ? m.tFim : null, t1c: m ? m.t1 : null,
+                ml: m ? m.ml : null, iw: m ? m.iw : null, xs: ult.map(c => +c.getAttribute('cx')),
+                stamp: (document.querySelector('#p-corrida .ztools .stamp-dt') || {}).textContent || '',
+                home: document.querySelector('#home-2t-ate') ? document.querySelector('#home-2t-ate').textContent : null}; }""")
+    csv4 = {(x["data_divulgacao"], x["url"]) for x in linhas4
+            if x["cenario"] == CENARIO_2T and x["candidato"] in ("Lula", "Flávio Bolsonaro") and x["percentual"].strip()
+            and not x["instituto"].startswith("Agregador") and (x["data_campo_fim"] or x["data_divulgacao"]) > n4["t1"]}
+    pag4 = {tuple(k.split("|", 1)) for k in n4["pares"]}
+    check("N4: as rodadas de 2º turno com campo depois da votação no CSV, menos as excluídas, são as de DATA.polls2t",
+          csv4 == pag4, {"só no CSV": sorted(csv4 - pag4)[:4], "só na página": sorted(pag4 - csv4)[:4], "n": len(pag4)})
+    if n4["maior"]:
+        dentro = n4["xs"] and all(n4["ml"] - 0.5 <= x <= n4["ml"] + n4["iw"] + 0.5 for x in n4["xs"])
+        check("N4: o gráfico do 2º turno em Pesquisas vai até a última rodada da campanha, com o círculo dela dentro do eixo e o carimbo na data dela",
+              n4["tFim"] >= n4["tMaior"] and dentro and n4["dmaior"] in n4["stamp"]
+              and (n4["home"] is None or n4["dmaior"] in n4["home"]),
+              {k: n4[k] for k in ("maior", "xs", "ml", "iw", "stamp", "home")})
+    # ---- o gráfico principal de Pesquisas: faixa da campanha do 2º turno, marco da votação de 4/10, linha
+    # de 50%, e janelas que se contam da borda do próprio gráfico (a última rodada do 2º turno mais a
+    # folga): o botão de k dias mostra k + 2 dias até a borda, como em todo gráfico com zoom (wire). Em 7
+    # e em 30 dias a última rodada fica à vista; a borda nunca passa de amanhã.
+    jan = page.evaluate("""async () => { const d = 864e5, m = () => document.querySelector('#ch-corrida')._chart, espera = () => new Promise(r => setTimeout(r, 250));
+        const out = {fase: m().fase.rot, faseEsperada: FAIXA2T.rot, ref: !!document.querySelector('#ch-corrida line.ref'),
+                     marco: (m().marcos || []).some(x => x.t === Date.parse(TURNOS.t1)), t0: m().t0, votacao: Date.parse(TURNOS.t1),
+                     tem: rodadas2TCampanha().length};
+        for (const k of ['7', '30']) {
+            const bt = document.querySelector(`#p-corrida .zb[data-z="${k}"]`); if (!bt) { out[k] = null; continue; }
+            bt.click(); await espera();
+            out[k] = {borda: m().t1 === m().tFim, dias: Math.round((m().t1 - m().t0) / d), ult: m().t0 <= Date.parse(ult2T()),
+                      pts: [...document.querySelectorAll('#ch-corrida svg .ser:not(.sombra) circle')].length}; }
+        document.querySelector('#p-corrida .zb[data-z="all"]').click(); await espera();
+        document.querySelector('#corrida-seg [data-cj="ano"]').click(); await espera();
+        out.ano = dISO(m().t0);
+        document.querySelector('#corrida-seg [data-cj="2t"]').click(); await espera();
+        out.futuro = Math.round((m().t1 - Date.parse(HOJE)) / d);
+        out.folga = Math.round((m().t1 - Date.parse(ult2T())) / d);
+        return out; }""")
+    check("o gráfico do 2º turno em Pesquisas tem a faixa da campanha, a linha de 50% e o marco da votação de 4/10 na janela padrão",
+          jan["fase"] == jan["faseEsperada"] and jan["ref"] and jan["marco"] and jan["t0"] < jan["votacao"], jan)
+    if jan["tem"]:
+        check("as janelas de 7 e 30 dias do 2º turno se contam da borda do gráfico, cobrem os dias que prometem e mostram rodada da campanha",
+              all(jan[k] and jan[k]["borda"] and jan[k]["dias"] == int(k) + 2 and jan[k]["ult"] and jan[k]["pts"] > 0 for k in ("7", "30"))
+              and jan["ano"] == "2026-01-01" and jan["futuro"] <= 1 and 0 <= jan["folga"] <= 3, jan)
+    # ---- os filtros escolhem os pontos e a média do gráfico, mas o efeito casa continua medido em todas as
+    # rodadas do confronto, e o texto do 2º turno (#cap-2t, o mesmo da capa) é o de todas as rodadas
+    filtro = page.evaluate("""() => { const camp = rodadas2TCampanha(); if (!camp.length) return null;
+        const inst = camp[camp.length - 1].inst, cap0 = document.querySelector('#cap-2t').textContent, base0 = rodadas2TVV();
+        const conta = () => [...document.querySelectorAll('#ch-corrida circle[data-tip]')].filter(c => c.getAttribute('data-tip').includes(inst)).length;
+        const antes = conta(); instOn.delete(inst); drawCorrida(); draw2T();
+        const r = {inst, antes, depois: conta(), aviso: document.querySelector('#lg-corrida').textContent.includes('com filtro'),
+                   cap: document.querySelector('#cap-2t').textContent === cap0, base: rodadas2TVV() === base0};
+        instOn.add(inst); drawCorrida(); draw2T(); r.volta = conta() === antes; return r; }""")
+    if filtro is not None:
+        check("filtrar um instituto tira os pontos dele do gráfico do 2º turno e avisa, sem mudar o texto nem a base do efeito casa",
+              filtro["antes"] > 0 and filtro["depois"] == 0 and filtro["aviso"] and filtro["cap"] and filtro["base"] and filtro["volta"], filtro)
+    # ---- P2: o painel antigo do 2º turno (#ch-2t) saiu da editoria e do DRAW; o texto ficou em #cap-2t
+    p2 = page.evaluate("() => ({ch: !!document.querySelector('#ch-2t'), draw: '#ch-2t' in DRAW, cap: document.querySelector('#cap-2t').textContent, m: !!media2T()})")
+    check("o gráfico do 2º turno é o principal da editoria: #ch-2t saiu da página e do DRAW, e #cap-2t ficou com o texto",
+          not p2["ch"] and not p2["draw"] and (("votos válidos" in p2["cap"]) if p2["m"] else not re.search(r"\d", p2["cap"])), p2)
+    # ---- P7: a tabela de rodadas diz o turno de cada uma e abre nas feitas depois do 1º turno
+    p7 = page.evaluate("""async () => { const linhas = () => document.querySelectorAll('#tb-rodadas tbody tr').length;
+        const pos = DATA.fichas.filter(fichaPos1T).length, out = {th: [...document.querySelectorAll('#tb-rodadas thead th')].map(t => t.textContent),
+            padrao: linhas(), pos, pos1t: (DATA.meta.t2 || {}).pos1t, sum: document.querySelector('#rod-sum').textContent};
+        document.querySelector('#rod-seg [data-rt="todas"]').click(); out.todas = linhas(); out.fichas = DATA.fichas.length;
+        document.querySelector('#rod-seg [data-rt="pos"]').click(); out.volta = linhas(); return out; }""")
+    check("tabela de rodadas com a coluna Turno, aberta nas rodadas do 2º turno depois da votação, e 'Todas' com a lista inteira",
+          p7["th"][-1] == "Turno" and p7["padrao"] == (p7["pos"] or p7["fichas"]) and (p7["pos1t"] is None or p7["pos"] == p7["pos1t"])
+          and p7["todas"] == p7["fichas"] and p7["volta"] == p7["padrao"] and (str(p7["pos"]) in p7["sum"] if p7["pos"] else True), p7)
+    # ---- P3: o painel pesquisas x urna sai de erro1T(), e as contas dele fecham: erro é pesquisa menos
+    # urna, a margem é a do primeiro de FINAL menos a do segundo, a ordem é pelo erro absoluto na margem,
+    # o resumo é a média desses erros, e o texto diz "acima" só quando o erro passa da incerteza publicada.
+    e1 = page.evaluate("""() => { const E = erro1T(); if (!E) return {E: null, oculto: document.querySelector('#p-erro1t').hidden};
+        const R = resPres('1'), urna = n => (R.c.find(c => c[0] === n) || [])[5];
+        const ruins = E.inst.filter(x => Math.abs(x.erro - (x.va - x.vb - (urna(E.a) - urna(E.b)))) > 1e-9 || Math.abs(x.ea - (x.va - urna(E.a))) > 1e-9
+            || x.cf > E.vespera || (x.troca && (DATA.somasVV || {})[x.inst + '|' + x.troca] != null)).map(x => x.inst);
+        const ordem = E.inst.every((x, i) => !i || Math.abs(E.inst[i - 1].erro) <= Math.abs(x.erro) + 1e-12);
+        const mae = E.inst.reduce((s, x) => s + Math.abs(x.erro), 0) / E.inst.length;
+        return {n: E.inst.length, ruins, ordem, mae: Math.abs(mae - E.resumo.mae) < 1e-9, abaixo: E.resumo.abaixo === E.inst.filter(x => x.ea < 0).length,
+                margem: Math.abs(E.margem.erro - (E.margem.media - E.margem.urna)) < 1e-9, acima: Math.abs(E.margem.erro) > E.inc,
+                txt: document.querySelector('#erro1t-txt').textContent, oculto: document.querySelector('#p-erro1t').hidden,
+                linhas: document.querySelectorAll('#tb-erro1t tbody tr').length, pontos: document.querySelectorAll('#ch-erro1t circle').length,
+                cand: [...document.querySelectorAll('#tb-erro1t-c tbody tr')].map(r => [...r.children].map(c => c.textContent.trim())),
+                fin: FINAL, urnaFmt: Object.fromEntries(FINAL.map(n => [n, fPct2(urna(n)) + '%'])), vespera: E.cand.map(x => x.nome)}; }""")
+    if "E" in e1 and e1["E"] is None:
+        check("sem resultado do TSE ou sem a média da véspera, o painel pesquisas x urna fica oculto", e1["oculto"], e1)
+    else:
+        check("P3: erro1T fecha as contas (erro = pesquisa - urna, margem do primeiro de FINAL, ordem pelo erro absoluto, resumo)",
+              e1["n"] >= 5 and not e1["ruins"] and e1["ordem"] and e1["mae"] and e1["abaixo"] and e1["margem"], {k: e1[k] for k in ("n", "ruins", "ordem", "mae", "abaixo", "margem")})
+        check("P3: o painel pesquisas x urna mostra um ponto e uma linha por instituto, e diz 'acima' ou 'dentro' da incerteza conforme a conta",
+              not e1["oculto"] and e1["linhas"] == e1["n"] and e1["pontos"] == e1["n"] and (("ficou acima" in e1["txt"]) == e1["acima"]), {k: e1[k] for k in ("linhas", "pontos", "acima", "txt")})
+        # N14, a parte de Pesquisas: o número de 1º turno dos finalistas é o do CSV, com duas casas, e quem
+        # teve voto nunca aparece com "0%"
+        urna_csv = {x["mural"]: float(x["pct_validos"]) for x in _ler4("resultados/candidatos.csv")
+                    if x["turno"] == "1" and x["cargo"] == "presidente" and x["abrangencia"].lower() == "br" and x["mural"]}
+        linhas_c = {r[0]: r for r in e1["cand"]}
+        fin_ok = all(n in linhas_c and n in urna_csv and linhas_c[n][2] == f"{urna_csv[n]:.2f}".replace(".", ",") + "%" for n in e1["fin"])
+        zero = [r[0] for r in e1["cand"] if r[0] in urna_csv and urna_csv[r[0]] > 0 and r[2] in ("0%", "0,00%")]
+        check("N14 (Pesquisas): a urna dos finalistas no painel é a do CSV do TSE, com duas casas, e ninguém com voto aparece com 0%",
+              fin_ok and not zero and set(e1["vespera"]) <= set(linhas_c), {"linhas": e1["cand"][:3], "csv": {n: urna_csv.get(n) for n in e1["fin"]}, "zero": zero})
+    check("editoria Pesquisas do 2º turno sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+    # ---- o método e a linha do tempo falam do 2º turno: passo 9 em votos válidos do confronto (a conta do
+    # 1º turno numa dobra), notas sem a frase fixa da AtlasIntel nem "consultadas de novo a cada coleta",
+    # parágrafo do resultado oficial quando há resultado, e a linha do tempo com a fase no separador do mês
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#metodo")
+    page.wait_for_timeout(800)
+    mt = page.evaluate("""() => { const li = [...document.querySelectorAll('#p-formulas ol.fx > li')], n = document.querySelector('#notes').textContent;
+        return {p9: li[8] ? li[8].querySelector('h4').textContent : '', dobra: !!(li[8] && li[8].querySelector('details .vv-min')),
+                atlas: /AtlasIntel, que coleta pela internet, costuma/.test(n), cada: /consultadas de novo a cada coleta/.test(n),
+                res: n.includes('Resultado oficial.'), temRes: !!resPres('1'), ufs: UF2T.every(u => n.includes((UF[u] || {}).nome || u)),
+                pend: UFPEND.every(u => n.includes(u.c[0][1])), casa: [...document.querySelectorAll('#tb-casa thead th')].map(t => t.textContent)}; }""")
+    check("Método do 2º turno: passo 9 em votos válidos do confronto, a conta do 1º turno numa dobra, notas sem frase vencida e com o resultado oficial",
+          "segundo turno" in mt["p9"] and mt["dobra"] and not mt["atlas"] and not mt["cada"]
+          and (mt["res"] and mt["ufs"] and mt["pend"] if mt["temRes"] else not mt["res"]) and "Margem do 2º turno" in mt["casa"], mt)
+    page.goto(URL + "#tempo")
+    page.wait_for_timeout(600)
+    tl = page.evaluate("""() => { const mes = TURNOS.t1.slice(0, 7), nome = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][+mes.slice(5) - 1];
+        shown = 400; renderTL();
+        const seps = [...document.querySelectorAll('#stream li.month')].map(l => l.textContent);
+        const r = {seps: seps.filter(s => s.startsWith(nome)), sub: document.querySelector('#tl-sub').textContent, fin: FINAL,
+                   prox: (document.querySelector('#proximos .eyebrow') || {}).textContent || null, antesDo2T: HOJE < TURNOS.t2,
+                   depois: TL.some(e => e.data > TURNOS.t1 && e.data <= HOJE), antes: TL.some(e => e.data.startsWith(mes) && e.data <= TURNOS.t1)};
+        shown = 24; renderTL(); return r; }""")
+    check("Linha do tempo: o mês da votação separa 1º e 2º turno, o subtítulo cita os dois do 2º turno e o 'A seguir' vira 'Até o 2º turno'",
+          (not tl["depois"] or any(s.endswith("· 2º turno") for s in tl["seps"])) and (not tl["antes"] or any(s.endswith("· 1º turno") for s in tl["seps"]))
+          and all(n in tl["sub"] for n in tl["fin"]) and (tl["prox"] is None or tl["prox"] == ("Até o 2º turno" if tl["antesDo2T"] else "A seguir")), tl)
+    # nada de travessão, "1 dias", "undefined" ou frase que trate o 1º turno como disputa aberta nestas três
+    # editorias (as tabelas de rodadas e a lista de eventos são texto das fontes e ficam de fora)
+    ruins = {}
+    for rota in ("pesquisas", "metodo", "tempo"):
+        page.goto(URL + "#" + rota)
+        page.wait_for_timeout(500)
+        t = page.evaluate("""() => { const v = document.querySelector('.view.on').cloneNode(true);
+            v.querySelectorAll('#tb-rodadas, #stream, #proximos, script, style').forEach(e => e.remove()); return v.textContent; }""")
+        achados = re.findall(r"[—–]|\b1 dias\b|undefined|NaN|se houver segundo turno|aponta (?:vitória no primeiro turno|segundo turno)|decidem o primeiro turno|disputa pelo terceiro lugar", t)
+        if achados:
+            ruins[rota] = achados[:5]
+    check("Pesquisas, Método e Linha do tempo sem travessão, sem '1 dias', sem buraco de dado e sem o 1º turno como disputa aberta", not ruins, ruins)
+    check("Método e Linha do tempo do 2º turno sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+    # ---- a 390px o painel pesquisas x urna é desenhado na largura da tela, com texto legível
+    b, page, errs = novo_ctx(p, viewport=(390, 844))
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(900)
+    r = page.evaluate("""() => { const svg = document.querySelector('#ch-erro1t svg'); if (!svg) return null;
+        const sc = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width; let mn = 99;
+        svg.querySelectorAll('text').forEach(t => { mn = Math.min(mn, parseFloat(getComputedStyle(t).fontSize) * sc); });
+        return {min: Math.round(mn * 10) / 10, vb: svg.viewBox.baseVal.width, cw: document.querySelector('#ch-erro1t').clientWidth}; }""")
+    if r is not None:
+        check("a 390px o gráfico pesquisas x urna tem texto de 9px ou mais e é desenhado na largura do contêiner",
+              r["min"] >= 9 and abs(r["vb"] - r["cw"]) <= 2, r)
     b.close()
 
     # ---- votos válidos (23/9/2026)
