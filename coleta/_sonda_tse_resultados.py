@@ -4,15 +4,22 @@ de 2026 no arquivo de configuração e testa os formatos de arquivo de resultado
 
     python3 coleta/_sonda_tse_resultados.py
 """
-import json, sys, urllib.request
+import json, sys, time, urllib.error, urllib.request
 
 BASE = "https://resultados.tse.jus.br/oficial"
-UA = {"User-Agent": "Mozilla/5.0 (observatorio-2026)", "Accept": "application/json"}
+UA = {"User-Agent": "Mozilla/5.0 (observatorio-2026)", "Accept": "*/*"}
 
 
-def pedir(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
-        return r.read()
+def pedir(url, tentativas=4):
+    for i in range(tentativas):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404 or i == tentativas - 1:
+                raise
+            print("   (%s em %s, nova tentativa)" % (e.code, url[-60:]), flush=True)
+            time.sleep(5 * (i + 1))
 
 
 def resumo(obj, prof=0, max_itens=6):
