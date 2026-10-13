@@ -411,6 +411,36 @@ class LinhaForaDeColuna(unittest.TestCase):
         self.assertIsNone(wpn.implausivel(self.rodada(amostra="", margem="")))
 
 
+class RodadasSoDeSegundoTurno(unittest.TestCase):
+    """Depois do 1º turno (4/10/2026) as rodadas vêm só na tabela de 2º turno Lula x Flávio.
+    Até 13/10 elas ficavam de fora; a página desse dia tinha dez, de 5 a 12/10."""
+
+    @classmethod
+    def setUpClass(cls):
+        html, _ = wpn.carregar_html(FIXTURE.parent / "nacional-2026-10-13.html.gz", "73200000")
+        cls.novas, _, cls.res = wpn.processar(html, 73200000, wpn.ler_csv(CSV_REF), hoje=date(2026, 10, 13))
+        cls.so2t = {(r["instituto"], r["campo_fim"]): r for r in cls.res["so_2t"]}
+
+    def test_entram_as_dez_rodadas_depois_do_primeiro_turno(self):
+        self.assertEqual(len(self.so2t), 10, sorted(self.so2t))
+        self.assertTrue(all(fim > wpn.FIM_1T for _, fim in self.so2t))
+
+    def test_numeros_e_votos_validos(self):
+        df = self.so2t[("Datafolha", "2026-10-08")]
+        linhas = wpn.linhas_so_2t(df, 73200000)
+        self.assertEqual([(l[5], l[6], l[7]) for l in linhas],
+                         [(wpn.CENARIO_2T, "Flávio Bolsonaro", "49"), (wpn.CENARIO_2T, "Lula", "45")])
+        self.assertNotIn("votos válidos", linhas[0][12])
+        pd = self.so2t[("PoderData", "2026-10-12")]
+        self.assertIn("só votos válidos", wpn.linhas_so_2t(pd, 73200000)[0][12])
+
+    def test_linha_deslocada_de_segundo_turno_e_recusada(self):
+        rd = {"amostra": "2000", "margem": "2", "cenarios": [{"candidatos": [("Lula", "4"), ("Flávio Bolsonaro", "5")]}]}
+        self.assertIn("somando", wpn.implausivel_2t(rd))
+        rd["cenarios"][0]["candidatos"] = [("Lula", "45"), ("Flávio Bolsonaro", "49")]
+        self.assertIsNone(wpn.implausivel_2t(rd))
+
+
 class AnoPelaOrdem(unittest.TestCase):
     """27/9/2026: o título '2025' da página não era lido como seção e as tabelas de 2025 e 2024
     herdavam '2026'. O ano passa a descer quando a ordem dos meses vira."""

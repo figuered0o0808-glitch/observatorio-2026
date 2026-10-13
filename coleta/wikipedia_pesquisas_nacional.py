@@ -810,6 +810,23 @@ def linhas_da_rodada(rd, revid):
     return linhas
 
 
+def linhas_so_2t(rd, revid):
+    """Linhas de uma rodada que só tem o 2º turno Lula x Flávio Bolsonaro (depois de 4/10/2026)."""
+    obs = "compilação da Wikipédia, revisão %s; rodada só de 2º turno" % revid
+    v = dict(rd["cenarios"][0]["candidatos"])
+    soma = float(v["Lula"]) + float(v["Flávio Bolsonaro"])
+    if soma >= 99.5:
+        obs += "; a fonte publicou só votos válidos (os dois somam %s%%)" % ("%g" % soma)
+    if rd.get("nota"):
+        obs += "; " + rd["nota"]
+    url_pagina = "https://pt.wikipedia.org/w/index.php?title=%s&oldid=%s" % (
+        urllib.parse.quote(TITULO_PAGINA.replace(" ", "_")), revid)
+    metodologia = ("n=%s" % rd["amostra"]) if rd["amostra"] else ""
+    comum = [rd["instituto"], rd["campo_inicio"], rd["campo_fim"], rd["data_divulgacao"], metodologia]
+    return [comum + [CENARIO_2T, nome, v[nome], "", rd["margem"], rd["registro"], rd["url"] or url_pagina, obs]
+            for nome in ("Flávio Bolsonaro", "Lula")]
+
+
 def acrescentar(caminho, linhas):
     """Acrescenta linhas no fim do CSV sem reescrever o que existe: BOM só quando o arquivo
     nasce aqui, CRLF sempre, UTF-8."""
@@ -938,6 +955,31 @@ def implausivel(rd):
     return None
 
 
+# Depois do 1º turno (4/10/2026) as rodadas presidenciais passam a vir só na tabela de 2º turno
+# Lula x Flávio Bolsonaro. Até 13/10/2026 o coletor só gravava o 2º turno de rodadas que também
+# tinham 1º turno, e dez rodadas de 5 a 12/10 ficaram de fora. Uma rodada da tabela de 2º turno
+# com fim de campo depois desta data entra sozinha.
+FIM_1T = "2026-10-04"
+
+
+def implausivel_2t(rd):
+    """Motivo para recusar uma linha só de 2º turno que saiu deslocada, ou None. A soma dos dois
+    vai de uns 75% (votos totais, com brancos e indecisos) a 100% (votos válidos)."""
+    if rd["amostra"] and int(rd["amostra"]) < AMOSTRA_MINIMA:
+        return "amostra n=%s" % rd["amostra"]
+    if rd["margem"] and float(rd["margem"]) > MARGEM_MAXIMA:
+        return "margem de erro %s" % rd["margem"]
+    if not rd["cenarios"]:
+        return "sem números"
+    v = dict(rd["cenarios"][0]["candidatos"])
+    if "Lula" not in v or "Flávio Bolsonaro" not in v:
+        return "falta um dos dois candidatos"
+    soma = float(v["Lula"]) + float(v["Flávio Bolsonaro"])
+    if not 60.0 <= soma <= 100.5:
+        return "Lula e Flávio somando %.1f%%" % soma
+    return None
+
+
 def processar(html, revid, linhas_csv, hoje=None, desde=""):
     """Núcleo sem efeitos colaterais: devolve (novas, presentes, res) onde novas e presentes
     são listas de rodadas do 1º turno já completadas."""
@@ -976,9 +1018,33 @@ def processar(html, revid, linhas_csv, hoje=None, desde=""):
         vistas.append(rd)
         unicas.append(rd)
     unicas.sort(key=lambda r: (r["data_divulgacao"], r["campo_fim"], r["instituto"]))
+    so_2t, vistas_2t = [], []
+    for rd in res["segundo"]:
+        if rd["campo_fim"] <= FIM_1T or (desde and rd["campo_fim"] < desde):
+            continue
+        if rd["campo_fim"] > hoje.isoformat():
+            res["avisos"].append("data de campo no futuro, rodada de 2º turno ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
+            continue
+        motivo = implausivel_2t(rd)
+        if motivo:
+            res["avisos"].append("linha fora de coluna na página, rodada de 2º turno ignorada (%s): %s %s"
+                                 % (motivo, rd["instituto_pagina"], rd["campo_fim"]))
+            continue
+        chave = rodada_presente(rd, existentes)
+        if chave:
+            rd["presente_como"] = chave
+            continue
+        if any(casa_instituto(rd["instituto_pagina"], v["instituto_pagina"]) and perto(rd["campo_fim"], v["campo_fim"])
+               for v in vistas_2t):
+            res["avisos"].append("rodada de 2º turno repetida na página, mantida só a primeira: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
+            continue
+        vistas_2t.append(rd)
+        so_2t.append(rd)
+    so_2t.sort(key=lambda r: (r["data_divulgacao"], r["campo_fim"], r["instituto"]))
+    res["so_2t"] = so_2t
     institutos_csv = institutos_do_csv(linhas_csv)
     avisados = set()
-    for rd in unicas:
+    for rd in unicas + so_2t:
         if rd["instituto"] in institutos_csv or rd["instituto"] in avisados:
             continue
         avisados.add(rd["instituto"])
@@ -1061,17 +1127,28 @@ def main(argv=None):
         for l in linhas:
             print("          %s | %s | %s" % (l[5], l[6], l[7]))
     print("%d rodadas já presentes; %d novas (%d linhas)" % (len(presentes), len(novas), total_linhas))
+    for rd in res.get("so_2t", []):
+        print("NOVA 2T ", descrever(rd))
+        for l in linhas_so_2t(rd, revid):
+            print("          %s | %s | %s" % (l[5], l[6], l[7]))
     if args.dry_run:
         print("nada gravado (--dry-run)")
         return 0
-    if not novas:
+    so_2t = res.get("so_2t", [])
+    if not novas and not so_2t:
         print("nada a acrescentar em %s" % destino)
         return 0
     todas = []
     for rd in novas:
         todas.extend(linhas_da_rodada(rd, revid))
-    acrescentar(destino, todas)
-    print("%d rodadas (%d linhas) acrescentadas a %s" % (len(novas), len(todas), destino))
+    linhas_2t = []
+    for rd in so_2t:
+        linhas_2t.extend(linhas_so_2t(rd, revid))
+    acrescentar(destino, todas + linhas_2t)
+    if novas:
+        print("%d rodadas (%d linhas) acrescentadas a %s" % (len(novas), len(todas), destino))
+    if so_2t:
+        print("%d rodadas de 2º turno (%d linhas) acrescentadas a %s" % (len(so_2t), len(linhas_2t), destino))
     return 0
 
 

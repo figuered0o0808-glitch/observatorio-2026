@@ -278,6 +278,9 @@ jobs:
           m = acha(nac, r"(\d+) rodadas? \(\d+ linhas?\) acrescentad")
           if m and int(m.group(1)):
               partes.append(plural(int(m.group(1)), "rodada presidencial nova", "rodadas presidenciais novas"))
+          m = acha(nac, r"(\d+) rodadas? de 2º turno \(\d+ linhas?\) acrescentad")
+          if m and int(m.group(1)):
+              partes.append(plural(int(m.group(1)), "rodada de 2º turno nova", "rodadas de 2º turno novas"))
           detalhes += [l for l in nac if re.search(r"acrescentad|nada a acrescentar", l)]
 
           est = linhas("pesquisas-estados")
