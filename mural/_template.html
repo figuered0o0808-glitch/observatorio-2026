@@ -2820,7 +2820,9 @@ function drawPartidos(){
 $$("#tb-part th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;partSort=partSort.k===k?{k,dir:-partSort.dir}:{k,dir:k==="sigla"?1:-1};drawPartidos();}));
 
 // ---- candidatos
-const pillSit=c=>{let h=c.situacao==="Deferido"?`<span class="pill good">Registro deferido</span>`:`<span class="pill warn">Aguardando julgamento</span>`;if(c.restrito)h+=`<span class="pill crit">${esc(c.restrito)}</span>`;return h;};
+// registro indeferido não é "aguardando julgamento": Marçal saiu da lista de campanhas restritas em
+// 13/10/2026, e sem o selo da restrição o cartão diria que o registro dele ainda seria julgado
+const pillSit=c=>{let h=c.situacao==="Deferido"?`<span class="pill good">Registro deferido</span>`:/^Indeferid/i.test(c.situacao||"")?`<span class="pill crit">Registro indeferido</span>`:`<span class="pill warn">Aguardando julgamento</span>`;if(c.restrito)h+=`<span class="pill crit">${esc(c.restrito)}</span>`;return h;};
 const FONTES10=[["registro no TSE",c=>!!c.situacao],["bens declarados",c=>c.bens!=null],["chapa e vice",c=>!!c.vice],["perfis nas redes",c=>c.redes.length>0],["seguidores no ano",c=>(DATA.ig[c.nome]||[]).length>0],["pesquisas nominais",c=>DATA.polls.some(p=>p[2]===c.nome)],["rejeição",c=>DATA.rej.some(p=>p[2]===c.nome)],["buscas no Google",c=>!!DATA.trends[c.nome]],["acessos à Wikipédia",c=>!!DATA.wiki[c.nome]],["eventos datados",c=>TL.some(e=>e.candidato.includes(c.nome))]];
 function cobertura(c){const ok=FONTES10.map(([n,f])=>[n,!!f(c)]);const n=ok.filter(x=>x[1]).length;const falta=ok.filter(x=>!x[1]).map(x=>x[0]);return {n,falta,blocks:ok.map(x=>`<i class="${x[1]?"on":""}"></i>`).join(""),tip:`<b>${n} de 10 fontes</b> no dossiê${falta.length?"<br>faltam: "+falta.join(", "):"<br>tudo o que o observatório coleta está aqui"}`};}
 function sparkPolls(nome){
@@ -3065,7 +3067,7 @@ function svgSerie(P,o={}){
   for(const p of P)s+=`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="5" fill="transparent" data-tip="${fmtV(p.v)}${unidade} em ${dBR(dISO(p.t))}"/>`;
   return s+`</svg>`;
 }
-const stampDe=c=>c.restrito?`<span class="stamp crit">${esc(c.restrito.split(" (")[0])}</span>`:c.situacao==="Deferido"?`<span class="stamp good">Registro deferido</span>`:`<span class="stamp warn">Aguardando julgamento</span>`;
+const stampDe=c=>c.restrito?`<span class="stamp crit">${esc(c.restrito.split(" (")[0])}</span>`:c.situacao==="Deferido"?`<span class="stamp good">Registro deferido</span>`:/^Indeferid/i.test(c.situacao||"")?`<span class="stamp crit">Registro indeferido</span>`:`<span class="stamp warn">Aguardando julgamento</span>`;
 // depois de abrir um dossiê: se a coluna dos gráficos for mais estreita que o viewBox usado, refaz o conteúdo nessa largura
 function encaixarDossie(render){
   const ch=$$(".row2 .box .chart",dz).find(x=>x.querySelector("svg"));if(!ch)return;

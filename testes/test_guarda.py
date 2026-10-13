@@ -44,6 +44,8 @@ COPIAS = (
     "dados/redes-fontes.csv",
 )
 UFS_RECORTE = ("AC", "AL", "AP")
+# um dia da campanha do 1º turno, para os testes da data futura não esbarrarem na regra do fim do turno
+DIA_DO_1T = dt.date(2026, 9, 20)
 
 
 def carregar_guarda():
@@ -94,6 +96,8 @@ class Repositorio:
         for rel in COPIAS:
             shutil.copyfile(os.path.join(RAIZ, rel), os.path.join(self.pasta, rel))
         self._recorte_csv("dados/estados/pesquisas-estados-consolidado.csv", lambda l, h: l[h.index("uf")] in UFS_RECORTE)
+        # o nacional de pesquisas até março, para a regra do fim de cada turno (linhas novas de outubro)
+        self._recorte_csv("dados/pesquisas-registradas.csv", lambda l, h: l[h.index("data_divulgacao")] <= "2026-03-31")
         self._recorte_csv("dados/estados/wikipedia-estados.csv", lambda l, h: l[h.index("uf")] == "AC")
         # o Pará tem em HEAD seis linhas de segundo turno com campo_fim em novembro e dezembro de 2026
         # (erro de ano da própria página); elas não podem virar 'linha nova' quando a tabela se desloca
@@ -196,20 +200,20 @@ class Guarda(unittest.TestCase):
     def setUp(self):
         self.repo.restaurar()
 
-    def rodar(self, *args):
-        p = subprocess.run([sys.executable, GUARDA, "--raiz", self.repo.pasta, "--hoje", self.hoje.isoformat()] + list(args),
+    def rodar(self, *args, hoje=None):
+        p = subprocess.run([sys.executable, GUARDA, "--raiz", self.repo.pasta, "--hoje", (hoje or self.hoje).isoformat()] + list(args),
                            capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(p.stderr, "", p.stderr)
         return p.returncode, p.stdout
 
-    def aprova(self, *args):
-        rc, saida = self.rodar(*args)
+    def aprova(self, *args, hoje=None):
+        rc, saida = self.rodar(*args, hoje=hoje)
         self.assertEqual(rc, 0, saida)
         self.assertNotIn("FALHA", saida)
         return saida
 
-    def reprova(self, trecho, *args, arquivo=None):
-        rc, saida = self.rodar(*args)
+    def reprova(self, trecho, *args, arquivo=None, hoje=None):
+        rc, saida = self.rodar(*args, hoje=hoje)
         self.assertEqual(rc, 1, saida)
         linhas = [l for l in saida.splitlines() if l.startswith("FALHA") and trecho in l and (arquivo is None or arquivo in l)]
         self.assertTrue(linhas, "esperava FALHA com %r%s; saída:\n%s" % (trecho, (" em " + arquivo) if arquivo else "", saida))
@@ -416,15 +420,20 @@ class Guarda(unittest.TestCase):
         self.assertIn("%s: nenhuma linha nova" % rel, saida)
 
     def test_regravado_linha_nova_com_data_futura_reprova(self):
+        # Um dia de campanha do 1º turno como "hoje": a linha copiada é de 1º turno, e depois de
+        # 4/10/2026 uma linha de 1º turno datada de ontem já é recusada pela regra do fim do turno
+        # (test_fim_de_turno_*), o que esconderia a regra da data futura que este teste confere.
+        hoje = DIA_DO_1T
+        dia = lambda n: (hoje + dt.timedelta(days=n)).isoformat()
         rel = "dados/estados/pesquisas-estados-consolidado.csv"
         cab, linhas = self.repo.ler_csv(rel)
         nova = list(linhas[0])
-        nova[cab.index("data_ref")] = self.dia(3)
+        nova[cab.index("data_ref")] = dia(3)
         self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
-        self.reprova("data_ref posterior a", arquivo=rel)
-        nova[cab.index("data_ref")] = self.dia(-1)
+        self.reprova("data_ref posterior a", arquivo=rel, hoje=hoje)
+        nova[cab.index("data_ref")] = dia(-1)
         self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
-        saida = self.aprova()
+        saida = self.aprova(hoje=hoje)
         self.assertIn("%s: 1 linha(s) nova(s) com data_ref válida" % rel, saida)
 
     # regravado: CSV bruto da Wikipédia, com chave posicional (secao, tabela, ordem_col)
@@ -451,19 +460,23 @@ class Guarda(unittest.TestCase):
         self.assertIn("%s: contagem %d -> %d (+0.0%%)" % (rel, len(linhas), len(linhas)), saida)
 
     def test_regravado_wiki_rodada_nova_com_data_futura_reprova(self):
+        # mesmo motivo do teste do consolidado: "hoje" num dia de campanha do 1º turno
+        hoje = DIA_DO_1T
+        dia = lambda n: (hoje + dt.timedelta(days=n)).isoformat()
         rel = "dados/estados/pesquisas-estados-wiki.csv"
         cab, linhas = self.repo.ler_csv(rel)
         nova = list(linhas[0])
+        self.assertEqual(nova[cab.index("turno")], "1")
         nova[cab.index("instituto_bruto")] = "Instituto Inventado"
-        nova[cab.index("campo_inicio")] = self.dia(18)
-        nova[cab.index("campo_fim")] = self.dia(20)
+        nova[cab.index("campo_inicio")] = dia(18)
+        nova[cab.index("campo_fim")] = dia(20)
         self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
-        saida = self.reprova("1 linha(s) nova(s) com campo_fim posterior a %s" % self.dia(1), arquivo=rel)
-        self.assertIn(self.dia(20), saida)
-        nova[cab.index("campo_inicio")] = self.dia(-5)
-        nova[cab.index("campo_fim")] = self.dia(-3)
+        saida = self.reprova("1 linha(s) nova(s) com campo_fim posterior a %s" % dia(1), arquivo=rel, hoje=hoje)
+        self.assertIn(dia(20), saida)
+        nova[cab.index("campo_inicio")] = dia(-5)
+        nova[cab.index("campo_fim")] = dia(-3)
         self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
-        saida = self.aprova()
+        saida = self.aprova(hoje=hoje)
         self.assertIn("%s: 1 linha(s) nova(s) com campo_fim válida" % rel, saida)
         self.assertIn("%s: 1 linha(s) nova(s) com pagina preenchida" % rel, saida)
 
@@ -476,6 +489,68 @@ class Guarda(unittest.TestCase):
         self.repo.escrever(rel, csv_bytes(cab, linhas))
         saida = self.reprova("viraram zero", arquivo=rel)
         self.assertIn("coluna outros", saida)
+
+    # fim de cada turno: linha nova de 1º turno depois de 4/10/2026 e de 2º turno depois de 25/10
+    # (13/10/2026: uma rodada de 2025 entrou em SP como 1º turno com campo de 9 a 12/10/2026)
+
+    def nova_nacional(self, cenario, inicio, fim, divulgacao):
+        """Uma linha nova (só ela) no nacional de pesquisas."""
+        self.repo.restaurar()
+        rel = "dados/pesquisas-registradas.csv"
+        cab, linhas = self.repo.ler_csv(rel)
+        nova = list(linhas[0])
+        for col, v in (("instituto", "Instituto Inventado"), ("cenario", cenario), ("candidato", "Lula"),
+                       ("data_campo_inicio", inicio), ("data_campo_fim", fim), ("data_divulgacao", divulgacao)):
+            nova[cab.index(col)] = v
+        self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
+        return rel
+
+    def test_fim_de_turno_nacional(self):
+        hoje = dt.date(2026, 10, 13)
+        rel = self.nova_nacional("1º turno", "2026-10-05", "2026-10-07", "2026-10-08")
+        saida = self.reprova("1 linha(s) nova(s) de 1º turno com data depois de 2026-10-04", arquivo=rel, hoje=hoje)
+        self.assertIn("2026-10-08", saida)
+        # a mesma rodada no cenário do 2º turno é o que se espera depois de 4/10
+        self.nova_nacional("2º turno Lula x Flávio Bolsonaro", "2026-10-05", "2026-10-07", "2026-10-08")
+        saida = self.aprova(hoje=hoje)
+        self.assertIn("%s: nenhuma linha nova depois do fim do próprio turno" % rel, saida)
+        # rodada de 1º turno com campo até a véspera e divulgada até 4/10 passa
+        self.nova_nacional("1º turno, cenário 2", "2026-10-01", "2026-10-03", "2026-10-04")
+        self.aprova(hoje=hoje)
+        # depois de 25/10 não há turno nenhum
+        self.nova_nacional("2º turno Lula x Flávio Bolsonaro", "2026-10-24", "2026-10-26", "2026-10-26")
+        self.reprova("1 linha(s) nova(s) de 2º turno com data depois de 2026-10-25", arquivo=rel, hoje=dt.date(2026, 10, 27))
+
+    def test_fim_de_turno_estadual(self):
+        hoje = dt.date(2026, 10, 13)
+        rel = "dados/estados/pesquisas-estados-consolidado.csv"
+        cab, linhas = self.repo.ler_csv(rel)
+        nova = list(linhas[0])
+        for col, v in (("turno", "1"), ("instituto", "Instituto Inventado"), ("campo_inicio", "2026-10-09"),
+                       ("campo_fim", "2026-10-12"), ("data_ref", "2026-10-12"), ("data_divulgacao", "")):
+            nova[cab.index(col)] = v
+        self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
+        saida = self.reprova("de 1º turno com data depois de 2026-10-04", arquivo=rel, hoje=hoje)
+        self.assertIn("2026-10-12", saida)
+        nova[cab.index("turno")] = "2"
+        self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
+        self.aprova(hoje=hoje)
+
+    def test_fim_de_turno_nao_olha_linha_antiga(self):
+        """Linha de HEAD não é reavaliada: a regra vale para o que entra a partir de agora."""
+        rel = "dados/estados/pesquisas-estados-consolidado.csv"
+        cab, linhas = self.repo.ler_csv(rel)
+        nova = list(linhas[0])
+        for col, v in (("instituto", "Instituto Inventado"), ("campo_fim", "2026-10-12"), ("data_ref", "2026-10-12")):
+            nova[cab.index(col)] = v
+        self.repo.escrever(rel, csv_bytes(cab, linhas + [nova]))
+        git(self.repo.pasta, "add", "-A")
+        git(self.repo.pasta, "commit", "-q", "-m", "linha antiga fora do turno")
+        try:
+            saida = self.aprova(hoje=dt.date(2026, 10, 13))
+            self.assertIn("OK    %s: sem alteração em relação a HEAD" % rel, saida)
+        finally:
+            git(self.repo.pasta, "reset", "-q", "--hard", "HEAD~1")
 
     # regravado: dump JSON das páginas da Wikipédia
 
@@ -555,6 +630,15 @@ class Unidades(unittest.TestCase):
         self.assertEqual(f("Pesquisas eleitorais para a eleição estadual de 2026 em Mato Grosso"), "MT")
         self.assertEqual(f("Pesquisas eleitorais para a eleição distrital de 2026 no Distrito Federal"), "DF")
         self.assertIsNone(f("Pesquisas de opinião para a eleição presidencial no Brasil em 2026"))
+
+    def test_turno_da_linha(self):
+        f = self.mod.turno_da_linha
+        self.assertEqual(f(["uf", "turno"], ["AC", "2"]), "2")
+        self.assertIsNone(f(["uf", "turno"], ["AC", ""]))
+        self.assertEqual(f(["cenario"], ["1º turno, cenário 3"]), "1")
+        self.assertEqual(f(["cenario"], ["2º turno Lula x Flávio Bolsonaro"]), "2")
+        self.assertIsNone(f(["cenario"], ["rejeição"]))
+        self.assertIsNone(f(["data"], ["2026-10-05"]))
 
     def test_zero_reconhecido(self):
         z = self.mod.RE_ZERO

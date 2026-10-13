@@ -35,6 +35,12 @@ pesq = [r for r in pesq if (r["instituto"], r["data_divulgacao"], r["data_campo_
 # deslocada da Wikipédia.
 if os.path.exists(os.path.join(DADOS, "pesquisas-corrigidas.csv")):
     pesq += ler("pesquisas-corrigidas.csv")
+# Mesmo instituto com dois nomes na base. Em 13/10/2026 a rodada do Vox Brasil de 8/10 chegou da
+# Wikipédia como "Vox", e o coletor gravou o nome da página; a base só aceita acréscimo, então o
+# nome se acerta aqui, na leitura, depois das exclusões e das correções (que usam o nome gravado).
+INST_ALIAS = {"Vox": "Vox Brasil"}
+for r in pesq:
+    r["instituto"] = INST_ALIAS.get(r["instituto"], r["instituto"])
 ev = ler("eventos.csv")
 part = ler("partidos.csv")
 trends_rows = ler("trends-2026.csv")
@@ -46,6 +52,24 @@ OITO = ["Lula", "Flávio Bolsonaro", "Augusto Cury", "Ronaldo Caiado", "Romeu Ze
 def num(x):
     try: return float(x)
     except: return None
+
+# ---------------------------------------------------------------- resultado oficial (TSE)
+# A leitura fica em mural/_resultados.py, testada à parte. Sem dados/resultados (ou com a pasta de
+# MURAL_RESULTADOS vazia), resultados é {} e o mural continua só com as pesquisas.
+import sys as _sys
+_sys.path.insert(0, AQUI)
+import _resultados as _R
+_nomes_res = {c["candidato"]: c["candidato"] for c in cands}
+if os.path.exists(os.path.join(DADOS, "estados", "candidatos-estados.csv")):
+    _nomes_res.update({c["slug"]: c["nome_urna"] for c in ler("estados/candidatos-estados.csv") if c["slug"]})
+resultados = _R.ler_resultados(nomes=_nomes_res)
+UF2T = _R.ufs_2t()
+UFPEND = _R.ufs_pendentes(resultados, UF2T)
+FINALISTAS = _R.finalistas(resultados)
+TURNOS = {"t1": "2026-10-04", "t2": "2026-10-25", "abre": "08:00", "fecha": "17:00"}
+# Pesquisa de 1º turno vai até a véspera da votação; o mesmo corte do coletor nacional (FIM_1T)
+FIM_1T = TURNOS["t1"]
+VESPERA_1T = "2026-10-03"
 
 # ---------------------------------------------------------------- pesquisas
 rodadas = {}
@@ -77,22 +101,37 @@ polls_main, polls_2t, rej = [], [], []
 # De que turno é cada rodada: desde 5/10/2026 a base recebe rodadas só de 2º turno, e o que é "a
 # última rodada" ou "quantas rodadas" depende do turno de que o texto fala.
 chaves1t, chaves2t = set(), set()
+# rodadas com registro no TSE em alguma linha do turno, e o fim de campo das de 2º turno
+reg1t, reg2t, cf2t = set(), set(), {}
 for r in pesq:
     inst, dt, cen, cand = r["instituto"], r["data_divulgacao"], r["cenario"], r["candidato"]
     if inst.startswith("Agregador"): continue
     p, j = num(r["percentual"]), num(r["rejeicao"])
-    if p is not None and cen.startswith("1º turno"): chaves1t.add((inst, dt))
-    if p is not None and cen == CENARIO_2T and cand in ("Lula", "Flávio Bolsonaro"): chaves2t.add((inst, dt))
+    if p is not None and cen.startswith("1º turno"):
+        chaves1t.add((inst, dt))
+        if r["registro_tse"].strip(): reg1t.add((inst, dt))
+    if p is not None and cen == CENARIO_2T and cand in ("Lula", "Flávio Bolsonaro"):
+        chaves2t.add((inst, dt))
+        if r["registro_tse"].strip(): reg2t.add((inst, dt))
+        cf2t[(inst, dt)] = max(cf2t.get((inst, dt), ""), r["data_campo_fim"] or dt)
     if cand in OITO:
         if cen == "1º turno" and p is not None:
             polls_main.append([inst, dt, cand, p, r["url"], modo_rodada.get((inst, dt), "não informada")])
         if cen == CENARIO_2T and p is not None and cand in ("Lula", "Flávio Bolsonaro"):
-            polls_2t.append([inst, dt, cand, p])
+            # [inst, dt, cand, p, url, modo, vv, base, cf, pos]; os índices 0 a 3 são os de antes, e
+            # vv e base saem logo abaixo, depois de juntar os dois nomes de cada rodada
+            cf = r["data_campo_fim"] or dt
+            polls_2t.append([inst, dt, cand, p, r["url"], modo_rodada.get((inst, dt), "não informada"),
+                             None, None, cf, 1 if cf > FIM_1T else 0])
         if j is not None:
             rej.append([inst, dt, cand, j])
 # dedupe rejeição (mesma rodada, candidato repetido em vários cenários)
 seen = set(); rej = [x for x in rej if not (tuple(x[:3]) in seen or seen.add(tuple(x[:3])))]
-institutos = sorted({x[0] for x in polls_main})
+# A lista de institutos dos filtros junta os dois turnos: desde 5/10/2026 há instituto só com
+# rodada de 2º turno (Ipespe, DataTrends). O efeito casa de 1º turno usa só os do 1º turno.
+institutos1t = sorted({x[0] for x in polls_main})
+institutos = sorted(set(institutos1t) | {x[0] for x in polls_2t})
+institutos2t = sorted({x[0] for x in polls_2t if x[9]})
 
 # ---- votos válidos: o denominador de cada rodada nacional de primeiro turno
 # Vence no primeiro turno quem tem mais de 50% dos votos válidos, que são os votos em candidato
@@ -122,15 +161,46 @@ for (inst, dt), ls in sorted(_linhas_1t.items(), key=lambda x: (x[0][1], x[0][0]
         somas_validos[f"{inst}|{dt}"] = round(s_cand, 2)
     else:
         fora_validos.append((inst, dt, round(s_cand, 1), round(s_tot, 1), sem_numero))
+
+# ---- votos válidos do 2º turno: a parte de cada um na soma dos dois, rodada a rodada
+# Uma rodada é o grupo (instituto, divulgação, url) com um número de Lula e um de Flávio. Quatro das
+# dez rodadas de 5 a 13/10/2026 saíram só em votos válidos (Lula + Flávio = 100): essas ficam com
+# base 'v', e as em intenção total, com base 't'. Grupo com nome repetido não se converte (não há
+# como saber qual par é o certo) e fica fora da conta até ser revisto à mão em
+# pesquisas-corrigidas.csv ou rodadas-excluidas.csv.
+_grupos2t = defaultdict(list)
+for x in polls_2t:
+    _grupos2t[(x[0], x[1], x[4])].append(x)
+for (inst, dt, url), xs in sorted(_grupos2t.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+    nomes2 = sorted(x[2] for x in xs)
+    s = sum(x[3] for x in xs)
+    if nomes2 != ["Flávio Bolsonaro", "Lula"] or s <= 0:
+        motivo = ("nome repetido no grupo (%s)" % ", ".join(nomes2)) if len(nomes2) > len(set(nomes2)) else "sem o par Lula e Flávio"
+        if len(nomes2) > len(set(nomes2)):
+            print(f"AVISO 2º turno: {inst} {dt} ({url or 'sem url'}) tem {motivo}; fica fora dos votos válidos")
+        fora_validos.append((inst, dt, round(s, 1), round(s, 1), [], "2º turno, " + motivo))
+        continue
+    for x in xs:
+        x[6] = round(x[3] * 100 / s, 2)
+        x[7] = "v" if s >= 99.5 else "t"
+
 def _resumo(chaves):
     if not chaves: return {"rodadas": 0, "institutos": 0, "primeira": "", "ultima": ""}
     return {"rodadas": len(chaves), "institutos": len({k[0] for k in chaves}),
             "primeira": min(k[1] for k in chaves), "ultima": max(k[1] for k in chaves)}
 # meta.ultima e as outras chaves de cima contam as rodadas de todos os turnos; o texto que fala do
-# 1º turno usa meta.t1, e o do confronto Lula x Flávio usa meta.t2
+# 1º turno usa meta.t1, e o do confronto Lula x Flávio usa meta.t2. Os testes ainda leem
+# meta.ultima, que sai quando eles migrarem.
 meta = {"rodadas": len(rodadas), "institutos": len({k[0] for k in rodadas}), "excluidas": len(EXCLUIDAS),
         "primeira": min(k[1] for k in rodadas), "ultima": max(k[1] for k in rodadas),
         "t1": _resumo(chaves1t), "t2": _resumo(chaves2t)}
+meta["t1"]["sem_reg"] = len(chaves1t - reg1t)
+meta["t2"]["sem_reg"] = len(chaves2t - reg2t)
+# "pos1t" são as rodadas de 2º turno com campo terminado depois de 4/10, o mesmo corte do coletor;
+# as de antes são simplesmente as outras, para nenhuma rodada ficar fora das duas fases
+_pos = {k for k in chaves2t if cf2t.get(k, k[1]) > FIM_1T}
+meta["t2"].update({"pos1t": len(_pos), "inst_pos1t": len({k[0] for k in _pos}),
+                   "primeira_pos1t": min((k[1] for k in _pos), default="")})
 
 # fichas técnicas por rodada (para tooltip e tabela de rodadas); "t" diz de que turno a rodada traz
 # intenção de voto ("1", "2", "12" ou "" para rodada só de rejeição ou de outro confronto)
@@ -184,6 +254,15 @@ for p in part:
     })
 
 # ---------------------------------------------------------------- eventos
+# eventos.csv só aceita acréscimo, e a chave inclui o texto: a linha antiga "2º turno
+# (eventual)" em 25/10 não se apaga quando o 2º turno se confirma. Quando houver outra linha de
+# calendário na mesma data, vale a outra, e a "(eventual)" sai da linha do tempo e dos dossiês.
+_cal_dia = defaultdict(list)
+for e in ev:
+    if e["categoria"] == "calendário": _cal_dia[e["data"]].append(e)
+_eventuais = {id(e) for d, es in _cal_dia.items() if len(es) > 1
+              for e in es if "(eventual)" in e["evento"] and any("(eventual)" not in o["evento"] for o in es)}
+ev = [e for e in ev if id(e) not in _eventuais]
 ev_sorted = sorted(ev, key=lambda r: r["data"], reverse=True)
 def eventos_de(nome, n=4):
     out = [e for e in ev_sorted if nome in e["candidato"] or e["candidato"] == "todos"]
@@ -192,7 +271,10 @@ timeline = [{"data": e["data"], "candidato": e["candidato"], "evento": e["evento
              "categoria": e["categoria"], "descricao": e["descricao"], "url": e["url"]} for e in ev_sorted]
 
 # ---------------------------------------------------------------- candidatos
-SITUACAO = {
+# Leitura de cada candidato escrita em 26/9/2026, antes da votação. Fica como histórico do
+# 1º turno, com a data ao lado; o que mudou depois sai do resultado do TSE (c.r1) e das pesquisas.
+SITUACAO_1T_DATA = "26/9"
+SITUACAO_1T = {
  "Lula": "Lidera o primeiro turno em todas as 83 rodadas do ano, entre 33 e 48 pontos conforme o instituto, mas o segundo turno com Flávio estreitou: de folga de 7 a 9 pontos em março para empate técnico nas rodadas de agosto. Faltou à Band; presença indefinida em 14/9.",
  "Flávio Bolsonaro": "Segundo em todas as rodadas do ano. Cresceu até abril, oscilou com o caso Master desde maio e caiu 4 pontos na Nexus da semana da onda Cury. Só vai a debate com Lula presente.",
  "Augusto Cury": "Testado desde abril entre 0,4 e 3%, saltou para 7,8 a 11% nas três pesquisas pós-debate. Menor rejeição do campo. A onda de seguidores parou no fim de semana da sabatina.",
@@ -209,7 +291,17 @@ SITUACAO = {
 }
 # Renan Santos saiu daqui em 26/9/2026: a restrição de 31/8 foi revogada por Toffoli em 1/9
 # (eventos.csv, linha de 2026-09-01), e o cartão da capa seguia dizendo "campanha restrita".
-RESTRITO = {"Pablo Marçal": "Impedido pelo TSE (20/8)"}
+# Pablo Marçal saiu em 13/10/2026: o registro foi indeferido e ele não esteve na urna (o 28 não
+# aparece na totalização do TSE), então a restrição de campanha de 20/8 já não descreve nada.
+RESTRITO = {}
+def idade_em(nasc, dia):
+    """Anos completos em `dia` para uma data de nascimento AAAA-MM-DD, ou "" se não der para ler."""
+    try:
+        a, m, d = (int(x) for x in nasc.split("-"))
+    except (ValueError, AttributeError):
+        return ""
+    return str(dia.year - a - ((dia.month, dia.day) < (m, d)))
+_HOJE_BR = _dt.now(_ZI("America/Sao_Paulo")).date()
 def link(handle, plat):
     if not handle: return ""
     h = handle.split(" (")[0].lstrip("@")
@@ -231,14 +323,19 @@ for c in cands:
         "partido": SIGLA(c["partido"]),
         "coligacao": c["coligacao"].title() if c["coligacao"] != c["partido"] else "",
         "composicao": c["composicao_coligacao"], "situacao": c["situacao_tse"],
-        "restrito": RESTRITO.get(nome, ""), "vice": c["vice"], "vice_partido": SIGLA(c["vice_partido"]),
-        "idade": c["idade"], "naturalidade": c["naturalidade"], "ocupacao": c["ocupacao"],
+        "restrito": RESTRITO.get(nome, ""), "vice": _R.titulo(c["vice"]), "vice_partido": SIGLA(c["vice_partido"]),
+        # a ficha de Leonardo Avalanche veio sem idade e com vice e naturalidade em maiúsculas
+        # ("ANÁPOLIS/GO"); a idade sai da data de nascimento, e os nomes, em caixa de título
+        "idade": c["idade"] or idade_em(c["data_nascimento"], _HOJE_BR),
+        "naturalidade": _R.municipio_uf(c["naturalidade"]), "ocupacao": c["ocupacao"],
         "nome_completo": c["nome_completo"].title(), "data_nascimento": c["data_nascimento"],
         "escolaridade": c["escolaridade"], "confianca": c["confianca_handles"],
         "foto_url": c["foto_url_tse"], "atualizado_tse": c["ultima_atualizacao_tse"],
         "bens": num(c["bens_declarados_reais"]), "grupo": c["grupo"], "url_tse": c["url_tse"],
         "wikipedia": c["wikipedia_titulo"], "redes": redes, "eventos": eventos_de(nome),
-        "situacao_texto": SITUACAO.get(nome, ""),
+        # situacao_texto é o nome antigo de situacao_1t, mantido até o template migrar
+        "situacao_texto": SITUACAO_1T.get(nome, ""),
+        "situacao_1t": SITUACAO_1T.get(nome, ""), "situacao_1t_data": SITUACAO_1T_DATA,
     })
 
 # ---- fotos (Wikimedia Commons, coleta/fotos_presidenciaveis.py). Vão embutidas na página, e não
@@ -257,11 +354,51 @@ if os.path.exists(_FOTOS):
         c["foto_cred"] = {"autor": f["autor"], "licenca": f["licenca"], "url_licenca": f["url_licenca"],
                           "pagina": f["pagina_commons"]}
 
+# ---- resultado de cada presidenciável no TSE
+# r1 (e r2 quando a apuração do 2º turno começar): votos, percentual dos válidos, posição entre os
+# que estiveram na urna e situação, tudo do Brasil inteiro. "melhor" e "ufs1" olham só as 27 UFs:
+# o exterior fica à parte (ext), porque Lula vence lá e 7 dos 12 candidatos têm no exterior o seu
+# maior percentual, o que faria do exterior o "estado mais forte" de quase todos.
+def _r_pres(nome, turno):
+    por_ab = resultados.get("pres", {}).get(turno, {})
+    br = por_ab.get("BR")
+    if not br: return None
+    pos = next((i for i, x in enumerate(br["c"], 1) if x[0] == nome), None)
+    if pos is None: return None
+    x = br["c"][pos - 1]
+    r = {"votos": x[4], "pct": x[5], "pos": pos, "de": len(br["c"]), "sit": x[6]}
+    def linha_em(ab):
+        a = por_ab.get(ab)
+        return next((y for y in a["c"] if y[0] == nome), None) if a else None
+    nas_ufs = [(uf, linha_em(uf)) for uf in _R.UFS if linha_em(uf)]
+    if nas_ufs:
+        uf, y = max(nas_ufs, key=lambda t: t[1][5])
+        r["melhor"] = [uf, y[5]]
+        r["ufs1"] = sorted(uf for uf, _ in nas_ufs if por_ab[uf]["c"][0][0] == nome)
+    ext = linha_em("ZZ")
+    r["ext"] = ext[5] if ext else None
+    return r
+_tem_r1 = bool(resultados.get("pres", {}).get("1", {}).get("BR"))
+for c in out:
+    r1, r2 = _r_pres(c["nome"], "1"), _r_pres(c["nome"], "2")
+    if r1: c["r1"] = r1
+    if r2: c["r2"] = r2
+    c["finalista"] = c["nome"] in FINALISTAS
+    # fora da urna: há resultado e o nome não está nele (Marçal, indeferido, e Avalanche, cujo 28
+    # não aparece na totalização)
+    c["fora"] = _tem_r1 and not r1
+# Com resultado, a ordem passa a ser a da urna: os do 2º turno por votos, depois os demais por
+# votos e, no fim, quem ficou fora da urna, na ordem do candidatos.csv. Sem resultado, fica a ordem
+# do arquivo, como antes.
+if _tem_r1:
+    out.sort(key=lambda c: (0 if c["finalista"] and c.get("r1") else 1 if c.get("r1") else 2,
+                            -(c["r1"]["votos"] if c.get("r1") else 0)))
+
 # ---------------------------------------------------------------- efeito casa
 from datetime import date as _date
 def _dias(s): a=s.split("-"); return _date(int(a[0]),int(a[1]),int(a[2])).toordinal()
 vies = []
-for inst in institutos:
+for inst in institutos1t:
     linha = {"inst": inst, "modo": next((modo_rodada[k] for k in modo_rodada if k[0]==inst), "não informada"),
              "n": sum(1 for k in rodadas if k[0]==inst)}
     for cand, chave in (("Lula","dLula"),("Flávio Bolsonaro","dFlavio")):
@@ -432,6 +569,33 @@ for u in ufs.values():
                    if u.get({"governador": "gov", "senador": "sen", "depfed": "depfed", "depest": "depest"}[k])]
     u["colig"] = {k: sorted(v) for k, v in sorted(u["colig"].items())}
 
+# ---- resultado de cada candidatura estadual no TSE, casado pelo slug (coluna mural)
+# r1 = [votos, pct, posição, situação] no 1º turno e r2 no 2º. Candidatura do mural sem linha na
+# apuração ganha fora = 1 (26 casos em 4/10/2026); linha da apuração sem slug fica só em
+# DATA.resultados (cinco casos, como Guto Schiavetto no Senado em SP).
+for k, u in ufs.items():
+    for lista, cargo in (("gov", "gov"), ("sen", "sen")):
+        a1 = resultados.get(cargo, {}).get("1", {}).get(k)
+        if not a1: continue
+        a2 = resultados.get(cargo, {}).get("2", {}).get(k)
+        pos1 = {x[0]: [x[4], x[5], i, x[6]] for i, x in enumerate(a1["c"], 1) if x[0]}
+        pos2 = {x[0]: [x[4], x[5], i, x[6]] for i, x in enumerate(a2["c"], 1) if x[0]} if a2 else {}
+        for c in u[lista]:
+            if c["slug"] in pos1: c["r1"] = pos1[c["slug"]]
+            else: c["fora"] = 1
+            if c["slug"] in pos2: c["r2"] = pos2[c["slug"]]
+
+# Pesquisa estadual fora do turno não entra: rodada de 1º turno depois da véspera de 4/10, de 2º
+# turno depois de 4/10 em UF sem 2º turno de governador, e qualquer uma depois de 25/10. Foi o caso
+# da Paraná Pesquisas em SP, 41 linhas de 1º turno com campo de 9 a 12/10/2026: a página da
+# Wikipédia guardava numa seção de 2026 uma rodada de 2025 sem o ano na célula.
+def fora_do_turno(uf, turno, data):
+    if data > TURNOS["t2"]: return "depois de 25/10"
+    if turno == 1 and data > VESPERA_1T: return "1º turno depois de 3/10"
+    if turno == 2 and data > FIM_1T and uf not in UF2T: return "2º turno depois de 4/10 sem 2º turno no estado"
+    return None
+fora_turno = _Contador()
+
 # o mesmo instituto aparece com nome curto nas páginas estaduais
 _INST_NAC = {"AtlasIntel": "AtlasIntel/Bloomberg", "Nexus": "BTG/Nexus", "MDA": "CNT/MDA", "Veritá": "Instituto Veritá"}
 # ---- pesquisas estaduais: consolidado (Wikipédia + Gazeta) quando existir; senão, só as rodadas da Gazeta
@@ -446,6 +610,10 @@ if cons_uf:
         pct = _num(r["percentual"])
         if pct is None: continue
         turno = int(r["turno"] or 1)
+        motivo = fora_do_turno(r["uf"], turno, r["data_ref"])
+        if motivo:
+            fora_turno[(r["uf"], r["cargo"], turno, r["instituto"], r["data_ref"], motivo)] += 1
+            continue
         rk = (r["uf"], r["cargo"], turno, r["instituto"], r["data_ref"], r["cenario"] if turno == 2 else "")
         if rk not in rod_idx:
             rod_idx[rk] = {"cargo": r["cargo"], "turno": turno, "inst": r["instituto"], "data": r["data_ref"], "div": r["data_divulgacao"],
@@ -455,7 +623,12 @@ if cons_uf:
                            "fonte": "WG" if "Gazeta" in r["fonte"] and "Wikip" in r["fonte"] else ("G" if "Gazeta" in r["fonte"] or "TSE" in r["fonte"] else "W"),
                            "par": r["cenario"] if turno == 2 else "", "cens": set(), "uf": r["uf"]}
             if "wikipedia.org" in r["url"]: u["wiki_url"] = r["url"]
-            if turno == 1: u["rodadas"].append(rod_idx[rk])
+            if turno == 1:
+                u["rodadas"].append(rod_idx[rk])
+            else:
+                # a ficha da rodada de 2º turno segue inteira para rodadas2, com o fim de campo
+                rod_idx[rk]["cf"] = r["campo_fim"]
+                u.setdefault("ficha2", {})[(r["instituto"], r["data_ref"], r["cenario"])] = rod_idx[rk]
         rod = rod_idx[rk]
         rod["cens"].add(str(r["cenario"]))
         if turno == 1 and r["principal"] == "1":
@@ -472,6 +645,10 @@ else:
         if not u: continue
         try: pct = float(r["percentual"])
         except: continue
+        motivo = fora_do_turno(r["uf"], 1, r["data_divulgacao"])
+        if motivo:
+            fora_turno[(r["uf"], r["cargo"], 1, r["instituto"], r["data_divulgacao"], motivo)] += 1
+            continue
         u["polls"].append([r["cargo"], r["instituto"], r["data_divulgacao"], r["candidato"], pct, "", "", ""])
         ch = (r["cargo"], r["instituto"], r["data_divulgacao"])
         if not any((x["cargo"], x["inst"], x["data"]) == ch for x in u["rodadas"]):
@@ -479,6 +656,8 @@ else:
                                  "reg": r["registro_tse"], "amostra": r["amostra"], "margem": r["margem_erro"],
                                  "modo": r["metodologia"], "contratante": r["contratante"],
                                  "campo": r["data_campo"], "url": r["url"], "fonte": "G", "par": "", "ncen": 1})
+RE_VANTAGEM = re.compile(r"^va[nt]*a?n?gem$|vantagem|diferen", re.I)
+vantagem_fora = {}
 for u in ufs.values():
     u["rodadas"].sort(key=lambda x: (x["data"], x["inst"]), reverse=True)
     for rod in u["rodadas"]: rod.pop("uf", None)
@@ -509,6 +688,11 @@ for u in ufs.values():
     for p in u.get("cenarios", []):
         slug, cor = cor_de(p[0], p[4], p[6]); p[6] = slug; p.append(cor)
         if slug: p[7] = ""
+    # A coluna de vantagem às vezes chega como se fosse um candidato, com o nome escrito errado
+    # ("Vantangem" em TO e "Vatagem" em ES, 13/10/2026), e o parser só reconhece a grafia certa.
+    _antes = len(u.get("polls2", []))
+    u["polls2"] = [p for p in u.get("polls2", []) if not RE_VANTAGEM.search(p[3].strip())]
+    vantagem_fora[u["sigla"]] = _antes - len(u["polls2"])
     for p in u.get("polls2", []):
         slug, cor = cor_de("governador", p[3], p[5]); p[5] = slug; p.append(cor)
         if slug: p[6] = ""
@@ -592,6 +776,7 @@ for k, u in ufs.items():
     if k in busca_uf: u["busca"] = busca_uf[k]
 
 # ---- compactação: nomes em tabela, pontos referenciando a rodada por índice (o template expande de volta)
+FICHA2 = ("reg", "amostra", "margem", "modo", "contratante", "campo", "cf", "url", "fonte", "div", "ncen")
 def compactar(v):
     nomes = []; nidx = {}
     def n_id(nome, slug, partido, cor):
@@ -610,14 +795,25 @@ def compactar(v):
         i = ridx.get((p[0], p[1], p[2]))
         if i is None: continue
         cens.append([i, p[3], n_id(p[4], p[6], p[7], p[8]), p[5]])
-    # segundo turno: rodadas próprias (par)
+    # segundo turno: rodadas próprias (par), cada uma com a ficha inteira, como as de 1º turno.
+    # "slugs" diz quem a rodada mede e "real" marca o confronto que de fato vai à urna em 25/10
+    # (os dois com sit '2t' no 1º turno de governador). O casamento é pelo slug e nunca pelo texto
+    # do par, que a Wikipédia escreve de vários jeitos ("Omar Aziz × ProfessoraMaria do Carmo").
     r2 = []; r2idx = {}
     polls2 = []
     for p in v.get("polls2", []):
         k = (p[0], p[1], p[2])
         if k not in r2idx:
-            r2idx[k] = len(r2); r2.append({"inst": p[0], "data": p[1], "par": p[2]})
+            f = v.get("ficha2", {}).get(k, {})
+            r2idx[k] = len(r2); r2.append({"inst": p[0], "data": p[1], "par": p[2],
+                                           **{c: f.get(c, "") for c in FICHA2}, "slugs": set()})
+        if p[5]: r2[r2idx[k]]["slugs"].add(p[5])
         polls2.append([r2idx[k], n_id(p[3], p[5], p[6], p[7]), p[4]])
+    a1 = resultados.get("gov", {}).get("1", {}).get(v["sigla"])
+    final = {x[0] for x in a1["c"] if x[6] == "2t" and x[0]} if a1 else set()
+    for r in r2:
+        r["real"] = 1 if final and r["slugs"] == final else 0
+        r["slugs"] = sorted(r["slugs"])
     return {"nomes": nomes, "polls": polls, "cenarios": cens, "rodadas2": r2, "polls2": polls2}
 
 for u in ufs.values():
@@ -630,16 +826,37 @@ for k, v in sorted(ufs.items()):
     estados[k] = {"sigla": v["sigla"], "nome": v["nome"], "regiao": v["regiao"], "gov": v["gov"], "sen": v["sen"],
                   "cargos": v["cargos"], "rodadas": v["rodadas"], "colig": v["colig"],
                   "wiki_url": v.get("wiki_url", ""), "busca": v.get("busca"), **c}
+    # a última rodada do estado, de qualquer turno: desde 5/10/2026 a mais recente pode ser só de 2º turno
+    estados[k]["ultima"] = max([r["data"] for r in v["rodadas"]] + [r["data"] for r in c["rodadas2"]], default="")
     for dep in ("depfed", "depest"):
         if v.get(dep): estados[k][dep] = v[dep]
 
 GEO_PATH = os.path.join(DADOS, "geo", "br-uf-paths.json")
 geo = json.load(io.open(GEO_PATH, encoding="utf-8")) if os.path.exists(GEO_PATH) else None
 
+# ---- a média publicada na véspera do 1º turno (dados/medias-publicadas.csv, arquivo manual)
+# É o número que estava na página às 23h12 de 3/10/2026 (commit fa89b7d), guardado como registro.
+# Refeita hoje com o mesmo corte, a conta daria outro número, porque três rodadas datadas de 3/10
+# só entraram em 4/10; a comparação com a urna se faz com o que foi publicado.
+vespera = None
+_MP = os.path.join(DADOS, "medias-publicadas.csv")
+if os.path.exists(_MP):
+    _mp = [r for r in ler("medias-publicadas.csv") if r["cargo"] == "presidente" and r["abrangencia"] == "BR"]
+    if _mp:
+        _ed = max(r["edicao"] for r in _mp)
+        _mp = [r for r in _mp if r["edicao"] == _ed]
+        vespera = {"edicao": _ed, "commit": _mp[0]["commit"], "sigma": num(_mp[0]["sigma"]),
+                   "inc": num(_mp[0]["incerteza"]),
+                   "m": {r["candidato"]: num(r["media_validos"]) for r in _mp if num(r["media_validos"]) is not None}}
+
 data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": ATUALIZADO, "candidatos": out, "polls": polls_main, "somasVV": somas_validos, "polls2t": polls_2t,
-        "rej": rej, "institutos": institutos, "meta": meta, "fichas": fichas,
+        "rej": rej, "institutos": institutos, "institutos2t": institutos2t, "meta": meta, "fichas": fichas,
         "ig": ig_serie, "series": {k: dict(v) for k, v in series_plat.items()}, "idx": idx_serie, "partidos": partidos, "timeline": timeline,
-        "trends": trends_c, "termos": trends_t, "wiki": wiki, "vies": vies}
+        "trends": trends_c, "termos": trends_t, "wiki": wiki, "vies": vies,
+        "turnos": TURNOS, "finalistas": FINALISTAS, "uf2t": UF2T, "ufPend": UFPEND}
+# sem os CSVs de resultado a chave nem existe, e o template cai no comportamento de pesquisa
+if resultados: data["resultados"] = resultados
+if vespera: data["vespera"] = vespera
 
 # ---- o que a página pública carrega e o que fica atrás do cadastro
 # A aba principal (Visão geral da Presidência) é aberta a todo mundo; o resto do mural pede
@@ -654,9 +871,13 @@ data = {"estados": estados, "geo": geo, "dia0": DIA0.isoformat(), "atualizado": 
 # nele. Quem quiser refaz a carga protegida sozinho. A trava serve ao produto (cadastro,
 # personalização, exportação), não à proteção do dado; para ser proteção, o repositório teria
 # de ser privado.
-PROTEGIDO = ("estados", "geo", "wiki", "termos", "ig", "idx", "series", "vies", "rej", "polls2t")
+#
+# Desde 13/10/2026 o 2º turno é a capa: polls2t saiu da carga protegida, e o resultado do TSE e as
+# chaves do 2º turno (resultados, finalistas, uf2t, ufPend, turnos, vespera, institutos2t) são
+# públicas. Os estados continuam atrás do cadastro.
+PROTEGIDO = ("estados", "geo", "wiki", "termos", "ig", "idx", "series", "vies", "rej")
 VAZIO = {"estados": {}, "geo": None, "wiki": {}, "termos": {}, "ig": {}, "idx": {},
-         "series": {}, "vies": [], "rej": [], "polls2t": []}
+         "series": {}, "vies": [], "rej": []}
 
 tpl = io.open(os.path.join(AQUI, "_template.html"), encoding="utf-8").read()
 # As chaves do Supabase entram por ambiente (o workflow passa dos segredos do repositório).
@@ -676,6 +897,10 @@ publico = ({k: (VAZIO[k] if k in PROTEGIDO else v) for k, v in data.items()}
            if TRAVA else dict(data))
 protegido = {k: data[k] for k in PROTEGIDO}
 
+def _lista_pt(xs):
+    xs = list(xs)
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " e " + xs[-1] if xs else ""
+
 def montar(d):
     return (tpl.replace("/*__DATA__*/", "const DATA = " + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";")
                .replace("__SUPABASE_URL__", SUPA_URL).replace("__SUPABASE_ANON__", SUPA_ANON)
@@ -683,7 +908,11 @@ def montar(d):
                # a descrição do site para o Google e para a prévia de link conta os candidatos
                # do dado; "treze", escrito à mão, ficou errado quando a 14ª candidatura entrou
                .replace("__N_PRES__", str(len(out)))
-               .replace("__N_EST__", str(sum(len(e["gov"]) + len(e["sen"]) for e in estados.values()))))
+               .replace("__N_EST__", str(sum(len(e["gov"]) + len(e["sen"]) for e in estados.values())))
+               # as metatags do 2º turno citam os finalistas, na ordem dos votos, e as UFs com
+               # 2º turno de governador, as duas coisas tiradas do dado
+               .replace("__UFS_2T__", _lista_pt(UF2T))
+               .replace("__FINALISTAS__", " x ".join(FINALISTAS)))
 
 html = montar(publico)
 io.open(os.path.join(AQUI, "mural.html"), "w", encoding="utf-8").write(html)
@@ -707,7 +936,23 @@ ndep = sum(len(e.get("depfed", [])) + len(e.get("depest", [])) for e in estados.
 print("mural.html", len(html), "bytes público +", len(js_prot), "bytes protegidos |", len(estados), "estados |", sum(len(e["gov"])+len(e["sen"]) for e in estados.values()), "candidatos estaduais |", ndep, "deputados curados |", len(out), "presidenciais |", len(polls_main), "pontos 1T |",
       len(rej), "pontos rejeição |", len(polls_2t), "pontos 2T |", sum(len(v) for v in ig_serie.values()), "pontos IG |",
       len(timeline), "eventos |", meta)
+for linha in _R.resumo(resultados, UF2T, UFPEND):
+    print(linha)
+print("2º turno:", " x ".join(FINALISTAS), "| governo em", _lista_pt(UF2T) or "nenhuma UF",
+      "| véspera:", (vespera["edicao"] + " " + vespera["commit"]) if vespera else "sem medias-publicadas.csv")
+print("rodadas nacionais de 2º turno:", meta["t2"]["rodadas"], "no ano,", meta["t2"]["pos1t"], "depois de 4/10, de",
+      meta["t2"]["inst_pos1t"], "institutos;", sum(1 for x in polls_2t if x[7] == "v") // 2, "publicadas só em votos válidos")
+if fora_turno:
+    print("pesquisas estaduais fora do turno, descartadas:", sum(fora_turno.values()), "linhas")
+    for (uf, cargo, turno, inst, d, motivo), n in sorted(fora_turno.items()):
+        print(f"  {uf} {cargo} {turno}º turno {inst} {d}: {n} linhas ({motivo})")
+if any(vantagem_fora.values()):
+    print("coluna de vantagem lida como candidato no 2º turno estadual, descartada:",
+          ", ".join(f"{uf} {n}" for uf, n in sorted(vantagem_fora.items()) if n))
 # rodadas que ficam fora da conta de votos válidos, com o motivo, para ninguém descobrir pelo número
 print("votos válidos:", len(somas_validos), "rodadas nacionais fecham;", len(fora_validos), "ficam fora")
-for inst, dt, sc, st, sem in fora_validos:
+for inst, dt, sc, st, sem, *nota in fora_validos:
+    if nota:
+        print(f"  fora: {inst} {dt} ({nota[0]}, soma {sc})")
+        continue
     print(f"  fora: {inst} {dt} (candidatos {sc}, total {st}" + (f", sem número: {', '.join(sem)}" if sem else "") + ")")

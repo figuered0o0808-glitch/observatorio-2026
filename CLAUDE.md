@@ -71,6 +71,12 @@ testes antes de publicar qualquer edição nova.
 - `mural/_template.html` - fonte do mural (HTML+CSS+JS num arquivo só).
 - `mural/_gerar_mural.py` - lê `dados/` e `dados/estados/`, escreve
   `mural/mural.html` a partir de `_template.html`.
+- `mural/_resultados.py` - lê o resultado oficial do TSE (`dados/resultados/`) para
+  o gerador, linha a linha e sem nunca derrubá-lo; `MURAL_RESULTADOS` aponta para
+  outra pasta, como as fixtures de `testes/fixtures/resultados/`. Sem os CSVs, o
+  mural fica só com as pesquisas.
+- `dados/medias-publicadas.csv` - a média que o mural publicou na véspera do 1º
+  turno (3/10/2026, 23h12), guardada como registro; arquivo manual.
 - `mural/mural.html` - o mural gerado, o que é publicado.
 - `index.html` - cópia idêntica do mural na raiz, gerada junto, é o que o
   GitHub Pages serve em https://muraldoscandidatos.com/.

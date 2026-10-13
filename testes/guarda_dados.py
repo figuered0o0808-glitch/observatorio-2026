@@ -30,7 +30,9 @@ sem acesso) entra como veio e não é barrado.
 
 Toda linha nova tem data válida em AAAA-MM-DD (na coluna data, data_ref, data_divulgacao ou
 campo_fim, a que o arquivo tiver), não posterior a hoje em Brasília com um dia de tolerância, e
-fonte preenchida (coluna fonte, url_fonte, url ou pagina, a que o arquivo tiver).
+fonte preenchida (coluna fonte, url_fonte, url ou pagina, a que o arquivo tiver). Nos arquivos de
+pesquisa (nacional, consolidado estadual e o CSV bruto da Wikipédia), linha nova de 1º turno não
+tem data depois de 4/10/2026 nem linha nova de 2º turno depois de 25/10/2026.
 
 Os arquivos que a automação não deve tocar (candidatos, partidos, fichas do TSE, Trends, fichas
 da Gazeta, verbetes) não podem ter diferença nenhuma, salvo os passados em --permitir, que ficam
@@ -142,6 +144,21 @@ INTOCAVEIS = (
     # nenhuma rotina automática reescreve esses dois
     "dados/rjsp/candidatos-rjsp.csv",
     "dados/rjsp/candidatos-deputados.csv",
+    # a média que o mural publicou na véspera do 1º turno (3/10/2026, 23h12), guardada como
+    # registro para a comparação com a urna; nenhuma conta refeita depois pode reescrevê-la
+    "dados/medias-publicadas.csv",
+)
+
+# Fim de cada turno de 2026. Pesquisa de 1º turno não tem campo nem divulgação depois da votação
+# de 4/10, e nenhuma pesquisa vem depois de 25/10; linha nova assim é erro de coleta (em 13/10/2026,
+# uma rodada de 2025 da Paraná Pesquisas em SP entrou com campo de 9 a 12/10/2026 como 1º turno).
+FIM_TURNO = {"1": "2026-10-04", "2": "2026-10-25"}
+# arquivos de pesquisa em que a regra vale, e as colunas de data conferidas em cada linha nova
+COLUNAS_DATA_TURNO = ("data_divulgacao", "data_ref", "campo_fim", "data_campo_fim")
+CSV_COM_TURNO = (
+    "dados/pesquisas-registradas.csv",
+    "dados/estados/pesquisas-estados-consolidado.csv",
+    "dados/estados/pesquisas-estados-wiki.csv",
 )
 
 COLUNAS_DATA = ("data", "data_ref", "data_divulgacao", "campo_fim")
@@ -398,6 +415,42 @@ def verificar_zeros(caminho, cabecalho, mapa_antigo, mapa_novo, rel):
         rel.ok(caminho, "nenhuma célula vazia de HEAD virou zero")
 
 
+def turno_da_linha(cabecalho, linha):
+    """'1', '2' ou None. Os estaduais trazem a coluna turno; o nacional diz o turno no cenário
+    ("1º turno, cenário 2", "2º turno Lula x Flávio Bolsonaro"). Rejeição e espontânea ficam sem turno."""
+    if "turno" in cabecalho:
+        t = linha[cabecalho.index("turno")].strip()
+        return t if t in FIM_TURNO else None
+    if "cenario" in cabecalho:
+        cen = linha[cabecalho.index("cenario")].strip()
+        if cen.startswith("1º turno"):
+            return "1"
+        if cen.startswith("2º turno"):
+            return "2"
+    return None
+
+
+def verificar_fim_de_turno(caminho, cabecalho, novas, rel):
+    """Linha nova de 1º turno com data depois de 4/10/2026 e de 2º turno depois de 25/10/2026."""
+    colunas = [c for c in COLUNAS_DATA_TURNO if c in cabecalho]
+    fora = {"1": [], "2": []}
+    for linha in novas:
+        t = turno_da_linha(cabecalho, linha)
+        if t is None:
+            continue
+        datas = [linha[cabecalho.index(c)] for c in colunas]
+        tarde = [d for d in datas if RE_DATA.match(d) and d > FIM_TURNO[t]]
+        if tarde:
+            fora[t].append(max(tarde))
+    if not fora["1"] and not fora["2"]:
+        rel.ok(caminho, "nenhuma linha nova depois do fim do próprio turno")
+        return
+    for t, nome in (("1", "1º turno"), ("2", "2º turno")):
+        if fora[t]:
+            rel.falha(caminho, "%d linha(s) nova(s) de %s com data depois de %s, a votação desse turno (%s): %s"
+                      % (len(fora[t]), nome, FIM_TURNO[t], ", ".join(colunas), exemplos(sorted(set(fora[t])))))
+
+
 def verificar_linhas_novas(caminho, cabecalho, novas, hoje, rel):
     """Data válida e não futura, fonte preenchida, em cada linha nova."""
     if not novas:
@@ -501,6 +554,8 @@ def verificar_acrescimo(caminho, chave, antigo, novo, hoje, rel):
         rel.ok(caminho, "contagem %d -> %d (%+d)" % (len(lin_a), len(lin_n), len(lin_n) - len(lin_a)))
     novas = [linha for k, linha in mapa_n.items() if k not in mapa_a]
     verificar_linhas_novas(caminho, cabecalho, novas, hoje, rel)
+    if caminho in CSV_COM_TURNO:
+        verificar_fim_de_turno(caminho, cabecalho, novas, rel)
 
 
 def chaves(linhas, idx):
@@ -549,6 +604,8 @@ def verificar_regravado(caminho, chave, antigo, novo, hoje, rel):
     rodadas_a = chaves(lin_a, idx_rodada)
     novas = [linha for linha in lin_n if tuple(linha[i] for i in idx_rodada) not in rodadas_a]
     verificar_linhas_novas(caminho, cabecalho, novas, hoje, rel)
+    if caminho in CSV_COM_TURNO:
+        verificar_fim_de_turno(caminho, cabecalho, novas, rel)
 
 
 def resumo_dump(paginas):

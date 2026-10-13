@@ -1398,6 +1398,20 @@ with sync_playwright() as p:
     check("rodadas excluídas sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
+    # ---- pesquisa de 1º turno depois da votação (13/10/2026: uma rodada de 2025 da Paraná Pesquisas
+    #      em SP, sem o ano na célula da Wikipédia, entrou como 1º turno de 2026 com campo de 9 a
+    #      12/10). Nenhum ponto de 1º turno, nacional ou estadual, passa da data da votação.
+    b, page, errs = novo_ctx(p)
+    page.goto(URL)
+    page.wait_for_timeout(800)
+    r = page.evaluate("""() => { const t1 = (DATA.turnos || {}).t1 || '2026-10-04';
+        return {t1, polls: DATA.polls.filter(p => p[1] > t1).map(p => p[0] + ' ' + p[1]),
+                uf: Object.values(UF).flatMap(u => u.rodadas.filter(r => r.turno === 1 && r.data > t1).map(r => u.sigla + ' ' + r.inst + ' ' + r.data)),
+                nUF: Object.keys(UF).length}; }""")
+    check("nenhuma rodada de 1º turno com data depois da votação, no país e nos estados",
+          r["nUF"] == 27 and not r["polls"] and not r["uf"], {k: v[:5] if isinstance(v, list) else v for k, v in r.items()})
+    b.close()
+
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")
 if fail:
