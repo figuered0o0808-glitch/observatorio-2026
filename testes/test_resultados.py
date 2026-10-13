@@ -237,14 +237,18 @@ class Derivados(unittest.TestCase):
         self.assertEqual(R.municipio_uf("Garanhuns (PE)"), "Garanhuns (PE)")
 
 
-def gerar_com(pasta_resultados):
-    """Roda o gerador numa cópia temporária de mural/ (lendo dados/ por um link) e devolve o DATA
-    do mural inteiro."""
+def gerar_com(pasta_resultados, mexer=None):
+    """Roda o gerador numa cópia temporária de mural/ (lendo dados/ por um link, ou por uma cópia
+    quando `mexer` vai alterar algum CSV) e devolve o DATA do mural inteiro e o log."""
     with tempfile.TemporaryDirectory() as d:
         os.makedirs(os.path.join(d, "mural"))
         for nome in ("_gerar_mural.py", "_resultados.py", "_template.html"):
             shutil.copy(os.path.join(RAIZ, "mural", nome), os.path.join(d, "mural", nome))
-        os.symlink(os.path.join(RAIZ, "dados"), os.path.join(d, "dados"))
+        if mexer:
+            shutil.copytree(os.path.join(RAIZ, "dados"), os.path.join(d, "dados"), ignore=shutil.ignore_patterns("geo"))
+            mexer(os.path.join(d, "dados"))
+        else:
+            os.symlink(os.path.join(RAIZ, "dados"), os.path.join(d, "dados"))
         amb = dict(os.environ, MURAL_RESULTADOS=pasta_resultados, MURAL_ATUALIZADO="teste")
         for k in ("MURAL_SUPABASE_URL", "MURAL_SUPABASE_ANON"):
             amb.pop(k, None)
@@ -298,6 +302,39 @@ class Gerador(unittest.TestCase):
         self.assertTrue(any(c.get("r1") for c in am["gov"]))
         self.assertTrue(all(("r1" in c) != bool(c.get("fora")) for e in D["estados"].values() for c in e["gov"] + e["sen"]))
         self.assertIn("= 27", saida)
+
+    def test_votos_validos_do_segundo_turno(self):
+        """polls2t: os quatro primeiros campos são os de antes; vv é a parte de cada um na soma dos
+        dois da mesma rodada, e base diz se a rodada saiu em votos válidos ou em intenção total."""
+        D, _ = gerar_com(os.path.join(FIX, "zerado"))
+        grupos = {}
+        for p in D["polls2t"]:
+            self.assertEqual(len(p), 10, p)
+            self.assertIsInstance(p[3], float)
+            grupos.setdefault((p[0], p[1], p[4]), []).append(p)
+        for k, ps in grupos.items():
+            soma = sum(p[3] for p in ps)
+            for p in ps:
+                self.assertAlmostEqual(p[6], 100 * p[3] / soma, places=1)
+                self.assertEqual(p[7], "v" if soma >= 99.5 else "t")
+                self.assertEqual(p[9], 1 if p[8] > D["turnos"]["t1"] else 0)
+
+    def test_rodada_de_segundo_turno_com_nome_repetido_fica_fora_dos_validos(self):
+        def repetir(dados):
+            with io.open(os.path.join(dados, "pesquisas-registradas.csv"), encoding="utf-8-sig", newline="") as f:
+                linhas = list(csv.DictReader(f))
+            alvo = [l for l in linhas if l["cenario"] == "2º turno Lula x Flávio Bolsonaro" and l["candidato"] == "Lula"][-1]
+            caminho = os.path.join(dados, "pesquisas-corrigidas.csv")
+            with io.open(caminho, encoding="utf-8-sig", newline="") as f:
+                corr = list(csv.DictReader(f))
+            gravar_csv(dados, "pesquisas-corrigidas.csv", corr + [dict(alvo, percentual="40")])
+            return alvo
+        alvo = {}
+        D, saida = gerar_com(os.path.join(FIX, "zerado"), mexer=lambda d: alvo.update(repetir(d)))
+        grupo = [p for p in D["polls2t"] if (p[0], p[1], p[4]) == (alvo["instituto"], alvo["data_divulgacao"], alvo["url"])]
+        self.assertEqual(len(grupo), 3)
+        self.assertTrue(all(p[6] is None and p[7] is None for p in grupo), grupo)
+        self.assertIn("AVISO 2º turno: %s %s" % (alvo["instituto"], alvo["data_divulgacao"]), saida)
 
     def test_parcial_e_final(self):
         for estado, est in (("parcial", "parcial"), ("final", "final")):
