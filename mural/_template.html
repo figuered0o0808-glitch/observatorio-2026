@@ -350,6 +350,34 @@ details.rodadas summary{cursor:pointer;color:var(--accent);font-weight:600}
 .card .cover{flex:0 0 auto;min-width:0;white-space:nowrap;gap:6px}
 .card .cover .blocks{grid-template-columns:repeat(10,6px);gap:1px}
 .card .cover .blocks i{height:7px}
+/* candidatos no 2º turno (13/10/2026): os dois finalistas em cartões largos, os não eleitos em
+   cartões compactos e quem ficou fora da urna à parte */
+.cand-bloco{margin-top:26px}
+.cand-bloco:first-of-type{margin-top:6px}
+.cand-bloco>.eyebrow{display:block;border-top:1px solid var(--line);padding-top:10px;margin-bottom:10px;color:var(--ink)}
+.cand-bloco>.controls{margin:0 0 12px}
+.cand-bloco .cb-fonte{margin:10px 0 0}
+.wall.final{grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))}
+.card.final .fotobox,.card.final .fotobox img{width:96px;height:96px}
+.card.final .fotobox .n-mini{font-size:15px;padding:5px 6px 4px}
+.card.final .n{font-size:40px;min-width:96px;padding:27px 8px}
+.card.final h3.nm{font-size:26px}
+.card.final .st b{font-size:24px}
+.card.encerrado{border-top-width:2px;border-top-color:var(--line-2)}
+.card.encerrado .head{gap:10px;padding:10px 14px 6px}
+.card.encerrado .fotobox,.card.encerrado .fotobox img{width:40px;height:40px}
+.card.encerrado .fotobox .n-mini{font-size:10.5px;padding:3px 4px 2px;min-width:18px;right:-5px;bottom:-5px}
+.card.encerrado .n{font-size:17px;min-width:40px;padding:11px 4px}
+.card.encerrado h3.nm{font-size:17px}
+.card.encerrado .pills{margin-top:5px}
+.card .linha{margin:0;padding:0 14px 8px;font-size:13px;line-height:1.45;color:var(--ink-2)}
+.card .linha b{color:var(--ink);font-variant-numeric:tabular-nums}
+.card .linha.vesp{color:var(--ink-3);font-size:12.5px}
+.card.encerrado .foot{padding:7px 14px}
+.pill.final{color:var(--accent-text);background:var(--red-soft)}
+.pill.neu{color:var(--ink-2);background:var(--paper-2)}
+.stamp.final{color:var(--accent)}.stamp.neu{color:var(--ink-2)}
+.dz .top .stamp.neu{color:var(--band-mut)}
 .dz .cover{white-space:normal}
 .dz .cover>span:last-child{min-width:0}
 .cover .blocks{display:inline-grid;grid-template-columns:repeat(10,9px);gap:2px}
@@ -507,6 +535,35 @@ dialog.conta .vantagens li::before{content:"→";color:var(--accent);font-weight
 .dz .sit{margin:0;color:var(--ink-2);font-size:14px;line-height:1.55}
 .dz .miss{font-size:12.5px;color:var(--ink-3)}
 .dz .foot{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line-2);padding-top:12px}
+/* dossiê no 2º turno: o resultado do 1º turno em barras HTML (encaixarDossie só refaz o primeiro
+   .chart, então as 27 UFs não podem ser SVG), com a UF em que o candidato ficou em 1º marcada */
+.dz .r1top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.dz .r1top .big{font-size:40px;line-height:1}
+.dz .r1top .big small{font-size:18px;color:var(--ink-3)}
+.dz .r1top .meta{color:var(--ink-2);font-size:13.5px}
+.ufbars{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--nr,9),auto);grid-template-columns:repeat(3,minmax(0,1fr));column-gap:22px;margin:4px 0 0}
+.ub{display:grid;grid-template-columns:34px 1fr 54px;gap:8px;align-items:center;font-size:12.5px;padding:2px 0}
+.ub .uf{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 84,"wght" 700;font-stretch:84%;font-weight:700;letter-spacing:.04em}
+.ub .bar{display:block;height:8px;background:var(--line-2);border-radius:1px;overflow:hidden}
+.ub .bar i{display:block;height:100%;background:var(--bc,var(--neutro))}
+.ub .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.ub.primeiro .uf::after{content:"1º";margin-left:3px;font-size:9px;vertical-align:super;color:var(--accent-text)}
+.ub.primeiro .val{color:var(--ink);font-weight:600}
+.ub.gap{display:none}
+.dz .r1ext{font-size:12.5px;color:var(--ink-2);margin:2px 0 0}
+.dz .vesp1t{font-size:13.5px;color:var(--ink-2);margin:0;line-height:1.5}
+.dz details.box{display:block}
+.dz details.antes1t summary{cursor:pointer;color:var(--ink-2);font-weight:600;font-size:13.5px}
+.dz details.antes1t .sit{margin-top:8px}
+/* caixa sozinha na última fileira fica com meia largura quando as fileiras têm duas colunas */
+@media (min-width:860px){.dz .row2.so1>.box{max-width:calc(50% - 8px)}}
+@media (max-width:760px){
+  /* no celular, as cinco maiores e as cinco menores, com a quebra marcada no meio */
+  .ufbars{grid-auto-flow:row;grid-template-rows:none;grid-template-columns:minmax(0,1fr)}
+  .ub.meio{display:none}
+  .ub.gap{display:block;color:var(--ink-3);text-align:center;padding:0;line-height:1}
+  .dz .r1top .big{font-size:34px}
+}
 
 /* personalizar */
 dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100dvh;max-height:100dvh;overscroll-behavior:contain;width:min(380px,100vw);border:0;border-left:1px solid var(--line);padding:0;background:var(--paper);color:var(--ink);box-shadow:-10px 0 40px rgba(0,0,0,.25)}
@@ -702,6 +759,9 @@ body.estreia svg.tempo .banda,body.estreia svg.tempo .ser circle{animation:surge
 .brow .bar i{display:block;height:100%;background:var(--bc,var(--neutro))}
 .brow .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .brow.apoio{opacity:.6}
+.brow.final .lab b{color:var(--accent-text)}
+.brow.final .lab .k{background:var(--accent);color:var(--accent-ink)}
+.brow .sem{grid-column:2/4;color:var(--ink-3);font-size:12px}
 /* método */
 .pipe{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-top:10px}
 .pnode{flex:1 1 210px;border:1px solid var(--line);border-radius:4px;padding:12px 14px;background:var(--paper-2);display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -1436,23 +1496,29 @@ table th{background:#000;color:#fff;border-bottom:0}
 
 <section class="view" id="v-candidatos" role="tabpanel" data-title="Candidatos">
   <div class="blkhead"><span class="eyebrow">Fichas</span><h2 class="t display">Os candidatos</h2></div>
-  <p class="sub" id="cand-sub">"Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.</p>
-  <div class="controls">
-    <div class="seg" role="group" aria-label="Quais candidatos mostrar">
-      <button type="button" data-view="principais" aria-pressed="true">Os 8 principais</button>
-      <button type="button" data-view="todos" aria-pressed="false" id="bt-todos">Todos</button>
-    </div>
-    <label class="sel">Ordenar por
-      <select id="sort">
-        <option value="media">Intenção de voto</option>
-        <option value="rej">Menor rejeição</option>
-        <option value="ig">Seguidores no Instagram</option>
-        <option value="bens">Bens declarados</option>
-        <option value="numero">Número de urna</option>
-      </select>
-    </label>
+  <p class="sub" id="cand-sub">"Abrir dossiê" traz a ficha completa de cada candidato.</p>
+  <!-- três blocos fixos com o resultado do TSE (No 2º turno, Não eleitos no 1º turno, Fora da urna);
+       sem resultado, só o bloco do meio aparece, com todos os registrados -->
+  <div class="cand-bloco" id="cb-final" hidden>
+    <span class="eyebrow">No 2º turno</span>
+    <div class="wall final" id="wall-final"></div>
+    <p class="cap cb-fonte" id="cb-final-fonte"></p>
   </div>
-  <div class="wall" id="wall"></div>
+  <div class="cand-bloco" id="cb-nao">
+    <span class="eyebrow" id="cb-nao-eye">Os candidatos</span>
+    <div class="controls">
+      <label class="sel">Ordenar por
+        <select id="sort"></select>
+      </label>
+    </div>
+    <div class="wall" id="wall"></div>
+    <p class="cap cb-fonte" id="cb-nao-fonte"></p>
+  </div>
+  <div class="cand-bloco" id="cb-fora" hidden>
+    <span class="eyebrow">Fora da urna</span>
+    <div class="wall" id="wall-fora"></div>
+    <p class="cap cb-fonte" id="cb-fora-fonte"></p>
+  </div>
   <div class="panel" style="margin-top:var(--gap)">
     <h3>Raio-x do patrimônio declarado</h3>
     <div class="cap">Bens declarados ao TSE no pedido de registro, em escala logarítmica, em que cada marca vale dez vezes a anterior. Os valores são informados pelo próprio candidato e não passam por auditoria.</div>
@@ -1462,14 +1528,14 @@ table th{background:#000;color:#fff;border-bottom:0}
 
 <section class="view" id="v-lado" role="tabpanel" data-title="Lado a lado">
   <div class="blkhead"><span class="eyebrow">Comparador</span><h2 class="t display">Lado a lado</h2></div>
-  <p class="sub">Dois ou três candidatos comparados nos mesmos critérios, com fonte e data abaixo de cada número. A barra compara só os candidatos escolhidos, e o sublinhado marca o melhor valor de cada linha (na rejeição, o menor).</p>
+  <p class="sub" id="lado-sub">Começa com os dois do 2º turno. Troque ou acrescente um nome para comparar com quem ficou no 1º turno. A barra compara só os candidatos escolhidos, e o sublinhado marca o melhor valor de cada linha (na rejeição, o menor).</p>
   <div class="controls" id="lado-controls"></div>
   <div id="lado-mesa"></div>
 </section>
 
 <section class="view" id="v-partidos" role="tabpanel" data-title="Partidos">
   <div class="blkhead"><span class="eyebrow">Estrutura</span><h2 class="t display">Os partidos</h2></div>
-  <p class="sub">Bancada atual, fundo eleitoral de 2026, número de filiados e tempo de TV de cada partido. Cada barra leva o nome do candidato que o partido lança, e PSB e Agir aparecem como partidos de apoio.</p>
+  <p class="sub" id="part-sub">Bancada atual, fundo eleitoral de 2026, número de filiados e tempo de TV de cada partido. Cada barra leva o nome do candidato que o partido lança, e PSB e Agir aparecem como partidos de apoio.</p>
   <div class="pgrid" id="ch-partidos"></div>
   <details class="fold"><summary><span class="btn">Ver a tabela completa</span><span class="cap" style="margin:0">presidente nacional, federação, governadores, cláusula de desempenho; clique num cabeçalho para ordenar</span></summary>
   <div class="tablewrap"><table id="tb-part"><thead><tr><th data-sort="sigla">Partido</th><th>Presidente nacional</th><th class="num" data-sort="camara">Câmara</th><th class="num" data-sort="senado">Senado</th><th class="num" data-sort="gov">Gov.</th><th class="num" data-sort="filiados">Filiados</th><th data-sort="fefc">FEFC 2026</th><th class="num">TV (bloco)</th><th>Cláusula 2022</th></tr></thead><tbody></tbody></table></div>
@@ -3040,15 +3106,42 @@ function drawBusca(){
 $$("[data-multi]").forEach(b=>b.addEventListener("click",()=>{prefs.multi=+b.dataset.multi;salvar();drawBusca();}));
 
 // ---- partidos em barras
-const CAND_POR_PARTIDO=Object.fromEntries(C.map(c=>[c.partido.toUpperCase(),c]));
+// O candidato de cada partido. O PRTB registrou dois nomes para o mesmo número: Pablo Marçal, que teve
+// o registro indeferido, e Leonardo Avalanche, que o substituiu e não aparece na totalização do 1º turno
+// (o 28 não tem voto em nenhuma abrangência). O mapeamento fica explícito: o partido aponta para quem
+// esteve na urna, depois para quem não foi indeferido, e com o resultado do TSE o PRTB aparece como
+// "sem candidato na totalização".
+const CAND_POR_PARTIDO=(()=>{const out={},nota=c=>(c.r1?2:0)+(/^Indeferid/i.test(c.situacao||"")?0:1);
+  for(const c of C){const k=c.partido.toUpperCase();if(!out[k]||nota(c)>nota(out[k]))out[k]=c;}return out;})();
 const tvSeg=s=>{const m=/(\d+):(\d+)/.exec(s||"");return m?(+m[1])*60+(+m[2]):0;};
+// Os apoios declarados no 2º turno saem da linha do tempo (categoria endosso, depois de 4/10), e o
+// partido pode não estar em partidos.csv; a lista é a dos eventos, com data e fonte.
+function apoios2T(){return TL.filter(e=>e.categoria==="endosso"&&e.data>TURNOS.t1&&e.data<=HOJE).sort((a,b)=>b.data.localeCompare(a.data));}
 function drawPartidosBarras(){
-  const METR=[["Deputados federais","camara",v=>v+" dep."],["Senadores","senado",v=>v+" sen."],["Fundo eleitoral 2026","fefc",v=>fBRL(v)],["Filiados","filiados",v=>fM(v)],["TV no bloco presidencial","tvseg",v=>v?Math.floor(v/60)+" min "+String(v%60).padStart(2,"0")+"s":"n/d"]];
+  const R=comRes1T();
+  const METR=[["Deputados federais","camara",v=>v+" dep."],["Senadores","senado",v=>v+" sen."],["Fundo eleitoral 2026","fefc",v=>fBRL(v)],["Filiados","filiados",v=>fM(v)],[R?"TV no 1º turno, bloco presidencial":"TV no bloco presidencial","tvseg",v=>v?Math.floor(v/60)+" min "+String(v%60).padStart(2,"0")+"s":"n/d"]];
   const P=DATA.partidos.map(p=>({...p,tvseg:tvSeg(p.tv),cand:CAND_POR_PARTIDO[p.sigla.toUpperCase()]||null}));
-  $("#ch-partidos").innerHTML=METR.map(([tit,k,fmt])=>{
+  // com o resultado, os partidos de quem está no 2º turno ganham destaque, e o foco não apaga ninguém
+  const cls=c=>R?(c&&ehFinal(c.nome)?" final":""):(c&&dimDe(c.nome)?" ser dim":"");
+  const rotC=(p,c)=>`<span class="lab">${c?`<span class="k">${esc(c.numero)}</span>`:""}<b>${esc(p.sigla)}</b><span style="color:var(--ink-3)">${c?esc(curto(c.nome)):(p.secundario?"apoio":"")}</span></span>`;
+  let h="";
+  if(R){
+    const rows=P.filter(p=>p.cand).sort((a,b)=>((b.cand.r1||{}).pct??-1)-((a.cand.r1||{}).pct??-1)),max=Math.max(...rows.map(p=>(p.cand.r1||{}).pct||0),1);
+    h+=`<div class="panel"><h3>Candidato a presidente, 1º turno</h3><div class="bars">${rows.map(p=>{const c=p.cand,r=c.r1;
+      return `<div class="brow${cls(c)}">${rotC(p,c)}${r?`<span class="bar"><i style="width:${Math.max(1,r.pct/max*100).toFixed(1)}%;--bc:${COR[c.nome]}"></i></span><span class="val">${fPct2(r.pct)}%</span>`:`<span class="sem">sem candidato na totalização</span>`}</div>`;}).join("")}</div><div class="cap">Votos válidos do candidato do partido, ${esc(fonteTSE1T())}.</div></div>`;
+  }
+  h+=METR.map(([tit,k,fmt])=>{
     const rows=P.filter(p=>p[k]!=null).sort((a,b)=>(b[k]||0)-(a[k]||0));const max=Math.max(...rows.map(p=>p[k]||0),1);
-    return `<div class="panel"><h3>${tit}</h3><div class="bars">${rows.map(p=>{const c=p.cand;const cor=c&&COR[c.nome]?COR[c.nome]:"var(--neutro)";const dim=c&&dimDe(c.nome);
-      return `<div class="brow${p.secundario?" apoio":""}${dim?" ser dim":""}"><span class="lab">${c?`<span class="k">${esc(c.numero)}</span>`:""}<b>${esc(p.sigla)}</b><span style="color:var(--ink-3)">${c?esc(curto(c.nome)):(p.secundario?"apoio":"")}</span></span><span class="bar"><i style="width:${p[k]?Math.max(2,Math.round(p[k]/max*100)):0}%;--bc:${cor}"></i></span><span class="val">${fmt(p[k]||0)}</span></div>`;}).join("")}</div></div>`;}).join("");
+    const nota=k==="tvseg"&&R?`<div class="cap">No 2º turno, o horário gratuito é dividido igualmente entre as duas chapas (Lei 9.504/1997, art. 49).</div>`:"";
+    return `<div class="panel"><h3>${tit}</h3><div class="bars">${rows.map(p=>{const c=p.cand;const cor=c&&COR[c.nome]?COR[c.nome]:"var(--neutro)";
+      return `<div class="brow${p.secundario?" apoio":""}${cls(c)}">${rotC(p,c)}<span class="bar"><i style="width:${p[k]?Math.max(2,Math.round(p[k]/max*100)):0}%;--bc:${cor}"></i></span><span class="val">${fmt(p[k]||0)}</span></div>`;}).join("")}</div>${nota}</div>`;}).join("");
+  if(R){
+    const L=apoios2T();
+    h+=`<div class="panel"><h3>Apoios declarados no 2º turno</h3>${L.length?`<ul class="evs">${L.map(e=>`<li><span class="dt tnum">${dBR(e.data)}</span><span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}${e.candidato&&e.candidato!=="todos"?`<span class="cat">${esc(e.candidato)}</span>`:""}</span></li>`).join("")}</ul>`:`<p class="cap">Nenhum apoio ao 2º turno registrado na linha do tempo até ${dBR(HOJE)}.</p>`}<div class="cap">Lidos da linha do tempo (eventos de apoio depois de ${dBR(TURNOS.t1)}, com data e fonte).</div></div>`;
+  }
+  $("#ch-partidos").innerHTML=h;
+  const sub=$("#part-sub");
+  if(sub&&R)sub.textContent=`Bancada atual, fundo eleitoral de 2026, número de filiados e tempo de TV de cada partido, com o resultado do candidato a presidente de cada um no 1º turno; PSB e Agir aparecem como partidos de apoio. Os partidos de ${FINAL.join(" e ")}, do 2º turno, aparecem em destaque. Os eleitos em 2026 tomam posse em janeiro de 2027 e não entram nestes números.`;
 }
 // ---- partidos (ordenável)
 let partSort={k:"fefc",dir:-1};
@@ -3062,9 +3155,64 @@ function drawPartidos(){
 $$("#tb-part th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;partSort=partSort.k===k?{k,dir:-partSort.dir}:{k,dir:k==="sigla"?1:-1};drawPartidos();}));
 
 // ---- candidatos
-// registro indeferido não é "aguardando julgamento": Marçal saiu da lista de campanhas restritas em
-// 13/10/2026, e sem o selo da restrição o cartão diria que o registro dele ainda seria julgado
-const pillSit=c=>{let h=c.situacao==="Deferido"?`<span class="pill good">Registro deferido</span>`:/^Indeferid/i.test(c.situacao||"")?`<span class="pill crit">Registro indeferido</span>`:`<span class="pill warn">Aguardando julgamento</span>`;if(c.restrito)h+=`<span class="pill crit">${esc(c.restrito)}</span>`;return h;};
+// Com o resultado do TSE, o selo diz o que aconteceu na urna, e não mais o andamento do registro: a
+// ficha foi conferida entre 18/8 e 18/9 e, em 13/10/2026, ainda dizia "Aguardando julgamento" para dez
+// dos doze que tiveram votos. Ficar fora do 2º turno não é irregularidade, então quem não foi eleito
+// ganha o selo neutro, nunca o .crit. Sem resultado, vale o selo do registro, como antes. Registro
+// indeferido não é "aguardando julgamento": Marçal saiu da lista de campanhas restritas em 13/10/2026,
+// e sem o selo da restrição o cartão diria que o registro dele ainda seria julgado.
+function situacaoCand(c){
+  const r1=c.r1,r2=c.r2;
+  if(r2&&r2.sit==="eleito")return ["final","Eleito no 2º turno"];
+  if(r2&&r2.sit==="nao")return ["neu","Não eleito no 2º turno"];
+  if(r1){
+    if(r1.sit==="2t")return ["final","2º turno"];
+    if(r1.sit==="eleito")return ["final","Eleito no 1º turno"];
+    if(r1.sit==="nao")return ["neu",`Não eleito, ${r1.pos}º lugar`];
+    return ["neu",`${r1.pos}º lugar na apuração`];
+  }
+  // fora da urna: Marçal, indeferido, e Avalanche, cujo número não aparece na totalização
+  if(c.fora)return /^Indeferid/i.test(c.situacao||"")?["crit","Registro indeferido"]:["neu","Fora da totalização"];
+  return c.situacao==="Deferido"?["good","Registro deferido"]:/^Indeferid/i.test(c.situacao||"")?["crit","Registro indeferido"]:["warn","Aguardando julgamento"];
+}
+const pillSit=c=>{const [k,t]=situacaoCand(c);let h=`<span class="pill ${k}">${esc(t)}</span>`;if(c.restrito&&!c.r1&&!c.fora)h+=`<span class="pill crit">${esc(c.restrito)}</span>`;return h;};
+// ---- resultado do 1º turno nas telas de candidatos (Candidatos, dossiê, Lado a lado, Partidos)
+// Tudo sai de RES e de c.r1; sem os CSVs do TSE, comRes1T() é falso e essas telas ficam como antes
+// da votação, com as pesquisas do 1º turno.
+const R1C=()=>resPres("1");
+const comRes1T=()=>!!R1C()&&C.some(c=>c.r1);
+// dia e mês da totalização ("05/10"), lidos do atualizado_tse da apuração
+const dataTSE=A=>{const m=/^(\d\d)\/(\d\d)/.exec((A&&A.tot&&A.tot.at)||"");return m?`${m[1]}/${m[2]}`:"";};
+const fonteTSE1T=()=>{const A=R1C();return A?`TSE, ${fPct2(A.tot.pst)}% das seções totalizadas, ${horaTSE(A.tot.at)}`:"";};
+// quem foi ao 2º turno (ou se elegeu no 1º), quem ficou fora dele e quem não esteve na urna
+const blocosCand=()=>({fin:C.filter(c=>c.r1&&(c.r1.sit==="2t"||c.r1.sit==="eleito")),nao:C.filter(c=>c.r1&&c.r1.sit!=="2t"&&c.r1.sit!=="eleito"),fora:C.filter(c=>!c.r1)});
+const ORDINAL=["Primeiro","Segundo","Terceiro","Quarto","Quinto","Sexto","Sétimo","Oitavo","Nono","Décimo","Décimo primeiro","Décimo segundo","Décimo terceiro","Décimo quarto"];
+const ordinal=n=>ORDINAL[n-1]||`${n}º`;
+// o dia seguinte à votação do 1º turno, quando começam as rodadas da campanha do 2º
+const D2T=()=>dISO(Date.parse(TURNOS.t1)+864e5);
+// edição da véspera que guardou a média publicada ("03/10, 23h12") e a linha de cada nome
+const edVespera=()=>{const e=String((DATA.vespera||{}).edicao||"");return e.length>=16?`${dBR(e.slice(0,10))}, ${+e.slice(11,13)}h${e.slice(14,16)}`:"";};
+const vespDe=n=>vespera1T().find(x=>x.nome===n)||null;
+// A frase de situação sai de r1 (e de r2, quando a apuração do 2º turno começar), nunca de texto
+// escrito à mão. Fora da urna, a frase diz por quê, com a data da totalização.
+function fraseResultado(c){
+  const r1=c.r1,A=R1C();
+  if(!r1){
+    if(!c.fora||!A)return "";
+    return /^Indeferid/i.test(c.situacao||"")
+      ? `Registro indeferido pelo TSE. Não esteve na urna: o número ${c.numero} não aparece na totalização do 1º turno (${dataTSE(A)}).`
+      : `O número ${c.numero} não aparece na totalização do TSE do 1º turno (${dataTSE(A)}).`;
+  }
+  const fin=r1.sit==="2t";
+  let t=`${ordinal(r1.pos)} no 1º turno, com ${fPct2(r1.pct)}% dos votos válidos${fin?` (${fInt(r1.votos)} votos)`:""}.`;
+  if(r1.sit==="eleito")return t+" Eleito no 1º turno.";
+  if(!fin)return r1.sit==="nao"?t+" Fora do 2º turno.":t;
+  const r2=c.r2,A2=resPres("2"),outro=FINAL.find(n=>n!==c.nome)||"";
+  if(r2&&r2.sit==="eleito")return t+` Eleito no 2º turno, com ${fPct2(r2.pct)}% dos votos válidos.`;
+  if(r2&&r2.sit==="nao")return t+` No 2º turno, teve ${fPct2(r2.pct)}% dos votos válidos.`;
+  if(r2&&A2)return t+` Na apuração do 2º turno, tem ${fPct2(r2.pct)}% dos votos válidos, com ${fPct2(A2.tot.pst)}% das seções totalizadas.`;
+  return t+` Disputa o 2º turno com ${outro} em ${dExtenso(TURNOS.t2)}.`;
+}
 const FONTES10=[["registro no TSE",c=>!!c.situacao],["bens declarados",c=>c.bens!=null],["chapa e vice",c=>!!c.vice],["perfis nas redes",c=>c.redes.length>0],["seguidores no ano",c=>(DATA.ig[c.nome]||[]).length>0],["pesquisas nominais",c=>DATA.polls.some(p=>p[2]===c.nome)],["rejeição",c=>DATA.rej.some(p=>p[2]===c.nome)],["buscas no Google",c=>!!DATA.trends[c.nome]],["acessos à Wikipédia",c=>!!DATA.wiki[c.nome]],["eventos datados",c=>TL.some(e=>e.candidato.includes(c.nome))]];
 function cobertura(c){const ok=FONTES10.map(([n,f])=>[n,!!f(c)]);const n=ok.filter(x=>x[1]).length;const falta=ok.filter(x=>!x[1]).map(x=>x[0]);return {n,falta,blocks:ok.map(x=>`<i class="${x[1]?"on":""}"></i>`).join(""),tip:`<b>${n} de 10 fontes</b> no dossiê${falta.length?"<br>faltam: "+falta.join(", "):"<br>tudo o que o observatório coleta está aqui"}`};}
 function sparkPolls(nome){
@@ -3081,7 +3229,6 @@ function ultimas3(nome){
   return `<div class="polls3">`+rows.map(p=>{const rj=rejBy[p[0]+p[1]];return `<div class="pm"><div class="inst">${esc(p[0].split("/")[0].split(" (")[0])} · ${dBR(p[1])}</div><div class="pct display tnum">${fPct(p[3])}<small>%</small></div>${rj!=null?`<div class="rej">rej. <b class="tnum">${fPct(rj)}%</b></div>`:""}</div>`;}).join("")+`</div>`;
 }
 const igInfo=n=>{const c=byName[n],r=c&&c.redes.find(x=>x.plat==="Instagram"&&x.seg);return r?r.seg:null;};
-const starBtn=(nome,dark)=>`<button type="button" class="btn star" data-vig="${esc(nome)}" aria-pressed="${prefs.foco.includes(nome)}" title="Pôr em foco em todos os gráficos (guardado neste navegador)"><span class="glyph" aria-hidden="true">${prefs.foco.includes(nome)?"★":"☆"}</span>${prefs.foco.includes(nome)?"Em foco":"Pôr em foco"}</button>`;
 // foto do candidato (Wikimedia Commons, embutida pelo gerador) com o número de urna no canto; sem
 // foto, o quadrado com o número, como antes
 const fotoOuNumero=(c,cls="n")=>c.foto
@@ -3090,10 +3237,11 @@ const fotoOuNumero=(c,cls="n")=>c.foto
 const creditoFoto=c=>{const f=c.foto_cred;if(!f)return "";
   const lic=f.url_licenca?`<a href="${esc(f.url_licenca)}" target="_blank" rel="noopener">${esc(f.licenca)}</a>`:esc(f.licenca);
   return `Foto: <a href="${esc(f.pagina)}" target="_blank" rel="noopener">${esc(f.autor||"autor na Commons")}</a>, ${lic}, via Wikimedia Commons`;};
+// o cartão de antes da votação, que volta quando a página abre sem o resultado do TSE
 const card=c=>{
   const minor=c.grupo!=="principal",p=posicao(c.nome),ig=igInfo(c.nome),cob=cobertura(c),rj=DATA.rej.filter(r=>r[2]===c.nome).sort((a,b)=>b[1].localeCompare(a[1]))[0];
   const colig=c.coligacao?` · ${esc(c.coligacao)}`:"";
-  return `<article class="card${minor?" minor":""}${prefs.foco.includes(c.nome)?" vigiado":""}" id="card-${slug(c.nome)}">
+  return `<article class="card${minor?" minor":""}" id="card-${slug(c.nome)}">
     <div class="head">${fotoOuNumero(c)}<div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${colig} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div><div class="pills">${pillSit(c)}</div></div></div>
     <div class="stats">
       <div class="st"><span>Intenção</span><b class="display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem menção</small>"}</b><span class="d">${p&&p.delta!=null?(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":"média móvel"}</span></div>
@@ -3101,24 +3249,104 @@ const card=c=>{
       <div class="st"><span>Instagram</span><b class="display tnum">${ig?fM(ig.valor):"<small>sem número</small>"}</b><span class="d">${ig?dBR(ig.data):""}</span></div>
     </div>
     <div class="sparkrow"><div class="cover" data-tip="${esc(cob.tip)}"><span class="blocks" aria-hidden="true">${cob.blocks}</span><span>dossiê <b>${cob.n}/10</b></span></div><span class="cap" style="flex:1"></span>${minor?"":sparkPolls(c.nome)}</div>
-    <div class="foot"><button type="button" class="btn primary" data-dossie="${esc(c.nome)}">Abrir dossiê</button>${starBtn(c.nome)}<span class="spacer"></span><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">TSE</a></div>
+    <div class="foot"><button type="button" class="btn primary" data-dossie="${esc(c.nome)}">Abrir dossiê</button><span class="spacer"></span><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">TSE</a></div>
   </article>`;
 };
-let view="principais",sortBy="media";
+// A última rejeição medida de um nome, com a data. Desde 4/10/2026 nenhuma rodada desta base mediu
+// rejeição, e a última, de antes da votação, aparece dita assim, para não passar por número da campanha.
+const rejDe=n=>{const r=DATA.rej.filter(p=>p[2]===n).sort((a,b)=>b[1].localeCompare(a[1]))[0];return r?{v:r[3],inst:r[0].split("/")[0].split(" (")[0],dt:r[1],antes:r[1]<TURNOS.t1}:null;};
+const rejTxt=r=>`${esc(r.inst)} · ${dBR(r.dt)}${r.antes?", antes do 1º turno":""}`;
+// "Em 1º lugar em 15 estados; mais forte em RR (71,06%)": só as 27 UFs, o exterior fica de fora
+const forteTxt=r1=>!r1||!r1.melhor?"":`${r1.ufs1&&r1.ufs1.length?`Em 1º lugar em ${pl(r1.ufs1.length,"estado")}`:"Sem 1º lugar em nenhum estado"}; mais forte em ${r1.melhor[0]} (${fPct2(r1.melhor[1])}%)`;
+// A linha do 2º turno em votos válidos nos últimos 90 dias, com a marca de 50% e a da votação de 4/10.
+// As simulações feitas antes do 1º turno ficam apagadas, como nos gráficos grandes, e a linha não
+// atravessa a votação. As séries são as de series2T, guardadas enquanto as rodadas forem as mesmas.
+let _sp2t={k:null,s:[]};
+function spark2T(nome){
+  const k=rodadas2TVV();if(_sp2t.k!==k)_sp2t={k,s:series2T(media2T(),1.6)};
+  const tF=tf2(),tI=inicioJanela("90",Date.parse(ult2T()));
+  const vis=_sp2t.s.filter(x=>x.nome===nome).map(x=>({...x,pts:x.pts.filter(q=>q.t>=tI&&q.t<=tF),linha:(x.linha||[]).filter(q=>q.t>=tI&&q.t<=tF)})).filter(x=>x.pts.length||x.linha.length);
+  if(!vis.length)return "";
+  const W=150,H=46,pd=4,vs=vis.flatMap(x=>[...x.pts,...x.linha].map(q=>q.v));
+  const lo=Math.min(45,...vs.map(v=>Math.floor(v-1))),hi=Math.max(55,...vs.map(v=>Math.ceil(v+1)));
+  const X=t=>pd+(t-tI)/(tF-tI)*(W-2*pd),Y=v=>H-pd-(v-lo)/(hi-lo)*(H-2*pd),cor=COR[nome];
+  let s=`<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><line x1="${pd}" x2="${W-pd}" y1="${Y(50).toFixed(1)}" y2="${Y(50).toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3" opacity=".7"/>`;
+  if(MARCO1T.t>tI&&MARCO1T.t<tF)s+=`<line x1="${X(MARCO1T.t).toFixed(1)}" x2="${X(MARCO1T.t).toFixed(1)}" y1="${pd}" y2="${H-pd}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 3" opacity=".7"/>`;
+  let fim=null;
+  for(const x of vis){
+    s+=x.pts.map(q=>`<circle cx="${X(q.t).toFixed(1)}" cy="${Y(q.v).toFixed(1)}" r="1.6" fill="${cor}" opacity="${x.sombra?.2:.45}"/>`).join("");
+    if(x.linha.length>1)s+=`<path d="${x.linha.map((q,i)=>(i?"L":"M")+X(q.t).toFixed(1)+" "+Y(q.v).toFixed(1)).join(" ")}" fill="none" stroke="${cor}" stroke-width="1.8" opacity="${x.sombra?.3:1}"/>`;
+    if(!x.sombra){const u=x.linha.length?x.linha[x.linha.length-1]:x.pts[x.pts.length-1];if(u&&(!fim||u.t>=fim.t))fim=u;}
+  }
+  if(fim)s+=`<circle cx="${X(fim.t).toFixed(1)}" cy="${Y(fim.v).toFixed(1)}" r="3" fill="${cor}" stroke="var(--surface)" stroke-width="1.5"/>`;
+  return s+`</svg>`;
+}
+// cartão largo de quem está no 2º turno: o 1º turno pelo TSE, a média do 2º turno em votos válidos
+// (a mesma conta da capa, media2T) e a última rejeição medida
+const cardFinal=c=>{
+  const r1=c.r1,m=media2T(),rj=rejDe(c.nome),cob=cobertura(c);
+  const v2=m?(c.nome===m.a?m.va:c.nome===m.b?m.vb:null):null;
+  const d2=!m?"":m.fase==="campanha"?`válidos · ${pl(rodadas2TCampanha().length,"rodada")} desde ${dBR(D2T())}`:`válidos · simulações até ${dBR(m.ultima)}`;
+  const colig=c.coligacao?` · ${esc(c.coligacao)}`:"";
+  return `<article class="card final" id="card-${slug(c.nome)}" style="border-top-color:${COR[c.nome]}">
+    <div class="head">${fotoOuNumero(c)}<div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${colig} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div><div class="pills">${pillSit(c)}</div></div></div>
+    <div class="stats">
+      <div class="st"><span>1º turno</span><b class="display tnum">${fPct2(r1.pct)}<small>%</small></b><span class="d">dos válidos · ${r1.pos}º de ${r1.de} · ${fM(r1.votos)} votos</span></div>
+      <div class="st"><span>2º turno, média</span><b class="display tnum">${v2!=null?fPct(v2)+"<small>%</small>":"<small>sem rodada</small>"}</b><span class="d">${d2}</span></div>
+      <div class="st"><span>Rejeição</span><b class="display tnum">${rj?fPct(rj.v)+"<small>%</small>":"<small>não medida</small>"}</b><span class="d">${rj?rejTxt(rj):""}</span></div>
+    </div>
+    ${forteTxt(r1)?`<p class="linha">${forteTxt(r1)}.</p>`:""}
+    <div class="sparkrow"><div class="cover" data-tip="${esc(cob.tip)}"><span class="blocks" aria-hidden="true">${cob.blocks}</span><span>dossiê <b>${cob.n}/10</b></span></div><span class="cap" style="flex:1"></span>${spark2T(c.nome)}</div>
+    <div class="foot"><button type="button" class="btn primary" data-dossie="${esc(c.nome)}">Abrir dossiê</button><span class="spacer"></span><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">TSE</a></div>
+  </article>`;
+};
+// cartão compacto de quem não foi eleito no 1º turno ou ficou fora da urna: sem rejeição,
+// Instagram, sparkline nem cobertura, que contam a campanha e não o resultado
+const cardEncerrado=c=>{
+  const r1=c.r1,v=vespDe(c.nome);
+  const linha=r1?`<b>${fPct2(r1.pct)}%</b> dos válidos · ${fInt(r1.votos)} votos${r1.melhor?` · mais forte em ${r1.melhor[0]} (${fPct2(r1.melhor[1])}%)`:""}`:esc(fraseResultado(c));
+  return `<article class="card encerrado" id="card-${slug(c.nome)}">
+    <div class="head">${fotoOuNumero(c)}<div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}</div><div class="pills">${pillSit(c)}</div></div></div>
+    <p class="linha">${linha}</p>${v?`<p class="linha vesp">Média do mural na véspera: ${fPct(v.media)}% dos válidos</p>`:""}
+    <div class="foot"><button type="button" class="btn primary" data-dossie="${esc(c.nome)}">Abrir dossiê</button><span class="spacer"></span><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">TSE</a></div>
+  </article>`;
+};
+// A ordenação vale só para o bloco dos não eleitos (com o resultado) ou para a lista inteira (sem
+// ele). O foco não reordena mais os cartões: desde 13/10/2026 quem está no 2º turno vem primeiro
+// sempre, num bloco próprio.
+const SORTS_RES=[["votos","Votos no 1º turno"],["bens","Bens declarados"],["numero","Número de urna"]];
+const SORTS_ANTES=[["media","Intenção de voto"],["rej","Menor rejeição"],["ig","Seguidores no Instagram"],["bens","Bens declarados"],["numero","Número de urna"]];
+let sortBy=comRes1T()?"votos":"media";
 const mediaAtual=n=>{const p=posicao(n);return p?p.agora:-1;};
 const rejUlt=n=>{const r=DATA.rej.filter(p=>p[2]===n).sort((a,b)=>b[1].localeCompare(a[1]));return r.length?r[0][3]:999;};
 const igDe=n=>{const r=igInfo(n);return r?r.valor:-1;};
-const keyOf=c=>({media:-mediaAtual(c.nome),rej:rejUlt(c.nome),ig:-igDe(c.nome),bens:-(c.bens||0),numero:+c.numero})[sortBy];
+const keyOf=c=>({votos:-(c.r1?c.r1.votos:0),media:-mediaAtual(c.nome),rej:rejUlt(c.nome),ig:-igDe(c.nome),bens:-(c.bens||0),numero:+c.numero})[sortBy];
+{const sel=$("#sort");if(sel)sel.innerHTML=(comRes1T()?SORTS_RES:SORTS_ANTES).map(([k,t])=>`<option value="${k}"${k===sortBy?" selected":""}>${t}</option>`).join("");}
 function renderWall(){
-  let list=C.filter(c=>view==="todos"||c.grupo==="principal");
-  list=list.slice().sort((a,b)=>{const fa=prefs.foco.includes(a.nome),fb=prefs.foco.includes(b.nome);if(fa!==fb)return fa?-1:1;if(a.grupo!==b.grupo)return a.grupo==="principal"?-1:1;return keyOf(a)-keyOf(b)||a.nome.localeCompare(b.nome);});
-  $("#wall").innerHTML=list.map(card).join("");bindTips($("#wall"));
-  const sub=$("#cand-sub");
-  if(sub)sub.textContent=`${nCandExt().charAt(0).toUpperCase()+nCandExt().slice(1)} ${C.length===1?"registrado":"registrados"} no TSE, ${nDef} ${nDef===1?"deferido":"deferidos"}${nInd?` e ${nInd} ${nInd===1?"indeferido":"indeferidos"}`:""}. "Abrir dossiê" traz a ficha completa; a estrela põe o candidato em foco em todos os gráficos.`;
+  const sub=$("#cand-sub"),ord=(a,b)=>keyOf(a)-keyOf(b)||a.nome.localeCompare(b.nome);
+  if(!comRes1T()){
+    $("#cb-final").hidden=true;$("#cb-fora").hidden=true;$("#cb-nao-eye").textContent="Os candidatos";$("#cb-nao-fonte").textContent="";
+    const list=C.slice().sort((a,b)=>a.grupo!==b.grupo?(a.grupo==="principal"?-1:1):ord(a,b));
+    $("#wall").innerHTML=list.map(card).join("");bindTips($("#wall"));
+    if(sub)sub.textContent=`${nCandExt().charAt(0).toUpperCase()+nCandExt().slice(1)} ${C.length===1?"registrado":"registrados"} no TSE, ${nDef} ${nDef===1?"deferido":"deferidos"}${nInd?` e ${nInd} ${nInd===1?"indeferido":"indeferidos"}`:""}. "Abrir dossiê" traz a ficha completa de cada um.`;
+    return;
+  }
+  const A=R1C(),B=blocosCand(),m=media2T(),dt=dataTSE(A);
+  $("#cb-final").hidden=!B.fin.length;$("#cb-fora").hidden=!B.fora.length;
+  $("#cb-nao-eye").textContent="Não eleitos no 1º turno";
+  $("#wall-final").innerHTML=B.fin.map(cardFinal).join("");bindTips($("#wall-final"));
+  $("#wall").innerHTML=B.nao.slice().sort(ord).map(cardEncerrado).join("");bindTips($("#wall"));
+  $("#wall-fora").innerHTML=B.fora.map(cardEncerrado).join("");
+  const nc=rodadas2TCampanha().length;
+  $("#cb-final-fonte").textContent=`Fonte: resultado do 1º turno, ${fonteTSE1T()}. Média do 2º turno em votos válidos, ${m&&m.fase==="campanha"?`com ${pl(nc,"rodada feita","rodadas feitas")} desde ${dBR(D2T())}`:m?`com as simulações feitas até ${dBR(m.ultima)}`:"sem rodada ainda"}; a linha mostra os últimos 90 dias. Rejeição da última rodada que a mediu.`;
+  $("#cb-nao-fonte").textContent=`Fonte: resultado do 1º turno, ${fonteTSE1T()}. A média do mural na véspera é a publicada na edição de ${edVespera()}, guardada como registro.`;
+  $("#cb-fora-fonte").textContent=`Fonte: ficha de candidatura no TSE e totalização do 1º turno (${dt}).`;
+  if(sub){
+    const r2=resPres("2"),el=r2&&r2.est==="final"?(r2.c.find(x=>x[6]==="eleito")||[])[1]:"";
+    const abre=el?`Eleito no 2º turno, em ${dExtenso(TURNOS.t2)}: ${el}.`:B.fin.length===2?`${B.fin.map(c=>c.nome).join(" e ")} disputam o 2º turno em ${dExtenso(TURNOS.t2)}.`:"";
+    sub.textContent=`${abre} ${B.fin.length} no 2º turno · ${B.nao.length} não ${B.nao.length===1?"eleito":"eleitos"} no 1º turno${B.fora.length?` · ${B.fora.length} fora da urna`:""} · TSE, ${dt}. "Abrir dossiê" traz a ficha completa de cada um.`.trim();
+  }
 }
-// a contagem sai do dado: escrita à mão ficou em 13 quando a 14ª candidatura entrou
-{const bt=$("#bt-todos");if(bt)bt.textContent=`Todos os ${C.length}`;}
-$$("#v-candidatos .seg button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;$$("#v-candidatos .seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderWall();}));
 $("#sort").addEventListener("change",e=>{sortBy=e.target.value;renderWall();});
 function drawBens(){
   const lw=larguraDe("#ch-bens");
@@ -3168,31 +3396,59 @@ const picoDe=arr=>{if(!arr||!arr.length)return null;let m=arr[0];for(const p of 
 const igGanho=n=>{const s=(DATA.ig[n]||[]);if(s.length<2)return null;const a=s[0],b=s[s.length-1];return {v:b.v-a.v,de:a.d,ate:b.d};};
 const resumoFonte=f=>{const s=String(f||"").replace(/\s*\(.*$/,"");return s.length>42?s.slice(0,40)+"…":s;};
 const sinal=v=>(v<0?"-":"+")+fM(Math.abs(v));
-const CRIT=[
+// Os critérios do Lado a lado. Com o resultado do TSE, a comparação começa pela urna (1º turno) e pelo
+// 2º turno em votos válidos; as pesquisas do 1º turno saem, porque o número que vale para elas agora é
+// o da urna. Sem o resultado, fica a comparação de antes da votação.
+const ultima2TDe=n=>{const r=rodadas2TVV().filter(x=>x.v[n]!=null);return r.length?r[r.length-1]:null;};
+const CRIT_URNA=[
+ ["Urna, 1º turno","Votos válidos",c=>c.r1?{v:c.r1.pct,txt:fPct2(c.r1.pct)+"%",src:`${c.r1.pos}º de ${c.r1.de} · TSE, ${dataTSE(R1C())}`,better:"max",bar:true}:{txt:"fora da urna"}],
+ ["Urna, 1º turno","Votos",c=>c.r1?{v:c.r1.votos,txt:fInt(c.r1.votos),src:fonteTSE1T(),better:"max",bar:true}:{txt:"fora da urna"}],
+ ["Urna, 1º turno","Estados em 1º lugar",c=>c.r1?{v:(c.r1.ufs1||[]).length,txt:String((c.r1.ufs1||[]).length),src:(c.r1.ufs1||[]).length?(c.r1.ufs1||[]).join(", "):"nenhum",better:"max",bar:true}:{txt:"fora da urna"}],
+ ["Urna, 1º turno","Estado mais forte",c=>c.r1&&c.r1.melhor?{txt:`${c.r1.melhor[0]} · ${fPct2(c.r1.melhor[1])}%`,src:"dos válidos na UF; o exterior fica de fora",plain:true}:{txt:"fora da urna",plain:true}],
+ ["Urna, 1º turno","Média do mural na véspera",c=>{const v=vespDe(c.nome);return v?{v:v.media,txt:fPct(v.media)+"%",src:`votos válidos, edição de ${edVespera()} · urna ${v.dif>=0?"+":"-"}${fPct(Math.abs(v.dif))} ${pts(v.dif)}`,bar:true}:{txt:"fora da média"};}],
+];
+const CRIT_1T=[
  ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de ${diasTxt(SIG)}${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":""}`,better:"max",bar:true};}],
  ["Pesquisas","Última rodada",c=>{const r=ultimaRodada(c.nome);if(!r)return {txt:"não medido"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])} · ${r[5]}`,bar:true};}],
- ["Pesquisas","Rejeição",c=>{const r=rejUltInfo(c.nome);if(!r)return {txt:"não medida"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])}`,better:"min",bar:true};}],
+];
+// quem não está no 2º turno não tem número ali: "não disputa", sem valor, para não entrar na barra
+const CRIT_2T=[
+ ["Pesquisas, 2º turno","Média em votos válidos",c=>{if(!ehFinal(c.nome))return {txt:"não disputa"};const m=media2T();if(!m)return {txt:"sem rodada"};const v=c.nome===m.a?m.va:m.vb;
+   return {v,txt:fPct(v)+"%",src:m.fase==="campanha"?`média de ${diasTxt(m.sigma)} até ${dBR(m.ultima)}, ${pl(rodadas2TCampanha().length,"rodada")} desde ${dBR(D2T())}`:`simulações até ${dBR(m.ultima)}, antes do 1º turno`,better:"max",bar:true};}],
+ ["Pesquisas, 2º turno","Última rodada",c=>{if(!ehFinal(c.nome))return {txt:"não disputa"};const r=ultima2TDe(c.nome);if(!r)return {txt:"sem rodada"};
+   return {v:r.v[c.nome],txt:fPct(r.v[c.nome])+"%",src:`${r.inst}, ${dBR(r.dt)} · votos válidos${r.base==="v"?", publicada assim":""}`,bar:true};}],
+];
+const CRIT=[
+ ...(comRes1T()?CRIT_URNA:CRIT_1T),
+ ...CRIT_2T,
+ ["Pesquisas","Rejeição",c=>{const r=rejUltInfo(c.nome);if(!r)return {txt:"não medida"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])}${r[1]<TURNOS.t1?", antes do 1º turno":""}`,better:"min",bar:true};}],
  ["Busca e redes","Buscas no Google, pico",c=>{const p=picoDe(DATA.trends[c.nome]);if(!p)return {txt:"não coletado"};return {v:p.v,txt:String(p.v),src:`índice relativo, em ${p.d}`,better:"max",bar:true};}],
  ["Busca e redes","Wikipédia, pico diário",c=>{const p=picoDe(DATA.wiki[c.nome]);if(!p)return {txt:"não coletado"};return {v:p.v,txt:fInt(p.v),src:`acessos em ${p.d}`,better:"max",bar:true};}],
  ["Busca e redes","Seguidores no Instagram",c=>{const s=igInfo(c.nome);if(!s)return {txt:"sem número publicado"};return {v:s.valor,txt:fInt(s.valor),src:`${dBR(s.data)} · ${resumoFonte(s.fonte)}`,better:"max",bar:true};}],
  ["Busca e redes","Ganho no ano (Instagram)",c=>{const g=igGanho(c.nome);if(!g)return {txt:"sem série"};return {v:g.v,txt:sinal(g.v),src:`de ${dBR(g.de)} a ${dBR(g.ate)}`,better:"max",bar:true};}],
- ["Ficha do TSE","Bens declarados",c=>({v:c.bens,txt:c.bens>0?fBRL(c.bens):"R$ 0",src:"registro no TSE, autodeclarado",better:"max",bar:true})],
- ["Ficha do TSE","Idade e origem",c=>({txt:`${c.idade} anos · ${c.naturalidade}`,plain:true})],
+ // bem vazio na ficha é "não informado", sem valor, e não R$ 0 (Avalanche, 14/9/2026)
+ ["Ficha do TSE","Bens declarados",c=>c.bens==null?{txt:"não informado"}:{v:c.bens,txt:c.bens>0?fBRL(c.bens):"R$ 0",src:"registro no TSE, autodeclarado",better:"max",bar:true}],
+ ["Ficha do TSE","Idade e origem",c=>({txt:[c.idade?`${c.idade} anos`:"",c.naturalidade].filter(Boolean).join(" · ")||"não informada",plain:true})],
  ["Ficha do TSE","Escolaridade",c=>({txt:c.escolaridade||"não informada",plain:true})],
  ["Ficha do TSE","Ocupação declarada",c=>({txt:c.ocupacao,plain:true})],
  ["Ficha do TSE","Chapa",c=>({txt:`${c.partido}${c.coligacao?" · "+c.coligacao:""} · vice ${c.vice} (${c.vice_partido})`,plain:true})],
- ["Ficha do TSE","Registro",c=>({txt:c.situacao+(c.restrito?" · "+c.restrito:""),plain:true})],
+ // com o resultado, a situação é a da urna; o registro só aparece para quem não teve voto
+ ["Ficha do TSE",comRes1T()?"Situação no TSE":"Registro",c=>comRes1T()?{txt:situacaoCand(c)[1]+(c.r1?"":` · registro: ${c.situacao}`),src:c.r1?`TSE, ${dataTSE(c.r2&&resPres("2")||R1C())}`:"",plain:true}:{txt:c.situacao+(c.restrito?" · "+c.restrito:""),plain:true}],
  ["Cobertura","Eventos datados",c=>{const n=TL.filter(e=>e.candidato.includes(c.nome)).length;return {v:n,txt:String(n),src:"na linha do tempo",bar:true};}],
  ["Cobertura","Fontes no dossiê",c=>{const k=cobertura(c);return {v:k.n,txt:`${k.n}/10`,src:k.falta.length?"faltam: "+k.falta.join(", "):"todas as fontes do observatório",better:"max",bar:true};}],
 ];
 let lado=[];
-function ladoPadrao(){const v=prefs.foco.slice(0,3);return v.length>=2?v:["Lula","Flávio Bolsonaro","Augusto Cury"];}
+// a mesa começa com os dois do 2º turno; o foco do Personalizar não escolhe mais os nomes daqui
+function ladoPadrao(){return FINAL.filter(n=>byName[n]).slice(0,3);}
 function renderLadoControls(){
-  const opts=i=>C.map(c=>`<option value="${esc(c.nome)}" ${lado[i]===c.nome?"selected":""}>${esc(c.nome)}</option>`).join("");
-  $("#lado-controls").innerHTML=[0,1,2].map(i=>`<label class="sel">${["Primeiro","Segundo","Terceiro"][i]} <select data-i="${i}">${i===2?`<option value="" ${!lado[2]?"selected":""}>ninguém</option>`:""}${opts(i)}</select></label>`).join("")+(prefs.foco.length>=2?`<button type="button" class="btn" id="lado-vig">Usar os que estão em foco</button>`:"");
+  const op=(n,i)=>`<option value="${esc(n)}" ${lado[i]===n?"selected":""}>${esc(n)}</option>`;
+  // com o resultado, os nomes vêm em três grupos, na ordem da urna; sem ele, a lista do TSE
+  const opts=i=>{if(!comRes1T())return C.map(c=>op(c.nome,i)).join("");const B=blocosCand();
+    return [["No 2º turno",B.fin],["Não eleitos no 1º turno",B.nao.slice().sort((a,b)=>b.r1.votos-a.r1.votos)],["Fora da urna",B.fora]].filter(g=>g[1].length).map(([g,L])=>`<optgroup label="${g}">${L.map(c=>op(c.nome,i)).join("")}</optgroup>`).join("");};
+  $("#lado-controls").innerHTML=[0,1,2].map(i=>`<label class="sel">${["Primeiro","Segundo","Terceiro"][i]} <select data-i="${i}">${i===2?`<option value="" ${!lado[2]?"selected":""}>ninguém</option>`:""}${opts(i)}</select></label>`).join("");
   $("#lado-controls").querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{lado[+s.dataset.i]=s.value;renderLado();}));
-  const b=$("#lado-vig");if(b)b.addEventListener("click",()=>{lado=prefs.foco.slice(0,3);renderLadoControls();renderLado();});
 }
+if(!comRes1T()){const ls=$("#lado-sub");if(ls)ls.textContent="Dois ou três candidatos comparados nos mesmos critérios, com fonte e data abaixo de cada número. A barra compara só os candidatos escolhidos, e o sublinhado marca o melhor valor de cada linha (na rejeição, o menor).";}
 function renderLado(){
   const cs=lado.filter(Boolean).map(n=>byName[n]).filter(Boolean);const el=$("#lado-mesa");
   if(cs.length<2){el.innerHTML=`<div class="empty"><b>Falta gente na mesa</b>Escolha pelo menos dois candidatos.</div>`;return;}
@@ -3288,7 +3544,9 @@ $("#cal").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const 
 const dz=$("#dossie");
 function svgSerie(P,o={}){
   const {W=520,H=180,ml=48,mr=96,mt=14,mb=26,log=false,fmt=v=>fInt(v),fmtV=fmt,cor="var(--ink)",unidade="",zero=true}=o;
-  if(!P||P.length<2)return `<div class="empty">Sem série para este candidato.</div>`;
+  // ponto depois da borda do mural (amanhã, no máximo) não entra: eixo de tempo não desenha o futuro
+  P=(P||[]).filter(p=>p.t<=T1);
+  if(P.length<2)return `<div class="empty">Sem série para este candidato.</div>`;
   const iw=W-ml-mr,ih=H-mt-mb,t0=Date.parse("2026-01-01");
   const vs=P.map(p=>p.v);let lo,hi;
   if(log){lo=1;hi=10**Math.ceil(Math.log10(Math.max(...vs,10)));}
@@ -3311,7 +3569,8 @@ function svgSerie(P,o={}){
   for(const p of P)s+=`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="5" fill="transparent" data-tip="${fmtV(p.v)}${unidade} em ${dBR(dISO(p.t))}"/>`;
   return s+`</svg>`;
 }
-const stampDe=c=>c.restrito?`<span class="stamp crit">${esc(c.restrito.split(" (")[0])}</span>`:c.situacao==="Deferido"?`<span class="stamp good">Registro deferido</span>`:/^Indeferid/i.test(c.situacao||"")?`<span class="stamp crit">Registro indeferido</span>`:`<span class="stamp warn">Aguardando julgamento</span>`;
+// o carimbo do dossiê segue o selo do cartão (situacaoCand): resultado do TSE quando há, registro quando não
+const stampDe=c=>{if(c.restrito&&!c.r1&&!c.fora)return `<span class="stamp crit">${esc(c.restrito.split(" (")[0])}</span>`;const [k,t]=situacaoCand(c);return `<span class="stamp ${k}">${esc(t)}</span>`;};
 // depois de abrir um dossiê: se a coluna dos gráficos for mais estreita que o viewBox usado, refaz o conteúdo nessa largura
 function encaixarDossie(render){
   const ch=$$(".row2 .box .chart",dz).find(x=>x.querySelector("svg"));if(!ch)return;
@@ -3319,9 +3578,47 @@ function encaixarDossie(render){
   const w=+(svg.dataset.w||(svg.getAttribute("viewBox")||"").split(/\s+/)[2]||0);if(!w||m>=w-4)return;
   const top=dz.scrollTop;dz.innerHTML=render(m);bindTips(dz);dz.scrollTop=top;
 }
+// Percentual de um candidato em cada uma das 27 UFs no 1º turno, do maior para o menor, com a posição
+// dele na UF. O exterior (ZZ) fica de fora do ranking, como em r1.melhor.
+function porUF1T(nome){
+  const P=(RES&&RES.pres&&RES.pres["1"])||{},out=[];
+  for(const [uf,A] of Object.entries(P)){
+    if(uf==="BR"||uf==="ZZ"||!A||!A.c)continue;
+    const i=A.c.findIndex(x=>x[0]===nome);if(i>=0)out.push({uf,pct:A.c[i][5],votos:A.c[i][4],pos:i+1});
+  }
+  return out.sort((a,b)=>b.pct-a.pct||a.uf.localeCompare(b.uf));
+}
+// A caixa "Resultado do 1º turno" do dossiê: o número oficial, a frase de situação, a média que o
+// mural publicou na véspera (só para quem estava nela e na urna) e as 27 UFs em barras HTML.
+function caixaResultado1T(c){
+  const A=R1C(),r1=c.r1;if(!A||(!r1&&!c.fora))return "";
+  const fonte=`TSE, divulgação de resultados, atualizado em ${horaTSE(A.tot.at)}, ${fPct2(A.tot.pst)}% das seções`;
+  const fonteH=`<div class="cap">Fonte: ${RES&&RES.fonte?`<a href="${esc(RES.fonte)}" target="_blank" rel="noopener">${fonte}</a>`:fonte}.</div>`;
+  if(!r1)return `<div class="box r1box"><h4>Resultado do 1º turno</h4><p class="sit">${esc(fraseResultado(c))}</p>${fonteH}</div>`;
+  const L=porUF1T(c.nome),max=Math.max(0.01,...L.map(x=>x.pct)),cor=COR[c.nome],v=vespDe(c.nome);
+  const rows=L.map((x,i)=>`<div class="ub${x.pos===1?" primeiro":""}${i>=5&&i<L.length-5?" meio":""}"${x.pos===1?` title="1º lugar em ${x.uf}"`:""}><span class="uf">${x.uf}</span><span class="bar"><i style="width:${Math.max(1,x.pct/max*100).toFixed(1)}%;--bc:${cor}"></i></span><span class="val">${fPct2(x.pct)}%</span></div>`);
+  if(L.length>10)rows.splice(5,0,`<div class="ub gap" aria-hidden="true">⋯</div>`);
+  const vesp=v?`<p class="vesp1t">Na véspera (${edVespera()}), a média do mural tinha ${fPct(v.media)}% dos válidos; a urna deu ${fPct2(v.urna)}%, ${fPct(Math.abs(v.dif))} ${pts(v.dif)} ${v.dif>=0?"acima":"abaixo"} da média.</p>`:"";
+  return `<div class="box r1box"><h4>Resultado do 1º turno</h4>
+    <div class="r1top"><span class="big display tnum">${fPct2(r1.pct)}<small>%</small></span><span class="meta">dos votos válidos · ${r1.pos}º de ${r1.de} · ${fInt(r1.votos)} votos</span></div>
+    <p class="sit">${esc(fraseResultado(c))}</p>${vesp}
+    ${L.length?`<div class="cap">Por estado, do maior para o menor percentual${r1.ufs1&&r1.ufs1.length?"; a marca 1º indica onde ficou em primeiro lugar":""}.</div><div class="ufbars" style="--nr:${Math.ceil(L.length/3)}">${rows.join("")}</div>`:""}
+    ${r1.ext!=null?`<p class="r1ext">Exterior: ${fPct2(r1.ext)}% dos válidos, fora do ranking dos estados.</p>`:""}${fonteH}</div>`;
+}
+// as três últimas rodadas de 2º turno, em votos válidos, com o número publicado de cada uma
+function ultimas2T(nome){
+  const rods=rodadas2TVV().slice(-3).reverse();
+  if(!rods.length)return `<span class="cap">Nenhuma rodada de 2º turno nesta base.</span>`;
+  return `<div class="polls3">`+rods.map(r=>{const cru=DATA.polls2t.find(p=>p[0]===r.inst&&p[1]===r.dt&&p[2]===nome&&(p[4]||"")===r.url);
+    return `<div class="pm"><div class="inst">${esc(r.inst.split("/")[0].split(" (")[0])} · ${dBR(r.dt)}</div><div class="pct display tnum">${fPct(r.v[nome])}<small>%</small></div><div class="rej">${r.base==="v"?"publicada em válidos":cru?`${fPct(cru[3])}% no total`:"dos válidos"}</div></div>`;}).join("")+`</div>`;
+}
 function renderDossie(c,cwMed=0){
-  const nome=c.nome,cor=COR[nome]||"var(--neutro)",cob=cobertura(c);
-  const kv=[["Nome completo",c.nome_completo],["Nascimento",c.data_nascimento?`${dBR(c.data_nascimento)}/${c.data_nascimento.slice(0,4)} · ${c.idade} anos`:c.idade+" anos"],["Naturalidade",c.naturalidade],["Escolaridade",c.escolaridade||"não informada"],["Ocupação declarada",c.ocupacao],["Bens declarados",c.bens>0?fBRL(c.bens):"R$ 0"],["Urna",`${c.numero} · ${c.nome_urna}`],["Chapa",`${c.partido}${c.coligacao?" · "+c.coligacao:""} · vice ${c.vice} (${c.vice_partido})`],["Situação",c.situacao+(c.restrito?" · "+c.restrito:"")],["Ficha atualizada no TSE",c.atualizado_tse||""]];
+  const nome=c.nome,cor=COR[nome]||"var(--neutro)",cob=cobertura(c),R=comRes1T(),A=R1C();
+  // com o resultado, a linha do registro some para quem teve votos (a ficha, conferida até 18/9, ainda
+  // dizia "Aguardando julgamento") e entra a linha do resultado no TSE
+  const resLin=R&&(c.r1||c.fora)?["Resultado no TSE",c.r1?`${situacaoCand(c)[1]}${c.r1.sit==="nao"?"":` · ${c.r1.pos}º de ${c.r1.de}`}, ${fPct2(c.r1.pct)}% dos válidos · TSE, ${horaTSE(A.tot.at)}`:`Fora da totalização do 1º turno · TSE, ${horaTSE(A.tot.at)}`]:null;
+  const regLin=R&&c.r1?null:[R?"Registro, na ficha do TSE":"Situação",c.situacao+(c.restrito?" · "+c.restrito:"")];
+  const kv=[["Nome completo",c.nome_completo],["Nascimento",c.data_nascimento?`${dBR(c.data_nascimento)}/${c.data_nascimento.slice(0,4)} · ${c.idade} anos`:c.idade?c.idade+" anos":""],["Naturalidade",c.naturalidade],["Escolaridade",c.escolaridade||"não informada"],["Ocupação declarada",c.ocupacao],["Bens declarados",c.bens==null?"não informado":c.bens>0?fBRL(c.bens):"R$ 0"],["Urna",`${c.numero} · ${c.nome_urna}`],["Chapa",`${c.partido}${c.coligacao?" · "+c.coligacao:""} · vice ${c.vice} (${c.vice_partido})`],resLin,regLin,["Ficha atualizada no TSE",c.atualizado_tse||""]].filter(Boolean);
   const kvh=kv.filter(([k,v])=>v).map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("");
   const igs=igInfo(nome);
   const igP=(()=>{const raw=DATA.ig[nome]||[];const por={};raw.forEach(p=>{(por[p.d]=por[p.d]||[]).push(p.v);});return Object.entries(por).map(([d,vs])=>({t:Date.parse(d),v:vs.sort((a,b)=>a-b)[Math.floor(vs.length/2)]})).sort((a,b)=>a.t-b.t);})();
@@ -3333,28 +3630,43 @@ function renderDossie(c,cwMed=0){
   const nPolls=DATA.polls.filter(p=>p[2]===nome).length;
   const cw=cwMed||(MOBILE?Math.max(240,innerWidth-62):0), so={W:cw||520,mr:cw?64:96};
   const modoSvg=svgModo(nome,520,260,96,null,cw,{tIni:Date.parse("2026-01-01"),tFim:TF1});
+  const cobH=`<div class="cover" data-tip="${esc(cob.tip)}"><span class="blocks" aria-hidden="true">${cob.blocks}</span><span>Cobertura do dossiê: <b>${cob.n} de 10</b> fontes do observatório${cob.falta.length?`<span class="miss"> · faltam ${esc(cob.falta.join(", "))}</span>`:""}</span></div>`;
+  // As caixas de meia largura, na ordem em que aparecem, aos pares. Quem está no 2º turno ganha
+  // primeiro a média do 2º turno e o gráfico em válidos; o texto de setembro vira histórico.
+  const caixas=[];
+  const fin=R?!!(c.r1&&c.r1.sit==="2t"):false;
+  if(fin){
+    const m=media2T(),v2=m?(nome===m.a?m.va:nome===m.b?m.vb:null):null;
+    caixas.push(`<div class="box"><h4>2º turno em ${dBR(TURNOS.t2)}</h4>${v2!=null?`<div class="r1top"><span class="big display tnum">${fPct(v2)}<small>%</small></span><span class="meta">dos votos válidos na média ${m.fase==="campanha"?`de ${pl(rodadas2TCampanha().length,"rodada")} desde ${dBR(D2T())}`:`das simulações até ${dBR(m.ultima)}`}</span></div><p class="sit">${texto2T(m)}</p>`:`<p class="sit">Nenhuma rodada de 2º turno nesta base.</p>`}<div class="cap">Últimas rodadas de 2º turno, em votos válidos.</div>${ultimas2T(nome)}</div>`);
+    const s2=series2T(m,2.4),tF=tf2(),tI=inicioJanela("90",Date.parse(ult2T())),ex=eixoVV(s2,tI);
+    const ch=s2.length?chartTempo({W:520,H:230,ml:44,mr:96,...ex,ref:50,fmtY:v=>fPct(v)+"%",series:s2,marcos:[MARCO1T],fase:FAIXA2T,t0:tI,t1:tF,tFim:tF,cw,Hm:cw?200:undefined,aria:`${FINAL.join(" e ")} no 2º turno, em votos válidos, nos últimos 90 dias`,fs:12}):`<div class="empty">Sem rodada de 2º turno.</div>`;
+    caixas.push(`<div class="box"><h4>Pesquisas do 2º turno</h4><div class="cap">Cada ponto é uma rodada, em votos válidos; a linha é a média da campanha, desde ${dBR(D2T())}, e as simulações de antes do 1º turno ficam apagadas.</div><div class="chart">${ch}</div></div>`);
+  }
+  caixas.push(`<div class="box"><h4>Ficha do TSE</h4><div class="kv">${kvh}</div><div class="foot"><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">Ficha completa no DivulgaCandContas</a>${c.foto_url?`<a href="${esc(c.foto_url)}" target="_blank" rel="noopener">Foto oficial</a>`:""}${wiki}</div></div>`);
+  if(!R)caixas.push(`<div class="box"><h4>Situação na disputa</h4><p class="sit">${esc(c.situacao_texto||"Sem leitura editorial nesta edição.")}</p>${c.grupo==="principal"?`<div class="cap">Últimas rodadas, com rejeição quando publicada.</div>${ultimas3(nome)}`:""}</div>`);
+  const modoTit=R?"Pesquisas do 1º turno, por modo de coleta":"Pesquisas por modo de coleta";
+  const modoCap=nPolls?(R?`${nPolls} medições nominais até ${dBR(ULT1T)}; pontos por modo de coleta e média móvel de cada modo.`:`${nPolls} medições nominais em 2026; pontos por modo de coleta e média móvel de cada modo.`):(R?"Nenhuma medição nominal no 1º turno.":"Nenhuma medição nominal em 2026.");
+  caixas.push(`<div class="box"><h4>${modoTit}</h4><div class="cap">${modoCap}</div><div class="chart">${modoSvg}</div>${nPolls?`<div class="legend">${legendaModos()}</div>`:""}</div>`);
+  caixas.push(`<div class="box"><h4>Redes</h4>${igs?`<div class="igrow"><span class="big display tnum">${fInt(igs.valor)}</span><span class="meta">seguidores no Instagram em ${dBR(igs.data)} · <a href="${esc(igs.url)}" target="_blank" rel="noopener">${esc(resumoFonte(igs.fonte))}</a></span></div>`:`<p class="sit">Nenhum número de seguidores publicado para este perfil.</p>`}${igP.length>1?`<div class="cap">Medianas diárias dos números publicados; o eixo não começa em zero.</div><div class="chart">${svgSerie(igP,{cor,fmt:v=>fM(v),fmtV:v=>fInt(v),zero:false,H:170,...so})}</div>`:""}${c.redes.length?`<div class="redes" style="margin-top:6px">${redes}</div>`:`<p class="sit">Nenhum perfil pessoal localizado.</p>`}${c.confianca?`<div class="miss">Confiança dos perfis: ${esc(c.confianca)}</div>`:""}</div>`);
+  caixas.push(`<div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div><div class="chart">${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170,...so})}</div></div>`);
+  caixas.push(`<div class="box"><h4>Acessos ao verbete na Wikipédia</h4><div class="cap">Acessos diários, escala logarítmica.</div><div class="chart">${svgSerie(wikiP.filter(p=>p.v>0),{cor,log:true,fmt:v=>v>=1e6?fPct(v/1e6)+" mi":v>=1000?fInt(v/1000)+" mil":fInt(v),fmtV:v=>fInt(v),H:170,...so})}</div></div>`);
+  let linhas="";for(let i=0;i<caixas.length;i+=2)linhas+=`<div class="row2${i+1<caixas.length?"":" so1"}">${caixas[i]}${caixas[i+1]||""}</div>`;
+  const txt1T=c.situacao_1t||c.situacao_texto||"";
+  const antes=R&&txt1T?`<details class="box antes1t"><summary>Antes do 1º turno (texto de ${esc(c.situacao_1t_data||"26/9")})</summary><p class="sit">${esc(txt1T)}</p>${c.grupo==="principal"?`<div class="cap">Últimas rodadas de 1º turno, com rejeição quando publicada.</div>${ultimas3(nome)}`:""}</details>`:"";
+  const fontesTSE=R?`TSE, divulgação de resultados (1º turno, ${dataTSE(A)}), `:"";
   return `<div class="dz">
     <div class="top">${fotoOuNumero(c)}
       <div><span class="kick">Dossiê · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(nome)}</h2><div class="party">${esc(c.partido)}${c.coligacao?" · "+esc(c.coligacao):""} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div>${c.foto_cred?`<div class="cred">${creditoFoto(c)}</div>`:""}</div>
-      <div class="acts">${stampDe(c)}${starBtn(nome)}<button type="button" class="btn" data-copy="1">Copiar link</button><button type="button" class="btn" data-close="1" aria-label="Fechar dossiê">Fechar ✕</button></div>
+      <div class="acts">${stampDe(c)}<button type="button" class="btn" data-copy="1">Copiar link</button><button type="button" class="btn" data-close="1" aria-label="Fechar dossiê">Fechar ✕</button></div>
     </div>
     <div class="body">
-      <div class="cover" data-tip="${esc(cob.tip)}"><span class="blocks" aria-hidden="true">${cob.blocks}</span><span>Cobertura do dossiê: <b>${cob.n} de 10</b> fontes do observatório${cob.falta.length?`<span class="miss"> · faltam ${esc(cob.falta.join(", "))}</span>`:""}</span></div>
-      <div class="row2">
-        <div class="box"><h4>Ficha do TSE</h4><div class="kv">${kvh}</div><div class="foot"><a href="${esc(c.url_tse)}" target="_blank" rel="noopener">Ficha completa no DivulgaCandContas</a>${c.foto_url?`<a href="${esc(c.foto_url)}" target="_blank" rel="noopener">Foto oficial</a>`:""}${wiki}</div></div>
-        <div class="box"><h4>Situação na disputa</h4><p class="sit">${esc(c.situacao_texto||"Sem leitura editorial nesta edição.")}</p>${c.grupo==="principal"?`<div class="cap">Últimas rodadas, com rejeição quando publicada.</div>${ultimas3(nome)}`:""}</div>
-      </div>
-      <div class="row2">
-        <div class="box"><h4>Pesquisas por modo de coleta</h4><div class="cap">${nPolls?`${nPolls} medições nominais em 2026; pontos por modo de coleta e média móvel de cada modo.`:"Nenhuma medição nominal em 2026."}</div><div class="chart">${modoSvg}</div>${nPolls?`<div class="legend">${legendaModos()}</div>`:""}</div>
-        <div class="box"><h4>Redes</h4>${igs?`<div class="igrow"><span class="big display tnum">${fInt(igs.valor)}</span><span class="meta">seguidores no Instagram em ${dBR(igs.data)} · <a href="${esc(igs.url)}" target="_blank" rel="noopener">${esc(resumoFonte(igs.fonte))}</a></span></div>`:`<p class="sit">Nenhum número de seguidores publicado para este perfil.</p>`}${igP.length>1?`<div class="cap">Medianas diárias dos números publicados; o eixo não começa em zero.</div><div class="chart">${svgSerie(igP,{cor,fmt:v=>fM(v),fmtV:v=>fInt(v),zero:false,H:170,...so})}</div>`:""}${c.redes.length?`<div class="redes" style="margin-top:6px">${redes}</div>`:`<p class="sit">Nenhum perfil pessoal localizado.</p>`}${c.confianca?`<div class="miss">Confiança dos perfis: ${esc(c.confianca)}</div>`:""}</div>
-      </div>
-      <div class="row2">
-        <div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div><div class="chart">${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170,...so})}</div></div>
-        <div class="box"><h4>Acessos ao verbete na Wikipédia</h4><div class="cap">Acessos diários, escala logarítmica.</div><div class="chart">${svgSerie(wikiP.filter(p=>p.v>0),{cor,log:true,fmt:v=>v>=1e6?fPct(v/1e6)+" mi":v>=1000?fInt(v/1000)+" mil":fInt(v),fmtV:v=>fInt(v),H:170,...so})}</div></div>
-      </div>
+      ${R?caixaResultado1T(c):cobH}
+      ${linhas}
+      ${antes}
       <div class="box"><h4>Cronologia do candidato</h4><div class="cap">${evsC.length} eventos datados sobre ${esc(nome)}; os marcos gerais da eleição aparecem esmaecidos.</div><ul class="evs">${evsC.slice(0,40).map(e=>evLi(e,false)).join("")}${evsG.slice(0,6).map(e=>evLi(e,true)).join("")}</ul>${evsC.length>40||evsG.length>6?`<div><button type="button" class="btn" data-tl="${esc(nome)}">Ver tudo na linha do tempo</button></div>`:""}</div>
-      <div class="foot-acts">${starBtn(nome)}<button type="button" class="btn" data-copy="1">Copiar link</button></div>
-      <div class="foot"><span>Fontes deste dossiê: TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
+      ${R?cobH:""}
+      <div class="foot-acts"><button type="button" class="btn" data-copy="1">Copiar link</button></div>
+      <div class="foot"><span>Fontes deste dossiê: ${fontesTSE}TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições${R&&fin?` de 1º turno e ${rodadas2TVV().length} rodadas de 2º turno`:""}), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 function openDossie(nome,opener){
@@ -4448,8 +4760,8 @@ function carimboDe(id){
   switch(id){
     case "pesquisas":return `${M.rodadas} rodadas · ${M.institutos} institutos · até ${dBR(M.ultima)}`;
     case "busca":{const t=sMMDD(DATA.trends["Lula"]).pop(),w=sMMDD(DATA.wiki["Lula"]).pop(),ig=Object.values(DATA.ig).flat().map(p=>p.d).filter(d=>d<=HOJE).sort().pop();return [t?`Trends até ${dBR(dISO(t.t))}`:"",w?`Wikipédia até ${dBR(dISO(w.t))}`:"",ig?`Instagram ${dBR(ig)}`:""].filter(Boolean).join(" · ");}
-    case "candidatos":return `${C.length} registrados · ${nDef} deferidos · TSE`;
-    case "lado":return `${CRIT.length} critérios · até ${dBR(ULT)}`;
+    case "candidatos":{if(!comRes1T())return `${C.length} registrados · ${nDef} deferidos · TSE`;const B=blocosCand();return `${B.fin.length} no 2º turno · ${B.nao.length} não ${B.nao.length===1?"eleito":"eleitos"} no 1º turno · TSE, ${dataTSE(R1C())}`;}
+    case "lado":return comRes1T()?`${CRIT.length} critérios · TSE, ${dataTSE(R1C())} · pesquisas de 2º turno até ${dBR(ult2T())}`:`${CRIT.length} critérios · até ${dBR(ULT)}`;
     case "partidos":return `${DATA.partidos.length} partidos · FEFC ${fBRL(fefcTot)}`;
     case "tempo":{const u=TL.filter(e=>e.data<=HOJE).map(e=>e.data).sort().pop();return `${TL.length} eventos${u?` · último em ${dBR(u)}`:""}`;}
     case "metodo":return `${M.institutos} institutos · 10 fontes por candidato`;

@@ -428,8 +428,10 @@ with sync_playwright() as p:
     page.wait_for_timeout(400)
     r = page.evaluate("() => !document.querySelector('dialog.dossie[open]')")
     check("hash de editoria fecha o dossiê aberto", r is True, r)
-    # sparkline do cartão inteira dentro do .card (overflow hidden) e rótulos de série dentro do svg
-    JS_SPARK = """() => [...document.querySelectorAll('#wall .card')].map(c => { const s = c.querySelector('svg.spark'); if (!s) return 0;
+    # sparkline do cartão inteira dentro do .card (overflow hidden) e rótulos de série dentro do svg.
+    # Desde 13/10/2026 a sparkline fica só nos cartões largos de quem está no 2º turno (#wall-final); sem o
+    # resultado do TSE, nos cartões de #wall, como antes
+    JS_SPARK = """() => [...document.querySelectorAll('#wall-final .card, #wall .card')].map(c => { const s = c.querySelector('svg.spark'); if (!s) return 0;
         return Math.round(s.getBoundingClientRect().right - c.getBoundingClientRect().right); }).filter(d => d > 0).length"""
     r = page.evaluate(JS_SPARK)
     check("nenhuma sparkline sai do cartão a 390px", r == 0, r)
@@ -558,11 +560,13 @@ with sync_playwright() as p:
     check("rotas do bloco (768) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
-    # cobertura do cartão numa linha no desktop (item 12: a sparkline cede largura antes do texto quebrar)
+    # cobertura do cartão numa linha no desktop (item 12: a sparkline cede largura antes do texto quebrar).
+    # Com o resultado do TSE (13/10/2026), a cobertura fica nos cartões de quem está no 2º turno; os
+    # cartões compactos dos não eleitos não têm cobertura nem sparkline
     b, page, errs = novo_ctx(p, viewport=(1280, 800))
     page.goto(URL + "#candidatos")
     page.wait_for_timeout(700)
-    r = page.evaluate("() => [...document.querySelectorAll('#wall .card .cover')].map(c => Math.round(c.getBoundingClientRect().height))")
+    r = page.evaluate("() => [...document.querySelectorAll('#wall-final .card .cover, #wall .card .cover')].map(c => Math.round(c.getBoundingClientRect().height))")
     check(".cover dos cartões numa linha a 1280px (altura <= 22px)", r and max(r) <= 22, r)
     b.close()
 
@@ -1433,10 +1437,24 @@ with sync_playwright() as p:
     check("o cartão do próximo debate sai da linha do tempo e nunca aponta um debate passado ou cancelado", bool(d_ok), r)
     check("o cartão de campanhas restritas conta o dado, sem restrição já revogada",
           r["res"] and r["res"][1] == str(r["restritos"]) and "Renan" not in r["res"][2], r["res"])
+    # O botão "Todos os N" saiu em 13/10/2026: com o resultado do TSE, a aba mostra todos os registrados
+    # em três blocos fixos (no 2º turno, não eleitos no 1º turno e fora da urna). A regra que ficou é a
+    # mesma: as contagens saem do dado, e nenhum registrado fica de fora nem aparece duas vezes.
     page.goto(URL + "#candidatos")
     page.wait_for_timeout(600)
-    r = page.evaluate("() => [document.querySelector('#bt-todos').textContent, C.length]")
-    check("o botão 'Todos os N' da aba Candidatos conta os registrados", r[0] == f"Todos os {r[1]}", r)
+    r = page.evaluate("""() => { const ids = sel => [...document.querySelectorAll(sel + ' .card')].map(c => c.id);
+        const blocos = {fin: ids('#wall-final'), nao: ids('#wall'), fora: ids('#wall-fora')}, todos = [...blocos.fin, ...blocos.nao, ...blocos.fora];
+        return {res: comRes1T(), blocos, n: todos.length, unicos: new Set(todos).size, C: C.length, bt: !!document.querySelector('#bt-todos'),
+                esperado: comRes1T() ? {fin: C.filter(c => c.r1 && c.r1.sit === '2t').length, nao: C.filter(c => c.r1 && c.r1.sit !== '2t').length, fora: C.filter(c => !c.r1).length} : null,
+                sub: document.querySelector('#cand-sub').textContent, carimbo: carimboDe('candidatos')}; }""")
+    check("a aba Candidatos mostra cada registrado uma vez, sem o botão 'Todos os N'",
+          r["n"] == r["C"] and r["unicos"] == r["C"] and not r["bt"], {k: r[k] for k in ("n", "unicos", "C", "bt")})
+    if r["res"]:
+        e, bl = r["esperado"], r["blocos"]
+        check("com o resultado do TSE, os três blocos de candidatos contam o dado (2º turno, não eleitos, fora da urna)",
+              [len(bl["fin"]), len(bl["nao"]), len(bl["fora"])] == [e["fin"], e["nao"], e["fora"]]
+              and f"{e['fin']} no 2º turno" in r["carimbo"] and f"{e['nao']} não eleitos" in r["carimbo"] and f"{e['nao']} não eleitos" in r["sub"],
+              {"blocos": {k: len(v) for k, v in bl.items()}, "esperado": e, "carimbo": r["carimbo"], "sub": r["sub"][:120]})
     # o modo de coleta das rodadas sem ficha técnica vem do instituto quando ele usa sempre o mesmo
     r = page.evaluate("() => DATA.polls.filter(p => p[0] === 'Datafolha' && p[1] >= '2026-09-01').map(p => p[5])")
     check("rodadas do Datafolha de setembro, sem ficha, saem como presenciais", r and all(m == "presencial" for m in r), sorted(set(r)))
@@ -1449,10 +1467,10 @@ with sync_playwright() as p:
     page.wait_for_timeout(900)
     r = page.evaluate("""() => { const com = C.filter(c => c.foto);
         const semCred = com.filter(c => !c.foto_cred || !c.foto_cred.licenca || !c.foto_cred.pagina).map(c => c.nome);
-        const imgs = [...document.querySelectorAll('#wall .card .fotobox img')];
+        const imgs = [...document.querySelectorAll('#v-candidatos .card .fotobox img')];
         const quebradas = imgs.filter(i => !(i.complete && i.naturalWidth > 0)).length;
         const cor = a => getComputedStyle(a).color;
-        const links = [...document.querySelectorAll('#wall .card .foot a')].map(cor);
+        const links = [...document.querySelectorAll('#v-candidatos .card .foot a')].map(cor);
         return {n: com.length, semCred, cards: imgs.length, quebradas, brancos: links.filter(c => c === 'rgb(255, 255, 255)').length}; }""")
     check("fotos dos presidenciáveis com crédito e licença, sem imagem quebrada nos cartões",
           r["n"] >= 8 and not r["semCred"] and r["cards"] >= 1 and r["quebradas"] == 0, r)
@@ -1601,6 +1619,55 @@ with sync_playwright() as p:
                 dentro: c.length === 2 && c.every(x => x >= m.ml - 0.5 && x <= m.ml + m.iw + 0.5) && t >= m.t0 && t <= m.t1}; }""")
     check("N12: rodada de 2º turno com a data de hoje desenhada dentro do eixo de #ch-home-2t", n12["dentro"], n12)
     check("N12 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
+    # ---- N14: candidatos depois do 1º turno (13/10/2026). A ficha do TSE foi conferida até 18/9 e ainda
+    # dizia "Aguardando julgamento" para dez dos doze que tiveram votos; bem vazio na ficha (Avalanche) é
+    # dado indisponível e não R$ 0; percentual oficial pequeno não pode virar "0%" (fPct de uma casa
+    # mostrava 0,04 como "0"); Marçal, indeferido, não esteve na urna e o dossiê dele diz isso; e o
+    # número do 1º turno de quem está no 2º turno é o do CSV do TSE.
+    import csv as _csv14, io as _io14
+    arq14 = Path(__file__).resolve().parent.parent / "dados" / "resultados" / "candidatos.csv"
+    urna14 = {x["mural"]: x for x in _csv14.DictReader(_io14.open(arq14, encoding="utf-8-sig"))
+              if x["turno"] == "1" and x["cargo"] == "presidente" and x["abrangencia"].lower() == "br" and x["mural"]} if arq14.exists() else {}
+    b, page, errs = novo_ctx(p)
+    page.goto(URL + "#candidatos")
+    page.wait_for_timeout(900)
+    n14 = page.evaluate("""() => { const zero = /(^|[^\\d,])0(,0+)?\\s*%/, out = {res: comRes1T(), aguardando: [], rs0: [], zero: [], fin: {}};
+        for (const c of C) {
+            const card = document.querySelector('#card-' + slug(c.nome)), tc = card ? card.textContent : '';
+            openDossie(c.nome); const dz = document.querySelector('#dossie'), td = dz.textContent, r1box = dz.querySelector('.r1box');
+            lado = [c.nome, FINAL.find(n => n !== c.nome) || FINAL[0]]; renderLado();
+            const col = [...document.querySelectorAll('#lado-mesa .lado > div')].filter((d, i) => i % 3 === 1).map(d => d.textContent).join(' | ');
+            if (c.r1 && /Aguardando julgamento/i.test(tc + td + col)) out.aguardando.push(c.nome);
+            if (c.bens == null && /R\\$\\s?0(?![\\d,])/.test(td + col)) out.rs0.push(c.nome);
+            if (c.r1 && c.r1.votos > 0 && zero.test(tc + ' ' + (r1box ? r1box.textContent : '') + ' ' + col)) out.zero.push(c.nome);
+            if (c.r1 && ehFinal(c.nome)) out.fin[c.nome] = {card: (card && card.querySelector('.st b') || {}).textContent || '', dz: (r1box && r1box.querySelector('.big') || {}).textContent || '', pct: c.r1.pct};
+            dz.close();
+        }
+        out.semBens = C.filter(c => c.bens == null).map(c => c.nome); out.comVoto = C.filter(c => c.r1).length;
+        return out; }""")
+    if not n14["res"]:
+        check("N14: sem o resultado do TSE, nada a conferir nas telas de candidatos", not urna14, {"csv": bool(urna14)})
+    else:
+        check("N14: ninguém que teve votos aparece como 'Aguardando julgamento' (cartão, dossiê e Lado a lado)",
+              n14["comVoto"] > 0 and not n14["aguardando"], n14["aguardando"])
+        check("N14: bem vazio na ficha não aparece como 'R$ 0' (dossiê e Lado a lado)", not n14["rs0"], {"sem bens": n14["semBens"], "com R$ 0": n14["rs0"]})
+        check("N14: quem teve voto nunca aparece com '0%' no resultado (cartão, dossiê e Lado a lado)", not n14["zero"], n14["zero"])
+        fmt = lambda v: f"{v:.2f}".replace(".", ",")
+        fin_ok = bool(n14["fin"]) and all(n in urna14 and fmt(float(urna14[n]["pct_validos"])) in x["card"] and fmt(float(urna14[n]["pct_validos"])) in x["dz"]
+                                          and urna14[n]["situacao"].lower().startswith("2") for n, x in n14["fin"].items())
+        check("N14: o 1º turno de quem está no 2º turno, no cartão e no dossiê, é o percentual do CSV do TSE", fin_ok,
+              {n: dict(x, csv=urna14.get(n, {}).get("pct_validos")) for n, x in n14["fin"].items()})
+    page.goto(URL + "#dossie-pablo-marcal")
+    page.wait_for_timeout(700)
+    r = page.evaluate("() => { const d = document.querySelector('#dossie'); return {open: d.open, hash: location.hash, txt: d.textContent, r1: !!(byName['Pablo Marçal'] || {}).r1, res: comRes1T()}; }")
+    if r["res"] and not r["r1"]:
+        check("N14: #dossie-pablo-marcal abre e diz que ele não esteve na urna",
+              r["open"] and r["hash"] == "#dossie-pablo-marcal" and "não esteve na urna" in r["txt"].lower(), {k: r[k] for k in ("open", "hash")})
+    else:
+        check("N14: #dossie-pablo-marcal abre", r["open"], {k: r[k] for k in ("open", "hash", "r1", "res")})
+    check("N14 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
 print()
