@@ -181,9 +181,14 @@ projeto:
   TSE vem de `RES` (`resPres`, `resGov`, `resSen`), exibido com `fPct2`; as
   contas do 1º turno se ancoram em `ULT1T` (3/10), não em `ULT`.
 - A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
-  factuais, montadas por `ORDEM()` (média móvel do dia) e por `liderDe()`
-  (última rodada do estado). Não escrever leitura editorial ali: o observatório
-  publica número com data e fonte, e quem lidera muda com o dado.
+  factuais. A da home sai de `textoManchete()`: a apuração do 2º turno pelo TSE
+  quando ela começar, a média do 2º turno (`media2T`) na campanha, o resultado
+  do 1º turno sem média da campanha e, sem resultado nenhum, as simulações ou
+  `ORDEM()`; a dos estados, de `liderDe()` (última rodada do estado). Não
+  escrever leitura editorial ali: o observatório publica número com data e
+  fonte, e quem lidera muda com o dado. O placar (`#duelo`), a régua
+  (`#validos`), o lede, o cartão og (`montarOG`) e as mensagens de compartilhar
+  seguem a mesma ordem, e a fase do dia sai de `faseAgora()`.
 - Gráficos: `chartTempo` desenha na largura do contêiner sempre que ela for
   menor que o viewBox pedido, e `drawRegua`/`drawBens` aceitam largura (versão
   vertical no celular). Ao mostrar uma editoria que estava oculta,

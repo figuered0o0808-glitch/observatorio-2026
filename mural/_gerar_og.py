@@ -3,8 +3,10 @@
 
 Quando alguém cola o endereço do mural no WhatsApp, no X ou no LinkedIn, o que aparece é a
 imagem og:image. Até 12/9 ela era a marca parada; a partir daqui é o mural em miniatura: a
-manchete com os três primeiros da média móvel, a curva do ano e a data da edição. É a peça
-mais vista da divulgação, porque aparece antes de qualquer clique.
+manchete com os três primeiros da média móvel, a curva do ano e a data da edição. Desde 13/10/2026
+o cartão é do 2º turno: os dois finalistas pela média em votos válidos (ou pelo resultado do 1º
+turno, sem média da campanha), o 1º turno de cada um e o gráfico do 2º turno dos últimos 30 dias.
+É a peça mais vista da divulgação, porque aparece antes de qualquer clique.
 
 Os números não são recalculados aqui. O cartão é um bloco escondido dentro do próprio mural
 (#og-card), preenchido pela mesma função que preenche a manchete da página, e o que este

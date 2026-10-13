@@ -153,14 +153,15 @@ with sync_playwright() as p:
     page.wait_for_timeout(500)
     r = page.evaluate("""() => {
         trocarEscopo('br');
-        const abas = ['geral','pesquisas','busca','candidatos','lado','partidos','tempo','metodo'];
+        // as editorias saem da barra desenhada, e não de uma lista escrita aqui
+        const abas = [...document.querySelectorAll('#tabs-editorias button[role=tab]')].map(b => b.dataset.aba);
         for (const a of abas) irPara(a);
         openDossie('Lula'); document.querySelector('#dossie').close();
         openDossie('Flávio Bolsonaro'); document.querySelector('#dossie').close();
         return abas.length;
     }""")
     novos = [e for e in errs if ruim(e)]
-    check("abas nacionais + 2 dossiês sem erro novo", len(novos) == 0, novos[:10])
+    check("abas nacionais + 2 dossiês sem erro novo", r >= 8 and len(novos) == 0, {"abas": r, "erros": novos[:10]})
     b.close()
 
     # ---- 4. mobile (390px), tema claro

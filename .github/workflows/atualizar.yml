@@ -186,10 +186,22 @@ jobs:
         run: python3 mural/_gerar_mural.py 2>&1 | tee "$RUNNER_TEMP/coleta/gerar-mural.log"
 
       # O cartão og:image é fotografado do próprio mural, então sai com os números desta rodada.
-      # Se falhar, o PNG anterior fica e a publicação segue: vitrine não derruba dado.
+      # Se falhar, o PNG anterior fica e a publicação segue: vitrine não derruba dado. Desde 13/10/2026
+      # o resumo da rodada diz quando o cartão não foi refeito (montarOG devolveu false ou o script
+      # falhou), para o cartão velho, ainda do 1º turno, não circular sem ninguém notar.
       - name: Cartão de compartilhamento com os números do dia
         continue-on-error: true
-        run: python3 mural/_gerar_og.py
+        run: |
+          python3 mural/_gerar_og.py 2>&1 | tee "$RUNNER_TEMP/coleta/og.log"
+          if grep -q "AVISO cartão não gerado" "$RUNNER_TEMP/coleta/og.log"; then
+            {
+              echo "Cartão de compartilhamento não refeito nesta rodada; o PNG anterior continua no ar."
+              echo
+              echo '```'
+              grep "AVISO cartão não gerado" "$RUNNER_TEMP/coleta/og.log"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Conferir as regras de dado
         run: python3 testes/guarda_dados.py
