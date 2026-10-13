@@ -190,6 +190,44 @@ class ParseWiki(Base):
         self.assertIn(b"\r\n", gerado[:200])
         self.assertEqual(gerado, esperado, "_parse_wiki.py não reproduz mais pesquisas-estados-wiki.csv")
 
+    def test_parse_wiki_limite_de_data_por_turno(self):
+        """13/10/2026: a página de SP guardava numa seção de 2026 uma rodada de 2025 da Paraná Pesquisas
+        (célula de datas com dia e mês, sem ano), e ela entrou como 1º turno com campo depois da votação. Campo
+        de 1º turno vai até 3/10 e de 2º turno até 24/10; sem ano na célula, a data recua um ano, e com o
+        ano escrito a linha fica de fora."""
+        cab = "H:Contratante/Pesquisa | H:Datas de Pesquisa | H:Amostragem | H:Margem de erro (%pt) | H:TarcísioREPUBLICANOS | H:HaddadPT | H:Indecisos"
+        texto = "\n".join([
+            "@@PAGE Pesquisas eleitorais para a eleição estadual de 2026 em São Paulo revid=1",
+            "## Primeiro Turno (Governador) > 2026 > Setembro - Outubro", cab,
+            "DataFolha | 2 Out \u2013 3 Out | 2 520 | 2,0 | 55% | 32% | 9%",
+            "Paraná Pesquisas | 9 \u2013 12 Out | 1 680 | 2,4 | 48,3% | 22,7% | 10,2%",
+            "Instituto Escrito | 9 a 12 de outubro de 2026 | 1 000 | 3,0 | 50% | 30% | 20%",
+            "## Segundo Turno > Tarcísio e Haddad > 2026", cab,
+            "Quaest | 8 \u2013 11 Out | 1 500 | 2,5 | 52% | 38% | 10%",
+            "Futuro | 25 \u2013 26 Out | 1 500 | 2,5 | 52% | 38% | 10%",
+        ])
+        dump = {"coletado": "2026-10-13", "fonte": "teste",
+                "paginas": {"Pesquisas eleitorais para a eleição estadual de 2026 em São Paulo": texto}}
+        with tempfile.TemporaryDirectory() as d:
+            entrada = os.path.join(d, "_wiki-pesquisas-estados.json")
+            with open(entrada, "w", encoding="utf-8") as f:
+                json.dump(dump, f, ensure_ascii=False)
+            saida = os.path.join(d, "pesquisas-estados-wiki.csv")
+            r = subprocess.run([sys.executable, PARSE_WIKI, entrada, saida], capture_output=True, text=True, cwd=d,
+                               env=dict(os.environ, PARSE_WIKI_HOJE="2026-10-13"))
+            self.assertEqual(r.returncode, 0, r.stderr)
+            import csv as _csv
+            with open(saida, encoding="utf-8-sig") as f:
+                linhas = list(_csv.DictReader(f))
+        fim = {(l["instituto_bruto"], l["turno"]): l["campo_fim"] for l in linhas}
+        self.assertEqual(fim[("DataFolha", "1")], "2026-10-03")
+        self.assertEqual(fim[("Paraná Pesquisas", "1")], "2025-10-12")
+        self.assertNotIn(("Instituto Escrito", "1"), fim)
+        self.assertEqual(fim[("Quaest", "2")], "2026-10-11")
+        # campo no futuro sem ano: recua para 2025, como já acontecia antes do limite por turno
+        self.assertEqual(fim[("Futuro", "2")], "2025-10-26")
+        self.assertIn("deixadas de fora: 1", r.stdout)
+
     def test_parse_wiki_sem_argumentos_usa_caminhos_relativos(self):
         with open(PARSE_WIKI, encoding="utf-8") as f:
             fonte = f.read()

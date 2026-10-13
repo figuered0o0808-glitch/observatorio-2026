@@ -441,6 +441,51 @@ class RodadasSoDeSegundoTurno(unittest.TestCase):
         self.assertIsNone(wpn.implausivel_2t(rd))
 
 
+class DepoisDoPrimeiroTurno(unittest.TestCase):
+    """Regras de 13/10/2026: linha de resultado oficial não é pesquisa, rodada de 1º turno não
+    termina nem sai depois da votação de 4/10, e "Vox" é o Vox Brasil."""
+
+    def rodada(self, inst, ini, fim, cands=(("Lula", "45"), ("Flávio Bolsonaro", "48"), ("Augusto Cury", "3"))):
+        return {"instituto_pagina": inst, "campo_texto": "", "campo_inicio": ini, "campo_fim": fim,
+                "amostra": "2000", "margem": "2", "registro": "", "refs": [],
+                "cenarios": [{"candidatos": list(cands), "outros": "", "indecisos": "4"}], "linha_tabela": 0}
+
+    def processar(self, primeiro, segundo):
+        from unittest import mock
+        res = {"primeiro": primeiro, "segundo": segundo, "refs": {}, "descartes": [], "avisos": [], "revid": 1}
+        with mock.patch.object(wpn, "extrair", lambda html, revid: res):
+            return wpn.processar("", 1, wpn.ler_csv(CSV_REF), hoje=date(2026, 10, 13))
+
+    def test_linha_de_resultado_nao_entra(self):
+        for nome in ("Resultado oficial", "Resultado da eleição", "TSE", "Eleição (TSE)"):
+            self.assertTrue(wpn.e_resultado({"instituto_pagina": nome}), nome)
+        for nome in ("Datafolha", "Vox", "Paraná Pesquisas", "Instituto Veritá"):
+            self.assertFalse(wpn.e_resultado({"instituto_pagina": nome}), nome)
+        dois = (("Lula", "48"), ("Flávio Bolsonaro", "52"))
+        novas, _, res = self.processar([self.rodada("Resultado (TSE)", "2026-10-04", "2026-10-04")],
+                                       [self.rodada("Resultado (TSE)", "2026-10-25", "2026-10-25", dois),
+                                        self.rodada("Instituto Novo", "2026-10-10", "2026-10-12", dois)])
+        self.assertEqual(novas, [])
+        self.assertEqual([r["instituto"] for r in res["so_2t"]], ["Instituto Novo"])
+        self.assertTrue(any("linha de resultado na tabela do 2º turno" in a for a in res["avisos"]), res["avisos"])
+
+    def test_primeiro_turno_depois_da_votacao_nao_entra(self):
+        novas, _, res = self.processar([self.rodada("Instituto Novo", "2026-10-05", "2026-10-07"),
+                                        self.rodada("Instituto Outro", "2026-10-03", "2026-10-04"),
+                                        self.rodada("Instituto Certo", "2026-10-01", "2026-10-03")], [])
+        self.assertEqual([r["instituto"] for r in novas], ["Instituto Certo"])
+        self.assertEqual(sum("rodada de 1º turno com campo ou divulgação" in a for a in res["avisos"]), 2, res["avisos"])
+
+    def test_vox_e_vox_brasil(self):
+        csv_inst = wpn.institutos_do_csv(LINHAS_CSV)
+        self.assertEqual(wpn.nome_canonico("Vox", csv_inst), "Vox Brasil")
+        self.assertTrue(wpn.casa_instituto("Vox", "Vox Brasil"))
+        html, _ = wpn.carregar_html(FIXTURE.parent / "nacional-2026-10-13.html.gz", "73200000")
+        _, _, res = wpn.processar(html, 73200000, wpn.ler_csv(CSV_REF), hoje=date(2026, 10, 13))
+        vox = [r for r in res["so_2t"] if r["instituto_pagina"] == "Vox"]
+        self.assertEqual([r["instituto"] for r in vox], ["Vox Brasil"])
+
+
 class AnoPelaOrdem(unittest.TestCase):
     """27/9/2026: o título '2025' da página não era lido como seção e as tabelas de 2025 e 2024
     herdavam '2026'. O ano passa a descer quando a ordem dos meses vira."""

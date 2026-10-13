@@ -55,7 +55,15 @@ def _hoje_brasilia():
 import os as _os
 _HOJE = _dt.date.fromisoformat(_os.environ["PARSE_WIKI_HOJE"]) if _os.environ.get("PARSE_WIKI_HOJE") else _hoje_brasilia()
 LIMITE_FUTURO = (_HOJE + _dt.timedelta(days=1)).isoformat()
+# Último dia de campo possível em cada turno de 2026: a véspera de cada votação (4/10 e 25/10).
+# Em 13/10/2026 a página de SP guardava numa seção de 2026 uma rodada de 2025 da Paraná Pesquisas,
+# com a célula de datas só com dia e mês (9 a 12 de outubro), e ela entrou como 1º turno de 2026 com
+# campo depois da votação.
+FIM_CAMPO_TURNO = {1: "2026-10-03", 2: "2026-10-24"}
+def limite_do_turno(turno):
+    return min(LIMITE_FUTURO, FIM_CAMPO_TURNO.get(turno, LIMITE_FUTURO))
 RECUADAS = []
+FORA_DO_TURNO = []
 
 def ano_de(path):
     for seg in path:
@@ -162,11 +170,17 @@ def parse_page(titulo, texto):
         # (ou anterior) que a página guarda sem repetir o ano em cada célula. Pesquisa não tem campo depois
         # de hoje; recua um ano e registra. Foi isso que travou a rotina de 15 a 17/9/2026: 131 linhas
         # com campo em outubro, novembro e dezembro de 2026, barradas com razão pelo guarda de dados.
-        if fim and not m_ano and fim > LIMITE_FUTURO:
+        # Desde 13/10/2026 o limite é também o do turno: campo de 1º turno vai até 3/10 e de 2º, até 24/10.
+        limite = limite_do_turno(turno)
+        if fim and not m_ano and fim > limite:
             ini, fim = datas(dt, ano - 1)
             RECUADAS.append((uf, dt, fim))
         if not fim:
             FALHAS.append((uf, dt)); continue
+        # Com o ano escrito na célula a data não se mexe; se passa do fim do turno, a linha fica de fora
+        # e vai para o relatório, em vez de chegar ao guarda de dados e travar a rotina inteira.
+        if fim > FIM_CAMPO_TURNO.get(turno, fim):
+            FORA_DO_TURNO.append((uf, turno, inst, dt)); continue
         am = amostra(cells[cols["amostra"]]) if cols["amostra"] is not None and cols["amostra"] < len(cells) else ""
         mg = num(cells[cols["margem"]]) if cols["margem"] is not None and cols["margem"] < len(cells) else None
         cen = cells[cols["cen"]] if cols["cen"] is not None and cols["cen"] < len(cells) else "1"
@@ -239,8 +253,11 @@ def main():
     import collections
     print("datas não lidas:", len(FALHAS), collections.Counter(FALHAS).most_common(12))
     if RECUADAS:
-        print("datas recuadas um ano por cair no futuro sem ano na célula:", len(RECUADAS),
+        print("datas recuadas um ano por cair no futuro ou depois do turno sem ano na célula:", len(RECUADAS),
               collections.Counter((uf, fim[:4]) for uf, _, fim in RECUADAS).most_common(12))
+    if FORA_DO_TURNO:
+        print("linhas com ano na célula e campo depois do fim do turno, deixadas de fora:", len(FORA_DO_TURNO),
+              collections.Counter(FORA_DO_TURNO).most_common(12))
 
 if __name__ == "__main__":
     main()

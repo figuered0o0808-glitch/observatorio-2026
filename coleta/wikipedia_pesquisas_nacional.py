@@ -91,6 +91,8 @@ SINONIMOS = {
     "indexabroadcast": "Indexa/Broadcast", "paranapesquisas": "Paraná Pesquisas",
     "americananalytics": "American Analytics (Times Brasil)",
     "americananalyticstimesbrasil": "American Analytics (Times Brasil)",
+    # em 13/10/2026 a rodada de 8/10 do Vox Brasil veio na página só como "Vox"
+    "vox": "Vox Brasil",
 }
 # Palavras que não distinguem um instituto do outro ao comparar nomes por token.
 TOKENS_COMUNS = {"instituto", "pesquisa", "pesquisas", "inteligencia", "cidades", "brasil", "grupo",
@@ -980,6 +982,15 @@ def implausivel_2t(rd):
     return None
 
 
+# Linha de resultado oficial na tabela de pesquisas (a página costuma acrescentar "Resultado da
+# eleição" ou "TSE" depois da votação): não é pesquisa e não entra.
+RE_RESULTADO = re.compile(r"resultado|eleicao|\btse\b")
+
+
+def e_resultado(rd):
+    return bool(RE_RESULTADO.search(norm_texto(rd.get("instituto_pagina") or "")))
+
+
 def processar(html, revid, linhas_csv, hoje=None, desde=""):
     """Núcleo sem efeitos colaterais: devolve (novas, presentes, res) onde novas e presentes
     são listas de rodadas do 1º turno já completadas."""
@@ -993,6 +1004,16 @@ def processar(html, revid, linhas_csv, hoje=None, desde=""):
             res["avisos"].append("rodada fora de 2026 ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
             continue
         if desde and rd["campo_fim"] < desde:
+            continue
+        if e_resultado(rd):
+            res["avisos"].append("linha de resultado na tabela do 1º turno, ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
+            continue
+        # Pesquisa de 1º turno termina antes da votação de 4/10. Campo nesse dia ou depois, ou
+        # divulgação depois dele, é linha errada da página, e o guarda de dados recusaria a rodada
+        # inteira e com ela a atualização.
+        if rd["campo_fim"] >= FIM_1T or rd["data_divulgacao"] > FIM_1T:
+            res["avisos"].append("rodada de 1º turno com campo ou divulgação a partir de %s, ignorada: %s campo %s, divulgação %s"
+                                 % (FIM_1T, rd["instituto_pagina"], rd["campo_fim"], rd["data_divulgacao"]))
             continue
         if rd["futura"]:
             res["avisos"].append("data de campo no futuro, rodada ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
@@ -1021,6 +1042,9 @@ def processar(html, revid, linhas_csv, hoje=None, desde=""):
     so_2t, vistas_2t = [], []
     for rd in res["segundo"]:
         if rd["campo_fim"] <= FIM_1T or (desde and rd["campo_fim"] < desde):
+            continue
+        if e_resultado(rd):
+            res["avisos"].append("linha de resultado na tabela do 2º turno, ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
             continue
         if rd["campo_fim"] > hoje.isoformat():
             res["avisos"].append("data de campo no futuro, rodada de 2º turno ignorada: %s %s" % (rd["instituto_pagina"], rd["campo_fim"]))
