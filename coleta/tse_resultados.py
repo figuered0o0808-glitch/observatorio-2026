@@ -14,6 +14,10 @@ consolidado ("-u.json") de cada eleição e grava duas tabelas regravadas inteir
 Códigos das eleições de 2026 (configuração do TSE em comum/config/ele-c.json, conferida em 13/10/2026):
   6257 presidente, 1º turno     6258 presidente, 2º turno (25/10)
   6259 estaduais, 1º turno      6260 governador, 2º turno (25/10) em AC, AM, DF, ES e RN
+O resultado do 1º turno marca também Tocantins como 2º turno de governador, mas em 13/10/2026 a
+configuração do 2º turno do TSE não lista TO e o arquivo não existe (404). O 2º turno de governador
+é pedido para toda UF marcada "2º turno" no 1º; arquivo de 2º turno que não existe é anotado e
+pulado, sem contar como falha.
 Cargos: 1 presidente, 3 governador, 5 senador.
 
 Identificação: o "sqcand" do TSE é o mesmo id_tse de dados/estados/candidatos-estados.csv; para a
@@ -40,8 +44,8 @@ APURACOES = (
     [(6257, 1, 1, ["br"] + UFS + ["zz"])]
     + [(6258, 2, 1, ["br"] + UFS + ["zz"])]
     + [(6259, 1, 3, UFS), (6259, 1, 5, UFS)]
-    + [(6260, 2, 3, ["ac", "am", "df", "es", "rn"])]
 )
+UFS_2T_GOV = ["ac", "am", "df", "es", "rn"]   # configuração do 2º turno do TSE em 13/10/2026
 COL_CAND = ["turno", "cargo", "abrangencia", "numero", "sqcand", "nome_urna", "partido", "vice",
             "votos", "pct_validos", "situacao", "eleito", "mural", "data", "atualizado_tse", "fonte"]
 COL_TOT = ["turno", "cargo", "abrangencia", "secoes", "secoes_totalizadas", "pct_totalizado", "eleitorado",
@@ -152,20 +156,37 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     pres, est = ler_mapas(a.raiz)
-    cands, tots, falhas = [], [], []
+    cands, tots, falhas, ausentes = [], [], [], []
+
+    def rodar(eleicao, turno, cargo, ab, opcional=False):
+        try:
+            c, t = coletar(eleicao, turno, cargo, ab, pres, est)
+        except urllib.error.HTTPError as ex:
+            if opcional and ex.code == 404:
+                ausentes.append("%d %s %s" % (eleicao, CARGO_NOME[cargo], ab))
+                return
+            falhas.append("%d %s %s: %s" % (eleicao, CARGO_NOME[cargo], ab, repr(ex)[:120]))
+            return
+        except Exception as ex:
+            falhas.append("%d %s %s: %s" % (eleicao, CARGO_NOME[cargo], ab, repr(ex)[:120]))
+            return
+        cands.extend(c)
+        tots.append(t)
+        time.sleep(0.3)
+
     for eleicao, turno, cargo, abrs in APURACOES:
         for ab in abrs:
-            try:
-                c, t = coletar(eleicao, turno, cargo, ab, pres, est)
-            except Exception as ex:
-                falhas.append("%d %s %s: %s" % (eleicao, CARGO_NOME[cargo], ab, repr(ex)[:120]))
-                continue
-            cands += c
-            tots.append(t)
-            time.sleep(0.3)
+            rodar(eleicao, turno, cargo, ab)
+    # 2º turno de governador: as UFs da configuração e as que o 1º turno marcou "2º turno"
+    marcadas = {r["abrangencia"] for r in cands if r["turno"] == 1 and r["cargo"] == "governador"
+                and r["situacao"].lower().startswith("2")}
+    for ab in sorted(set(UFS_2T_GOV) | marcadas):
+        rodar(6260, 2, 3, ab, opcional=ab not in UFS_2T_GOV)
     print("%d linhas de candidato, %d apurações, %d falhas" % (len(cands), len(tots), len(falhas)))
     for f in falhas:
         print("  falhou: " + f)
+    for f in ausentes:
+        print("  sem arquivo no TSE (pulado): " + f)
     sem_par = sorted({(r["cargo"], r["abrangencia"], r["nome_urna"]) for r in cands if not r["mural"]})
     if sem_par:
         print("%d candidaturas sem par no mural (ficam com o nome do TSE), ex.: %s" % (len(sem_par), sem_par[:8]))
