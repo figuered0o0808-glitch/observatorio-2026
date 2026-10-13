@@ -567,12 +567,17 @@ class Unidades(unittest.TestCase):
         """Todo CSV hoje em dados/ e dados/estados/ tem regra no guarda."""
         conhecidos = set(self.mod.CSV_ACRESCIMO) | set(self.mod.CSV_REGRAVADO) | set(self.mod.INTOCAVEIS)
         existentes = set()
+        ausentes = set()
         for pasta in self.mod.PASTAS:
+            if not os.path.isdir(os.path.join(RAIZ, pasta)):
+                ausentes.add(pasta)  # pasta que um coletor ainda vai criar (dados/resultados antes da 1ª coleta)
+                continue
             for nome in os.listdir(os.path.join(RAIZ, pasta)):
                 if nome.endswith(".csv") and not self.mod.de_trabalho(nome):
                     existentes.add(pasta + "/" + nome)
         self.assertEqual(existentes - conhecidos, set(), "CSV sem regra no guarda")
-        self.assertEqual(conhecidos - existentes, set(), "regra para CSV que não existe")
+        self.assertEqual({c for c in conhecidos - existentes if os.path.dirname(c) not in ausentes}, set(),
+                         "regra para CSV que não existe")
 
 
 if __name__ == "__main__":
