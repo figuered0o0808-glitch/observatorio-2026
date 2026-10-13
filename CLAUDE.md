@@ -168,9 +168,18 @@ projeto:
   sai do último ponto da linha, e um gráfico que fique na média antiga mostra número diferente
   do placar.
 - A janela da média móvel não é fixa: `REGUA` e `sigmaRegua(dia)` calculam
-  `SIG` pela data de Brasília (4 dias, perdendo um a cada dez até 1 em 4/10).
-  Todo texto que cite a janela usa `${SIG}` ou a classe `.sig-dias`; nunca
+  `SIG` pela data de Brasília (4 dias, perdendo um a cada dez até 1 em 4/10), e
+  `REGUA2T` dá `SIG2`, a janela do 2º turno (as duas passam por `sigmaDe`).
+  Todo texto que cite a janela usa `diasTxt(SIG)` ou `diasTxt(SIG2)`, que
+  escreve "1 dia" no singular, ou as classes `.sig-dias` e `.sig2-dias`, que
+  levam o texto inteiro ("4 dias", não "4" seguido de "dias" no HTML); nunca
   escrever "7 dias" à mão.
+- O 2º turno tem uma conta só, em votos válidos: `media2T()` (rodadas da
+  campanha, depois de 4/10, com `SIG2`; sem elas, as simulações anteriores) e
+  um texto só, `texto2T(m)`. Capa, Pesquisas e mensagens usam os dois; nenhum
+  gráfico ou texto do 2º turno refaz a média por conta própria. O resultado do
+  TSE vem de `RES` (`resPres`, `resGov`, `resSen`), exibido com `fPct2`; as
+  contas do 1º turno se ancoram em `ULT1T` (3/10), não em `ULT`.
 - A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
   factuais, montadas por `ORDEM()` (média móvel do dia) e por `liderDe()`
   (última rodada do estado). Não escrever leitura editorial ali: o observatório
