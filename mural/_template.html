@@ -2150,7 +2150,13 @@ function pesosEm(rods,nomes,sigma,t){
 // rodadas nacionais de primeiro e segundo turno, montadas uma vez
 let _r1t=null,_r2t=null,_cache=new Map();
 const rodadas1T=()=>_r1t||(_r1t=emRodadas(Object.fromEntries(OITO.map(n=>[n,serieDe(n)]))));
-const rodadas2T=()=>_r2t||(_r2t=emRodadas(Object.fromEntries(["Lula","Flávio Bolsonaro"].map(n=>[n,DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0]}))]))));
+// Desde 5/10/2026 parte das rodadas do confronto sai só em votos válidos (Lula e Flávio somam 100).
+// Enquanto o 2º turno é mostrado em intenção total, essas ficam fora da média e do gráfico, para não
+// misturar as duas escalas; continuam na tabela de rodadas e na última rodada, com o aviso.
+const _par2t={};for(const p of DATA.polls2t){const k=p[0]+"|"+p[1];(_par2t[k]=_par2t[k]||[]).push(p);}
+const soValidos2T=(inst,dt)=>{const g=_par2t[inst+"|"+dt]||[];return g.length===2&&g[0][2]!==g[1][2]&&g[0][3]+g[1][3]>=99.5;};
+const polls2tTotal=()=>DATA.polls2t.filter(p=>!soValidos2T(p[0],p[1]));
+const rodadas2T=()=>_r2t||(_r2t=emRodadas(Object.fromEntries(["Lula","Flávio Bolsonaro"].map(n=>[n,polls2tTotal().filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0]}))]))));
 // média nacional de primeiro turno num instante, com corte opcional (não usar rodada posterior ao corte)
 function agregar1T(sigma,t,corte){
   const k=sigma+"|"+t+"|"+(corte||0);
@@ -2332,15 +2338,15 @@ const ORDEM=()=>OITO.map(posicao).filter(Boolean).sort((a,b)=>b.agora-a.agora);
 const TSE_DT=dBR(String((C[0]&&C[0].atualizado_tse)||"").slice(0,10));
 $("#strip").innerHTML=[
  [String(C.length),"registrados no TSE",`${nDef} deferidos${nInd?`, ${nInd} indeferido${nInd===1?"":"s"}`:""}; os demais aguardam julgamento · TSE${TSE_DT?", "+TSE_DT:""}`],
- [String(DATA.meta.rodadas),"rodadas de pesquisa",`${DATA.meta.institutos} institutos, de ${dBR(DATA.meta.primeira)} a ${dBR(DATA.meta.ultima)}`],
+ [String(DATA.meta.t1.rodadas),"rodadas de pesquisa",`${DATA.meta.t1.institutos} institutos, de ${dBR(DATA.meta.t1.primeira)} a ${dBR(DATA.meta.t1.ultima)}`],
  (()=>{const r=C.filter(c=>c.restrito);return [String(r.length),r.length===1?"campanha restrita":"campanhas restritas",
    r.length?r.map(c=>`${esc(c.nome)} (${esc((c.restrito.match(/\(([^)]+)\)/)||[,""])[1])})`).join(" e ")+", por decisão do TSE":"nenhuma no momento"];})(),
  (()=>{const o=ORDEM();const a=o[0],b=o[1];const d=a&&b?a.agora-b.agora:null;
    if(d==null)return ["","vantagem do líder",""];
-   const emp=empatam(rodadas1T(),OITO,SIG,Date.parse(DATA.meta.ultima),a.nome,b.nome);
+   const emp=empatam(rodadas1T(),OITO,SIG,Date.parse(DATA.meta.t1.ultima),a.nome,b.nome);
    return [emp?"empate":fPct(d)+"<small> pts</small>",emp?"entre os dois primeiros":"vantagem do líder",
-     emp?`${esc(curto(a.nome))} e ${esc(curto(b.nome))} separados por menos que a incerteza da média, até ${dBR(DATA.meta.ultima)}`
-        :`${esc(curto(a.nome))} sobre ${esc(curto(b.nome))}, média móvel de ${SIG} dias até ${dBR(DATA.meta.ultima)}`];})(),
+     emp?`${esc(curto(a.nome))} e ${esc(curto(b.nome))} separados por menos que a incerteza da média, até ${dBR(DATA.meta.t1.ultima)}`
+        :`${esc(curto(a.nome))} sobre ${esc(curto(b.nome))}, média móvel de ${SIG} dias até ${dBR(DATA.meta.t1.ultima)}`];})(),
  [fBRL(fefcTot),"de fundo eleitoral",`FEFC 2026 somado dos ${DATA.partidos.filter(p=>!p.secundario).length} partidos com candidato, pela tabela do TSE`],
  // o próximo debate sai da linha do tempo, e não escrito à mão: até 26/9/2026 este cartão ainda
  // anunciava o de 14/9, que o consórcio cancelou em 8/9
@@ -2359,12 +2365,21 @@ function posicao(n){
   const antes=agregar1T(SIG,tAntes,tAntes+SIG*864e5)[n];
   return {nome:n,agora,antes,delta:antes==null?null:agora-antes,ultima:pts[pts.length-1]};
 }
-// última rodada registrada e o modo de coleta dela (a ficha técnica não traz o modo; ele vem da linha de pesquisa)
-function ultimaFicha(){const ult=DATA.fichas[DATA.fichas.length-1];if(!ult)return null;const pts=DATA.polls.filter(p=>p[0]===ult.inst&&p[1]===ult.dt).sort((a,b)=>b[3]-a[3]);const modo=pts[0]?pts[0][5]:"";return {...ult,pts,modo:modo&&modo!=="não informada"?modo:""};}
+// última rodada registrada de um turno ("1" ou "2"; sem turno, a mais recente que traga intenção de
+// voto em qualquer dos dois) e o modo de coleta dela. Desde 5/10/2026 a rodada mais nova costuma ser só
+// do confronto Lula x Flávio, e a ficha dela não tem ponto de 1º turno: buscar os pontos sempre no
+// turno da ficha, senão o trilho saía sem barra nenhuma.
+function ultimaFicha(turno){
+  const fs=DATA.fichas.filter(f=>{const t=f.t==null?"1":f.t;return turno?t.includes(turno):!!t;});
+  const ult=fs[fs.length-1];if(!ult)return null;
+  const t=turno||((ult.t==null?"1":ult.t).includes("2")&&!(ult.t||"").includes("1")?"2":"1");
+  const pts=(t==="2"?DATA.polls2t:DATA.polls).filter(p=>p[0]===ult.inst&&p[1]===ult.dt).sort((a,b)=>b[3]-a[3]);
+  const modo=ult.modo||(pts[0]&&pts[0][5])||"";
+  return {...ult,turno:t,pts,validos:t==="2"&&soValidos2T(ult.inst,ult.dt),modo:modo&&modo!=="não informada"?modo:""};}
 const fmtDelta=d=>d==null?"":(d>0?"+":"")+fPct(d);
 // ---- manchete numérica: os três primeiros da média móvel do dia, sem verbo interpretativo (dado com data e fonte, não leitura)
 function drawManchete(){
-  const o=ORDEM(),ult=ultimaFicha(),M=DATA.meta;
+  const o=ORDEM(),ult=ultimaFicha("1"),M=DATA.meta.t1;
   $("#lead-ult").textContent=dBR(M.ultima);
   if(o.length<2||!ult){
     $("#manchete").textContent="A disputa presidencial de 2026, medida todos os dias.";
@@ -2403,9 +2418,9 @@ function drawHome(){
     $("#k-home-a").textContent=`Os dois da frente · ${frente.map(curto).join(" e ")}`;
     $("#k-home-b").textContent=`A disputa pelo terceiro lugar · escala própria, de 0 a ${yB}%`;
   }
-  $("#home-ate").textContent=`até ${dBR(DATA.meta.ultima)}`;
+  $("#home-ate").textContent=`até ${dBR(DATA.meta.t1.ultima)}`;
   $$("#home-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hj===homeJanela));
-  $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.institutos} institutos · média móvel de ${SIG} dias${t0<RETA0-864e5?" · faixa sombreada: reta final, desde 4/9":""}`;
+  $("#home-fonte").textContent=`Fonte: fichas técnicas registradas no TSE, ${DATA.meta.t1.institutos} institutos · média móvel de ${SIG} dias${t0<RETA0-864e5?" · faixa sombreada: reta final, desde 4/9":""}`;
   // legenda-placar: quadrado de cor, nome, média móvel de hoje e variação de 30 dias; clicar põe o candidato em foco
   // tiles: nome, média de hoje, variação de 30 dias e a sparkline dos últimos 90 dias da média móvel.
   // A sparkline tem escala própria por tile (é forma, não comparação entre candidatos; o número grande é que compara).
@@ -2465,7 +2480,7 @@ function drawHome2T(){
   const el=$("#p-home-2t");if(!el)return;
   const n2=["Lula","Flávio Bolsonaro"],R=rodadas2T();
   if(!DATA.polls2t.length||!R.length){el.hidden=true;return;}el.hidden=false;
-  const t1=T1,t0=janelaHome(),t2=Date.parse(DATA.meta.ultima);
+  const t1=T1,t0=janelaHome(),t2=Date.parse(DATA.meta.t2.ultima||DATA.meta.ultima);
   const m2=agregarEm(R,n2,SIG,t2),inc=incertezaEm(R,n2,SIG,t2,"Lula","Flávio Bolsonaro");
   const dz=$("#duelo-2t");
   if(m2["Lula"]!=null&&m2["Flávio Bolsonaro"]!=null){
@@ -2474,10 +2489,10 @@ function drawHome2T(){
     dz.innerHTML=lado("Lula",false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(d))}<small>${pts(d)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(curto(frente))+" à frente"}</span></div>`+lado("Flávio Bolsonaro",true);
   }else dz.innerHTML="";
   const linhas2=linhaAgregada(R,n2,SIG);
-  const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:MOBILE?2.2:2.8,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
+  const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:MOBILE?2.2:2.8,pts:polls2tTotal().filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
   pinta("#ch-home-2t",chartTempo({W:1180,H:232,ml:44,mr:120,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,marcos:[],t0,t1,cw:larguraDe("#ch-home-2t"),Hm:MOBILE?196:undefined,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro, média móvel de todos os institutos"}),{zoom:false});
   $("#cap-home-2t").innerHTML=texto2T(m2,inc);
-  $("#home-2t-ate").textContent=`até ${dBR(DATA.meta.ultima)}`;
+  $("#home-2t-ate").textContent=`até ${dBR(DATA.meta.t2.ultima||DATA.meta.ultima)}`;
   $("#home-2t-fonte").textContent=`Fonte: fichas técnicas registradas no TSE · ${pl(R.length,"simulação","simulações")} do confronto em 2026 · média móvel de ${SIG} dias`;
 }
 // os números do placar sobem do zero na primeira pintura; quem pede menos movimento não vê nada disso
@@ -2492,10 +2507,10 @@ $$("#home-seg button").forEach(b=>b.addEventListener("click",()=>{homeJanela=b.d
 function drawUltimaRodada(){
   const ult=ultimaFicha();const el=$("#ult-rodada");
   if(!ult){el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="empty"><b>Nada apurado</b>Nenhuma ficha técnica nesta edição.</div>`;return;}
-  const pts=ult.pts.slice(0,6),max=Math.max(...pts.map(p=>p[3]),10);
-  el.innerHTML=`<span class="eyebrow">Última rodada</span><div class="ident"><b>${esc(ult.inst)}</b> · ${dBR(ult.dt)}${ult.modo?" · "+esc(ult.modo):""} · ${ult.reg?"registro "+esc(ult.reg):"sem número de registro na fonte"}</div>`
+  const pts=ult.pts.slice(0,6),max=Math.max(...pts.map(p=>p[3]),10),seg=ult.turno==="2";
+  el.innerHTML=`<span class="eyebrow">Última rodada${seg?" · 2º turno":""}</span><div class="ident"><b>${esc(ult.inst)}</b> · ${dBR(ult.dt)}${ult.modo?" · "+esc(ult.modo):""} · ${ult.reg?"registro "+esc(ult.reg):"sem número de registro na fonte"}${ult.validos?" · publicada só em votos válidos":""}</div>`
    +`<div class="hbars">${pts.map(p=>{const n=p[2],c=byName[n];return `<div class="hb${dimDe(n)?" dim":""}"><span class="nm">${c?`<button type="button" class="nmbtn" data-dossie="${esc(n)}" title="Abrir dossiê"><b>${esc(curto(n))}</b></button>`:`<b>${esc(curto(n))}</b>`}</span><span class="bar"><i style="width:${Math.max(1.5,p[3]/max*100)}%;background:${COR[n]||"var(--neutro)"}"></i></span><span class="val display tnum">${fPct(p[3])}<small>%</small></span></div>`;}).join("")}</div>`
-   +`<div class="rfoot"><span>${DATA.meta.rodadas}ª rodada do ano${ult.url?` · <a href="${esc(ult.url)}" target="_blank" rel="noopener">fonte</a>`:""}</span><a href="#pesquisas">ver todas →</a></div>`;
+   +`<div class="rfoot"><span>${seg?`${DATA.meta.t2.rodadas}ª rodada do confronto Lula x Flávio no ano`:`${DATA.meta.t1.rodadas}ª rodada do ano`}${ult.url?` · <a href="${esc(ult.url)}" target="_blank" rel="noopener">fonte</a>`:""}</span><a href="#pesquisas">ver todas →</a></div>`;
 }
 // ---- dois blocos numéricos sob a régua: quem mais subiu em 30 dias e a busca da semana
 function drawDestaques(){
@@ -2504,7 +2519,7 @@ function drawDestaques(){
   const ult7=T1-10*864e5;
   const buscas=OITO.map(n=>{const s=(DATA.trends[n]||[]).map(p=>({t:MMDD2T(p[0]),v:p[1]})).filter(p=>p.t>=ult7);if(!s.length)return null;const m=s.reduce((a,b)=>b.v>a.v?b:a);return {n,v:m.v,t:m.t};}).filter(Boolean).sort((a,b)=>b.v-a.v)[0];
   const cards=[
-   sobe?{k:"Quem mais subiu em 30 dias",big:`${esc(curto(sobe.nome))}<small> ${fmtDelta(sobe.delta)} pts</small>`,line:`de ${fPct(sobe.antes)}% para ${fPct(sobe.agora)}% na média móvel${desce&&desce.delta<0?`; quem mais caiu: <b>${esc(curto(desce.nome))}</b> (${fmtDelta(desce.delta)})`:""}`,dt:`até ${dBR(DATA.meta.ultima)} · ${DATA.meta.institutos} institutos`,go:["pesquisas","Ver a corrida"]}:{k:"Quem mais subiu em 30 dias",big:`<small>sem base de 30 dias</small>`,line:"a série ainda não tem um mês de rodadas",dt:`até ${dBR(DATA.meta.ultima)}`,go:["pesquisas","Ver a corrida"]},
+   sobe?{k:"Quem mais subiu em 30 dias",big:`${esc(curto(sobe.nome))}<small> ${fmtDelta(sobe.delta)} pts</small>`,line:`de ${fPct(sobe.antes)}% para ${fPct(sobe.agora)}% na média móvel${desce&&desce.delta<0?`; quem mais caiu: <b>${esc(curto(desce.nome))}</b> (${fmtDelta(desce.delta)})`:""}`,dt:`até ${dBR(DATA.meta.t1.ultima)} · ${DATA.meta.t1.institutos} institutos`,go:["pesquisas","Ver a corrida"]}:{k:"Quem mais subiu em 30 dias",big:`<small>sem base de 30 dias</small>`,line:"a série ainda não tem um mês de rodadas",dt:`até ${dBR(DATA.meta.t1.ultima)}`,go:["pesquisas","Ver a corrida"]},
    buscas?{k:"Busca da semana",big:`${esc(curto(buscas.n))}<small> índice ${buscas.v}</small>`,line:"maior pico de busca no Google nos últimos dez dias",dt:`${dBR(dISO(buscas.t))} · Google Trends, coleta própria`,go:["busca","Ver busca e redes"]}:{k:"Busca da semana",big:`<small>sem coleta recente</small>`,line:"o Google Trends não entrou nos últimos dez dias",dt:"",go:["busca","Ver busca e redes"]},
   ];
   $("#hls").innerHTML=cards.map(c=>`<div class="hl"><span class="eyebrow">${c.k}</span><span class="big display tnum">${c.big}</span><span class="line">${c.line}</span>${c.dt?`<span class="dt">${c.dt}</span>`:""}<a class="go" href="#${c.go[0]}">${c.go[1]} →</a></div>`).join("");
@@ -2582,7 +2597,7 @@ contagem();setInterval(contagem,30000);
 function montarOG(){
   try{
     document.documentElement.dataset.theme="light";
-    const o=ORDEM(),M=DATA.meta;if(o.length<3)return false;
+    const o=ORDEM(),M=DATA.meta.t1;if(o.length<3)return false;
     const card=$("#og-card"),mark=$(".brand .mark");
     card.querySelector(".og-brand").innerHTML=(mark?mark.outerHTML:"")+`<span class="sub">dos candidatos</span>`;
     card.querySelector(".og-ed").innerHTML=`Edição de <b>${esc(dBR(M.ultima))}</b> · 1º turno · últimos 30 dias · média móvel de ${SIG} dias`;
@@ -2602,8 +2617,8 @@ document.body.classList.add("estreia");setTimeout(()=>document.body.classList.re
 // ---- alertas do dia (calculados dos dados desta edição)
 function drawAlertas(){
   const ref=ULT,tRef=Date.parse(ref);const A=[];
-  const ult=DATA.fichas[DATA.fichas.length-1];
-  if(ult&&tRef-Date.parse(ult.dt)<=1*864e5){const top=DATA.polls.filter(p=>p[0]===ult.inst&&p[1]===ult.dt).sort((a,b)=>b[3]-a[3]).slice(0,3);A.push({s:"info",k:"Nova rodada",t:`<b>${esc(ult.inst)}</b> divulgada em ${dBR(ult.dt)}: ${top.map(p=>esc(curto(p[2]))+" "+fPct(p[3])+"%").join(", ")}`,src:`${esc(ult.met)} · registro ${esc(ult.reg)}`,go:"pesquisas"});}
+  const ult=ultimaFicha();
+  if(ult&&ult.pts.length&&tRef-Date.parse(ult.dt)<=1*864e5){const top=ult.pts.slice(0,3);A.push({s:"info",k:"Nova rodada",t:`<b>${esc(ult.inst)}</b> divulgada em ${dBR(ult.dt)}${ult.turno==="2"?", 2º turno":""}: ${top.map(p=>esc(curto(p[2]))+" "+fPct(p[3])+"%").join(", ")}${ult.validos?" (votos válidos)":""}`,src:[ult.met,ult.reg?"registro "+ult.reg:""].filter(Boolean).map(esc).join(" · ")||"sem ficha técnica na fonte",go:"pesquisas"});}
   for(const n of OITO){const pts=serieDe(n);if(pts.length<5)continue;const last=pts[pts.length-1];if(tRef-last.t>3*864e5)continue;const base=smoothAt(pts.filter(p=>p.t<last.t),7,last.t);if(base==null)continue;const d=last.v-base;
     if(Math.abs(d)>=4||(base>0&&Math.abs(d)/base>=0.6&&Math.abs(d)>=2))A.push({s:Math.abs(d)>=6?"crit":"warn",k:"Pesquisa",t:`<b>${esc(n)}</b> mediu ${fPct(last.v)}% na ${esc(last.inst)} (${dBR(last.d)}), ${d>0?"+":""}${fPct(d)} pontos contra a média móvel anterior`,src:`pesquisa ${esc(last.modo)}`,go:"pesquisas",n});}
   for(const n of OITO){const s=sMMDD(DATA.trends[n]);if(s.length<40)continue;const last=s[s.length-1];if(tRef-last.t>2*864e5)continue;const prev=s.slice(-31,-1).map(p=>p.v).sort((a,b)=>a-b);const med=prev[Math.floor(prev.length/2)]||0;
@@ -2658,9 +2673,9 @@ DRAW["#ch-corrida"]=drawCorrida;DRAW["#ch-regua"]=()=>drawRegua();DRAW["#ch-bens
 DRAW["#ch-2t"]=()=>draw2T();
 function draw2T(){
   const n2=["Lula","Flávio Bolsonaro"],linhas2=linhaAgregada(rodadas2T(),n2,SIG);
-  const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:3,pts:DATA.polls2t.filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
+  const series=n2.map(n=>({nome:n,cor:COR[n],dim:dimDe(n),sigma:SIG,linha:linhas2[n],r:3,pts:polls2tTotal().filter(p=>p[2]===n).map(p=>({t:Date.parse(p[1]),v:p[3],inst:p[0],d:p[1]})).map(p=>({...p,tip:tipP(n,p)}))}));
   pinta("#ch-2t",chartTempo({id:"#ch-2t",W:560,H:230,ml:44,mr:74,ymin:30,ymax:55,ticks:[30,40,50],fmtY:v=>fPct(v)+"%",series,aria:"Simulações de segundo turno entre Lula e Flávio Bolsonaro",fs:11.5}));
-  const t2=Date.parse(DATA.meta.ultima),m2=agregarEm(rodadas2T(),n2,SIG,t2),inc=incertezaEm(rodadas2T(),n2,SIG,t2,"Lula","Flávio Bolsonaro");
+  const t2=Date.parse(DATA.meta.t2.ultima||DATA.meta.ultima),m2=agregarEm(rodadas2T(),n2,SIG,t2),inc=incertezaEm(rodadas2T(),n2,SIG,t2,"Lula","Flávio Bolsonaro");
   $("#cap-2t").innerHTML=texto2T(m2,inc);
 }
 DRAW["#tb-casa"]=()=>drawCasa();
@@ -2746,7 +2761,7 @@ function drawTabelaReguas(){
 }
 function drawVies(){$("#tb-vies tbody").innerHTML=DATA.vies.map(v=>{const f=x=>x==null?"":(Math.abs(x)<0.05?`<span style="color:var(--ink-3)">0,0</span>`:`<span style="color:${x>0?"var(--ink)":"var(--ink-2)"};font-weight:${x>0?600:400}">${x>0?"+":""}${fPct(x)}</span>`);return `<tr><td>${esc(v.inst)}</td><td><span class="tag">${esc(v.modo)}</span></td><td class="num">${v.n}</td><td class="num">${f(v.dLula)}</td><td class="num">${f(v.dFlavio)}</td></tr>`;}).join("");}
 $("#rod-sum").textContent=`Ver as ${DATA.meta.rodadas} rodadas com ficha técnica`;
-$("#tb-rodadas tbody").innerHTML=DATA.fichas.slice().reverse().map(f=>`<tr><td class="dt">${dBR(f.dt)}/${f.dt.slice(0,4)}</td><td>${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.inst)}</a>`:esc(f.inst)}</td><td class="dt">${dBR(f.campo.slice(0,10))} a ${dBR(f.campo.slice(13))}</td><td>${esc(f.met)}</td><td>${esc(f.reg)}</td></tr>`).join("");
+$("#tb-rodadas tbody").innerHTML=DATA.fichas.slice().reverse().map(f=>`<tr><td class="dt">${dBR(f.dt)}/${f.dt.slice(0,4)}</td><td>${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.inst)}</a>`:esc(f.inst)}${f.t==="2"?` <small style="color:var(--ink-3)">só 2º turno${soValidos2T(f.inst,f.dt)?", em votos válidos":""}</small>`:""}</td><td class="dt">${dBR(f.campo.slice(0,10))} a ${dBR(f.campo.slice(13))}</td><td>${esc(f.met)}</td><td>${esc(f.reg)}</td></tr>`).join("");
 
 // ---- busca e redes
 const sMMDD=arr=>(arr||[]).map(p=>({t:MMDD2T(p[0]),v:p[1]})).sort((a,b)=>a.t-b.t);
@@ -3002,7 +3017,7 @@ function drawMetodo(){
   ].map(([k,itens],i)=>(i?`<div class="parrow" aria-hidden="true">→</div>`:"")+`<div class="pnode"><span class="eyebrow">${k}</span>${itens.map(x=>`<span>${x}</span>`).join("")}</div>`).join("");
   const ABR=["TSE","Bens","Chapa","Perfis","Seguid.","Pesq.","Rejeiç.","Google","Wiki","Eventos"];
   $("#ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Candidato</th><th>Total</th>${ABR.map(a=>`<th>${a}</th>`).join("")}</tr></thead><tbody>${C.map(c=>{const ok=FONTES10.map(([n,f])=>!!f(c));return `<tr><td>${esc(c.nome)}</td><td class="tot">${ok.filter(Boolean).length}/10</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(FONTES10[i][0])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
-  const cont={};for(const f of DATA.fichas){const m=(DATA.polls.find(p=>p[0]===f.inst&&p[1]===f.dt)||[])[5]||"não informada";cont[m]=(cont[m]||0)+1;}
+  const cont={};for(const f of DATA.fichas){const m=f.modo||(DATA.polls.find(p=>p[0]===f.inst&&p[1]===f.dt)||[])[5]||"não informada";cont[m]=(cont[m]||0)+1;}
   const KW={"presencial":"presencial, domiciliar, face a face","telefônica":"telefone, telefônica, IVR","digital":"digital, online, eletrônica, web, formulário, internet","não informada":"ficha sem o modo"};
   const max=Math.max(...Object.values(cont),1);
   $("#ch-modos").innerHTML=`<div class="modos">${MODOS.map(([m,c])=>`<div class="mr"><span class="lab"><i style="background:${c}"></i>${m}</span><span class="bar"><i style="width:${Math.round((cont[m]||0)/max*100)}%;background:${c}"></i></span><span class="val">${cont[m]||0} rodadas</span><span class="kw">${KW[m]}</span></div>`).join("")}</div>`;
@@ -3160,16 +3175,16 @@ function urlBase(){
 }
 const dExt=d=>d?(+d.slice(8,10))+" de "+MESES_L[+d.slice(5,7)-1]:"";
 function msgsShare(){
-  const url=urlBase(),M=DATA.meta,dia=dExt(M.ultima),out=[];
-  const o=ORDEM().filter(p=>p&&p.agora!=null),t=Date.parse(M.ultima),n2=["Lula","Flávio Bolsonaro"];
+  const url=urlBase(),M=DATA.meta.t1,dia=dExt(M.ultima),out=[],u2=DATA.meta.t2.ultima||DATA.meta.ultima,dia2=dExt(u2);
+  const o=ORDEM().filter(p=>p&&p.agora!=null),t=Date.parse(u2),n2=["Lula","Flávio Bolsonaro"];
   if(o.length>=3)out.push(["A corrida hoje",`Mural dos Candidatos, ${dia}: ${o.slice(0,3).map(p=>`${curto(p.nome)} ${fPct(p.agora)}%`).join(", ")} na média de ${pl(M.rodadas,"rodada")} de ${pl(M.institutos,"instituto")}.\n\nTodos os números com data e fonte, atualizados às 8h e às 20h.\n${url}`]);
   const m2=agregarEm(rodadas2T(),n2,SIG,t);
   if(m2["Lula"]!=null&&m2["Flávio Bolsonaro"]!=null){
     const emp=empatam(rodadas2T(),n2,SIG,t,"Lula","Flávio Bolsonaro"),d=m2["Lula"]-m2["Flávio Bolsonaro"];
     const frente=d>=0?"Lula":"Flávio Bolsonaro",atras=d>=0?"Flávio Bolsonaro":"Lula";
     out.push(["O segundo turno",emp
-      ? `Segundo turno em empate técnico, ${dia}: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média.\n\nA conta de como a média é feita está no mural:\n${url}`
-      : `Segundo turno, ${dia}: ${curto(frente)} ${fPct(Math.max(m2["Lula"],m2["Flávio Bolsonaro"]))}% contra ${fPct(Math.min(m2["Lula"],m2["Flávio Bolsonaro"]))}% de ${curto(atras)}, ${fPct(Math.abs(d))} ${pts(d)} de diferença na média das rodadas mais recentes.\n\nA conta está aberta no mural:\n${url}`]);
+      ? `Segundo turno em empate técnico, ${dia2}: Lula ${fPct(m2["Lula"])}% e Flávio ${fPct(m2["Flávio Bolsonaro"])}%, separados por menos que a incerteza da própria média.\n\nA conta de como a média é feita está no mural:\n${url}`
+      : `Segundo turno, ${dia2}: ${curto(frente)} ${fPct(Math.max(m2["Lula"],m2["Flávio Bolsonaro"]))}% contra ${fPct(Math.min(m2["Lula"],m2["Flávio Bolsonaro"]))}% de ${curto(atras)}, ${fPct(Math.abs(d))} ${pts(d)} de diferença na média das rodadas mais recentes.\n\nA conta está aberta no mural:\n${url}`]);
   }
   const sobe=o.filter(p=>p.delta!=null).sort((a,b)=>b.delta-a.delta)[0];
   if(sobe&&sobe.delta>=1&&sobe.antes!=null)

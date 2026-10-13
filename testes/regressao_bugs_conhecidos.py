@@ -705,7 +705,8 @@ with sync_playwright() as p:
     #      até 34px a 390; legenda-placar com os oito; painéis de .grid2 com o topo alinhado; manchete do estado no alto a 390
     JS_M = """() => { const m = document.querySelector('#manchete'), l = document.querySelector('#lede-dados'); const cs = getComputedStyle(m);
         return {txt: m.textContent.trim(), lede: l ? l.textContent : '', fs: parseFloat(cs.fontSize), linhas: Math.round(m.getBoundingClientRect().height / parseFloat(cs.lineHeight)),
-                legenda: document.querySelectorAll('#lg-home .lp').length, ult: document.querySelectorAll('#ult-rodada .hb').length}; }"""
+                legenda: document.querySelectorAll('#lg-home .lp').length, ult: document.querySelectorAll('#ult-rodada .hb').length,
+                ultTit: (document.querySelector('#ult-rodada .eyebrow') || {}).textContent || ''}; }"""
     JS_G = """() => [...document.querySelectorAll('.view.on .grid2')].filter(g => g.querySelectorAll(':scope>.panel').length > 1 && g.getBoundingClientRect().height > 0)
         .map(g => [...g.querySelectorAll(':scope>.panel')].map(p => Math.round(p.getBoundingClientRect().top)))"""
     b, page, errs = novo_ctx(p, viewport=(1280, 800))
@@ -714,7 +715,8 @@ with sync_playwright() as p:
     r = page.evaluate(JS_M)
     check("#manchete não vazio, sem 'undefined' nem 'NaN' (manchete e lede)", bool(r["txt"]) and not re.search(r"undefined|NaN", r["txt"] + r["lede"]), r)
     check("#manchete com font-size <= 44px e no máximo duas linhas a 1280", r["fs"] <= 44 and 1 <= r["linhas"] <= 2, r)
-    check("legenda-placar com 8 itens e última rodada com barras", r["legenda"] == 8 and r["ult"] >= 3, r)
+    # a última rodada pode ser só do confronto Lula x Flávio (desde 5/10/2026): aí são duas barras
+    check("legenda-placar com 8 itens e última rodada com barras", r["legenda"] == 8 and r["ult"] >= (2 if "2º turno" in r["ultTit"] else 3), r)
     tops = {}
     for h in ("pesquisas", "uf-sp-governo"):
         page.goto(URL + "#" + h)
@@ -722,6 +724,29 @@ with sync_playwright() as p:
         tops[h] = page.evaluate(JS_G)
     check("topos dos painéis de .grid2 iguais a 1280 (Pesquisas e Visão geral de SP)", bool(tops["uf-sp-governo"]) and all(len(set(t)) == 1 for g in tops.values() for t in g), tops)
     check("rotas do bloco (fase C, 1280) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+    # ---- rodada só de 2º turno como a mais recente (13/10/2026: as primeiras chegaram pela coleta; o
+    #      trilho buscava os pontos dela entre os de 1º turno, saía sem barra, e a regressão barrou a
+    #      publicação). Uma rodada de ensaio, publicada só em votos válidos, entra como a última.
+    b, page, errs = novo_ctx(p, viewport=(1280, 800))
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(700)
+    n1 = page.evaluate("""() => {
+        const dt = HOJE, inst = 'Instituto de Ensaio';
+        const pts = [[inst, dt, 'Lula', 48.5], [inst, dt, 'Flávio Bolsonaro', 51.5]];
+        DATA.fichas.push({inst, dt, campo: dt + ' a ' + dt, met: '', reg: '', url: '', t: '2', modo: 'digital'});
+        DATA.polls2t.push(...pts); _par2t[inst + '|' + dt] = pts;
+        drawUltimaRodada(); drawAlertas(); _r2t = null;
+        const el = document.querySelector('#ult-rodada'), al = document.querySelector('#alerts');
+        return {barras: el.querySelectorAll('.hb').length, trilho: el.textContent, alerta: al ? al.textContent : '',
+                media: rodadas2T().some(r => r.inst === inst)}; }""")
+    check("rodada só de 2º turno como a última: trilho com as duas barras e o aviso de votos válidos",
+          n1["barras"] == 2 and "2º turno" in n1["trilho"] and "51,5" in n1["trilho"] and "votos válidos" in n1["trilho"],
+          {"barras": n1["barras"], "trilho": n1["trilho"][:160]})
+    check("rodada só de 2º turno como a última: o alerta de rodada nova traz os números dela",
+          bool(re.search(r"Instituto de Ensaio.*2º turno.*51,5%.*48,5%", n1["alerta"])), n1["alerta"][:200])
+    check("rodada publicada só em votos válidos fica fora da média em intenção total", not n1["media"], n1["media"])
+    check("rodada só de 2º turno como a última sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
     b, page, errs = novo_ctx(p, viewport=(390, 844))
     page.goto(URL + "#geral")

@@ -71,15 +71,22 @@ for (_i, _d), _m in modo_rodada.items():
     if _m != "não informada": _modos_inst[_i][_m] += 1
 MODO_INSTITUTO = {i: next(iter(c)) for i, c in _modos_inst.items() if len(c) == 1 and sum(c.values()) >= 2}
 modo_rodada = {k: (MODO_INSTITUTO.get(k[0], m) if m == "não informada" else m) for k, m in modo_rodada.items()}
+# o cenário do confronto final, escrito igual ao do coletor (coleta/wikipedia_pesquisas_nacional.py)
+CENARIO_2T = "2º turno Lula x Flávio Bolsonaro"
 polls_main, polls_2t, rej = [], [], []
+# De que turno é cada rodada: desde 5/10/2026 a base recebe rodadas só de 2º turno, e o que é "a
+# última rodada" ou "quantas rodadas" depende do turno de que o texto fala.
+chaves1t, chaves2t = set(), set()
 for r in pesq:
     inst, dt, cen, cand = r["instituto"], r["data_divulgacao"], r["cenario"], r["candidato"]
     if inst.startswith("Agregador"): continue
     p, j = num(r["percentual"]), num(r["rejeicao"])
+    if p is not None and cen.startswith("1º turno"): chaves1t.add((inst, dt))
+    if p is not None and cen == CENARIO_2T and cand in ("Lula", "Flávio Bolsonaro"): chaves2t.add((inst, dt))
     if cand in OITO:
         if cen == "1º turno" and p is not None:
             polls_main.append([inst, dt, cand, p, r["url"], modo_rodada.get((inst, dt), "não informada")])
-        if cen == "2º turno Lula x Flávio Bolsonaro" and p is not None and cand in ("Lula", "Flávio Bolsonaro"):
+        if cen == CENARIO_2T and p is not None and cand in ("Lula", "Flávio Bolsonaro"):
             polls_2t.append([inst, dt, cand, p])
         if j is not None:
             rej.append([inst, dt, cand, j])
@@ -115,12 +122,22 @@ for (inst, dt), ls in sorted(_linhas_1t.items(), key=lambda x: (x[0][1], x[0][0]
         somas_validos[f"{inst}|{dt}"] = round(s_cand, 2)
     else:
         fora_validos.append((inst, dt, round(s_cand, 1), round(s_tot, 1), sem_numero))
+def _resumo(chaves):
+    if not chaves: return {"rodadas": 0, "institutos": 0, "primeira": "", "ultima": ""}
+    return {"rodadas": len(chaves), "institutos": len({k[0] for k in chaves}),
+            "primeira": min(k[1] for k in chaves), "ultima": max(k[1] for k in chaves)}
+# meta.ultima e as outras chaves de cima contam as rodadas de todos os turnos; o texto que fala do
+# 1º turno usa meta.t1, e o do confronto Lula x Flávio usa meta.t2
 meta = {"rodadas": len(rodadas), "institutos": len({k[0] for k in rodadas}), "excluidas": len(EXCLUIDAS),
-        "primeira": min(k[1] for k in rodadas), "ultima": max(k[1] for k in rodadas)}
+        "primeira": min(k[1] for k in rodadas), "ultima": max(k[1] for k in rodadas),
+        "t1": _resumo(chaves1t), "t2": _resumo(chaves2t)}
 
-# fichas técnicas por rodada (para tooltip e tabela de rodadas)
+# fichas técnicas por rodada (para tooltip e tabela de rodadas); "t" diz de que turno a rodada traz
+# intenção de voto ("1", "2", "12" ou "" para rodada só de rejeição ou de outro confronto)
 fichas = [{"inst": k[0], "dt": k[1], "campo": f'{v["data_campo_inicio"]} a {v["data_campo_fim"]}',
-           "met": v["metodologia"], "reg": v["registro_tse"], "url": v["url"]}
+           "met": v["metodologia"], "reg": v["registro_tse"], "url": v["url"],
+           "t": ("1" if k in chaves1t else "") + ("2" if k in chaves2t else ""),
+           "modo": modo_rodada.get(k, "não informada")}
           for k, v in sorted(rodadas.items(), key=lambda kv: kv[0][1])]
 
 # ---------------------------------------------------------------- redes
