@@ -1,0 +1,15 @@
+# Diagnóstico: códigos da eleição de 2026 e formato dos arquivos de resultado do TSE. Não grava nada.
+name: Sondar resultados do TSE
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 coleta/_sonda_tse_resultados.py
