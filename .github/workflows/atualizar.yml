@@ -24,6 +24,10 @@ on:
     # é assim que a rodada da noite se distingue e ganha o Trends por estado, que leva quinze minutos.
     - cron: '0 11 * * *'
     - cron: '0 23 * * *'
+    # Noite do 2º turno (25/10, urnas fecham às 17h de Brasília): a apuração do TSE entra a cada
+    # vinte minutos até a madrugada. Essas entradas não pegam o Trends por estado, que é demorado.
+    - cron: '*/20 20-23 25 10 *'
+    - cron: '*/30 0-3 26 10 *'
   workflow_dispatch:
     inputs:
       desde:
@@ -154,17 +158,26 @@ jobs:
           python3 coleta/google_trends_estados.py 2>&1 | tee "$RUNNER_TEMP/coleta/trends-estados.log"
           python3 dados/estados/_integrar_busca.py --so-trends 2>&1 | tee -a "$RUNNER_TEMP/coleta/trends-estados.log"
 
+      # Resultado oficial do TSE (resultados.tse.jus.br responde ao runner; medido em 13/10/2026).
+      # O coletor só grava se todas as apurações vierem; senão os arquivos ficam como estavam.
+      - name: Resultados oficiais do TSE
+        id: resultados
+        continue-on-error: true
+        run: python3 coleta/tse_resultados.py 2>&1 | tee "$RUNNER_TEMP/coleta/resultados.log"
+
       # Uma fonte que não veio entra no corpo do commit, para o histórico dizer o que faltou
       - name: Registrar as fontes que falharam
         env:
           NACIONAL: ${{ steps.nacional.outcome }}
           ESTADUAIS: ${{ steps.estaduais.outcome }}
           ACESSOS: ${{ steps.acessos.outcome }}
+          RESULTADOS: ${{ steps.resultados.outcome }}
         run: |
           : > "$RUNNER_TEMP/coleta/falhas.log"
           [ "$NACIONAL" = success ] || echo "pesquisas presidenciais: a coleta falhou; o arquivo fica como estava" >> "$RUNNER_TEMP/coleta/falhas.log"
           [ "$ESTADUAIS" = success ] || echo "páginas estaduais: a coleta falhou; o dump e os CSVs ficam como estavam" >> "$RUNNER_TEMP/coleta/falhas.log"
           [ "$ACESSOS" = success ] || echo "acessos aos verbetes: a coleta falhou; as séries ficam como estavam" >> "$RUNNER_TEMP/coleta/falhas.log"
+          [ "$RESULTADOS" = success ] || echo "resultados do TSE: a coleta falhou; os arquivos ficam como estavam" >> "$RUNNER_TEMP/coleta/falhas.log"
           cat "$RUNNER_TEMP/coleta/falhas.log"
 
       - name: Regenerar o mural
@@ -284,6 +297,13 @@ jobs:
           if acessos:
               partes.append(plural(acessos, "linha de acessos aos verbetes", "linhas de acessos aos verbetes"))
           detalhes += [l for l in pv if "acrescentad" in l]
+
+          res = linhas("resultados")
+          if any(l.startswith("gravado dados/resultados") for l in res):
+              m = acha(res, r"presidente 2º turno: ([\d.]+)% das seções")
+              partes.append("resultado do TSE" + (" (2º turno com %s%% das seções)" % m.group(1)
+                                                   if m and float(m.group(1)) > 0 else ""))
+              detalhes += [l for l in res if "linhas de candidato" in l or "turno:" in l]
 
           tr = linhas("trends")
           m = acha(tr, r"(\d+) linhas, (\d+) termos, de (\S+) a (\S+)")

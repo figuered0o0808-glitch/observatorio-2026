@@ -58,7 +58,7 @@ import subprocess
 import sys
 
 BOM = b"\xef\xbb\xbf"
-PASTAS = ("dados", "dados/estados", "dados/rjsp")
+PASTAS = ("dados", "dados/estados", "dados/rjsp", "dados/resultados")
 # CSV que começa com "_" é arquivo de trabalho de coletor (proposta para conferência, dump
 # intermediário) e não entra no mural: fica fora da classificação, como os .json e .txt da pasta
 def de_trabalho(nome):
@@ -103,6 +103,18 @@ CSV_REGRAVADO = {
         "casamento": ("data", "uf", "cargo", "termo"),
         "rodada": ("data", "uf", "cargo", "termo"),
         "grupos": ("uf", "cargo", "termo"),
+    },
+    # Resultado oficial do TSE (coleta/tse_resultados.py): a apuração inteira é relida a cada coleta,
+    # porque o número de votos muda até a totalização terminar. Nenhuma apuração pode sumir.
+    "dados/resultados/candidatos.csv": {
+        "casamento": ("turno", "cargo", "abrangencia", "sqcand"),
+        "rodada": ("turno", "cargo", "abrangencia", "sqcand"),
+        "grupos": ("turno", "cargo", "abrangencia"),
+    },
+    "dados/resultados/totais.csv": {
+        "casamento": ("turno", "cargo", "abrangencia"),
+        "rodada": ("turno", "cargo", "abrangencia"),
+        "grupos": ("turno", "cargo", "abrangencia"),
     },
 }
 JSON_REGRAVADO = "dados/estados/_wiki-pesquisas-estados.json"
