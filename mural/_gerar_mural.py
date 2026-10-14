@@ -77,11 +77,24 @@ for r in pesq:
         r["instituto"] = INST_ALIAS.get(r["instituto"], r["instituto"])
 
 # ---------------------------------------------------------------- pesquisas
-rodadas = {}
+# A ficha de cada rodada (instituto, divulgação) sai de uma linha da base. Quando as linhas da
+# rodada trazem metadados diferentes, vale a que tem registro no TSE: o Datafolha de 3/10/2026 tem
+# o 1º turno de uma reportagem (n=2002, sem registro) e o 2º turno da ficha presencial (n=4006,
+# BR-01708/2026), e a ficha mostrava a primeira. O CSV não muda; o aviso lista as rodadas misturadas.
+_CAMPOS_FICHA = ("data_campo_inicio", "data_campo_fim", "metodologia", "registro_tse")
+rodadas, _linhas_rodada = {}, defaultdict(list)
 for r in pesq:
     if not r["instituto"].startswith("Agregador"):
         k = (r["instituto"], r["data_divulgacao"])
-        rodadas.setdefault(k, r)
+        _linhas_rodada[k].append(r)
+        if k not in rodadas or (r["registro_tse"].strip() and not rodadas[k]["registro_tse"].strip()):
+            rodadas[k] = r
+rodadas_misturadas = sorted((k for k, ls in _linhas_rodada.items()
+                             if len({tuple(x[c] for c in _CAMPOS_FICHA) for x in ls}) > 1), key=lambda k: (k[1], k[0]))
+for _k in rodadas_misturadas:
+    _reg = rodadas[_k]["registro_tse"].strip()
+    print(f"AVISO rodada com metadados diferentes entre as linhas: {_k[0]} {_k[1]}; a ficha usa "
+          + (f"a linha com registro {_reg}" if _reg else "a primeira linha, nenhuma tem registro"))
 def modo_de(met):
     m = (met or "").lower()
     if "telefon" in m: return "telefônica"
@@ -387,7 +400,9 @@ def _r_pres(nome, turno):
         return next((y for y in a["c"] if y[0] == nome), None) if a else None
     nas_ufs = [(uf, linha_em(uf)) for uf in _R.UFS if linha_em(uf)]
     if nas_ufs:
-        uf, y = max(nas_ufs, key=lambda t: t[1][5])
+        # o percentual vem arredondado em duas casas, e o empate nele se desfaz pelos votos (Edmilson
+        # Costa tinha 0,03% no AC, com 140 votos, e no RJ, com 2.854; o AC saía por vir antes na lista)
+        uf, y = max(nas_ufs, key=lambda t: (t[1][5], t[1][4]))
         r["melhor"] = [uf, y[5]]
         r["ufs1"] = sorted(uf for uf, _ in nas_ufs if por_ab[uf]["c"][0][0] == nome)
     ext = linha_em("ZZ")
@@ -413,9 +428,12 @@ if _tem_r1:
 from datetime import date as _date
 def _dias(s): a=s.split("-"); return _date(int(a[0]),int(a[1]),int(a[2])).toordinal()
 vies = []
+# n conta só as rodadas de 1º turno do instituto, as mesmas de que sai o desvio (polls_main), como a
+# tabela do Método; até 14/10/2026 contava também as rodadas só de 2º turno
+_rod1t_inst = _Contador(i for i, _ in {(p[0], p[1]) for p in polls_main})
 for inst in institutos1t:
     linha = {"inst": inst, "modo": next((modo_rodada[k] for k in modo_rodada if k[0]==inst), "não informada"),
-             "n": sum(1 for k in rodadas if k[0]==inst)}
+             "n": _rod1t_inst[inst]}
     for cand, chave in (("Lula","dLula"),("Flávio Bolsonaro","dFlavio")):
         pts_all = [(_dias(p[1]), p[3], p[0]) for p in polls_main if p[2]==cand]
         meus = [p for p in pts_all if p[2]==inst]
@@ -617,6 +635,54 @@ for k, u in ufs.items():
             if c["slug"] in pos1: c["r1"] = pos1[c["slug"]]
             else: c["fora"] = 1
             if c["slug"] in pos2: c["r2"] = pos2[c["slug"]]
+
+# ---- cores dos dois finalistas do 2º turno de governador
+# A cor de cada candidatura sai da paleta pela ordem do número de urna, e os dois finalistas podem
+# cair em cores vizinhas: no AM, Omar Aziz ficou com #0A9396 e Professora Maria do Carmo com
+# #1baf7a, verde-azulado e verde, no mesmo gráfico do 2º turno. Quando a distância entre as duas
+# (CIEDE2000) fica abaixo de COR_DIST_MIN, o segundo colocado do 1º turno passa para a primeira cor
+# da paleta longe da do primeiro e que nenhuma outra candidatura ao governo do estado usa. A cor
+# vale para a candidatura inteira (barras, pesquisas, dossiê), então tudo fica igual entre si.
+COR_DIST_MIN = 25
+def _lab(h):
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(int(h[i:i + 2], 16)) for i in (1, 3, 5))
+    x, y, z = (r * .4124 + g * .3576 + b * .1805) / .95047, r * .2126 + g * .7152 + b * .0722, (r * .0193 + g * .1192 + b * .9505) / 1.08883
+    f = lambda t: t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
+def dist_cor(c1, c2):
+    """Diferença de cor CIEDE2000 entre dois hexadecimais #RRGGBB."""
+    import math
+    (L1, a1, b1), (L2, a2, b2) = _lab(c1), _lab(c2)
+    Cm = (math.hypot(a1, b1) + math.hypot(a2, b2)) / 2
+    G = 0.5 * (1 - math.sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7)))
+    a1, a2 = (1 + G) * a1, (1 + G) * a2
+    C1, C2 = math.hypot(a1, b1), math.hypot(a2, b2)
+    h1, h2 = math.degrees(math.atan2(b1, a1)) % 360, math.degrees(math.atan2(b2, a2)) % 360
+    dh = 0 if C1 * C2 == 0 else (h2 - h1 - 360 if h2 - h1 > 180 else h2 - h1 + 360 if h2 - h1 < -180 else h2 - h1)
+    dH = 2 * math.sqrt(C1 * C2) * math.sin(math.radians(dh / 2))
+    Lm, Cp = (L1 + L2) / 2, (C1 + C2) / 2
+    hm = h1 + h2 if C1 * C2 == 0 else (h1 + h2) / 2 if abs(h1 - h2) <= 180 else (h1 + h2 + 360) / 2 if h1 + h2 < 360 else (h1 + h2 - 360) / 2
+    T = 1 - .17 * math.cos(math.radians(hm - 30)) + .24 * math.cos(math.radians(2 * hm)) + .32 * math.cos(math.radians(3 * hm + 6)) - .2 * math.cos(math.radians(4 * hm - 63))
+    SL, SC, SH = 1 + .015 * (Lm - 50) ** 2 / math.sqrt(20 + (Lm - 50) ** 2), 1 + .045 * Cp, 1 + .015 * Cp * T
+    RT = -math.sin(math.radians(60 * math.exp(-((hm - 275) / 25) ** 2))) * 2 * math.sqrt(Cp ** 7 / (Cp ** 7 + 25 ** 7))
+    dL, dC = (L2 - L1) / SL, (C2 - C1) / SC
+    return math.sqrt(dL ** 2 + dC ** 2 + (dH / SH) ** 2 + RT * dC * (dH / SH))
+for k in UF2T:
+    a1, u = resultados.get("gov", {}).get("1", {}).get(k), ufs.get(k)
+    if not a1 or not u: continue
+    fin = [next((c for c in u["gov"] if c["slug"] == x[0]), None) for x in a1["c"] if x[6] == "2t" and x[0]]
+    if len(fin) != 2 or None in fin: continue
+    p1, p2 = fin
+    if dist_cor(p1["cor"], p2["cor"]) >= COR_DIST_MIN: continue
+    usadas = {c["cor"] for c in u["gov"] if c is not p2}
+    longe = [c for c in PAL if dist_cor(c, p1["cor"]) >= COR_DIST_MIN]
+    nova = next((c for c in longe if c not in usadas), longe[0] if longe else None)
+    if nova:
+        print(f"cor do 2º turno em {k}: {p2['nome']} passa de {p2['cor']} para {nova}, longe da de {p1['nome']} ({p1['cor']})")
+        p2["cor"] = nova
 
 # Pesquisa estadual fora do turno não entra: rodada de 1º turno depois da véspera de 4/10, de 2º
 # turno depois de 4/10 em UF sem 2º turno de governador, e qualquer uma depois de 25/10. Foi o caso

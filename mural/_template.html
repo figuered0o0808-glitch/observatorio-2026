@@ -851,10 +851,18 @@ details.mapa{margin-top:var(--gap)}
 .hbars{display:flex;flex-direction:column;gap:7px;margin-top:8px}
 .hb{display:grid;grid-template-columns:minmax(120px,210px) 1fr 64px auto;gap:10px;align-items:center;font-size:13px}
 .hb.dim{opacity:.35}
-.hb .nm{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* o nome e o partido nunca saem cortados: o partido desce para a linha de baixo quando não cabe ao lado
+   do nome, e o nome quebra em duas linhas sem sair de perto do número. No resultado do TSE (.hbars.res),
+   partido, votos e situação ficam sempre na segunda linha, cada trecho inteiro */
+.hb .nm{display:flex;align-items:center;flex-wrap:wrap;gap:1px 6px;min-width:0;line-height:1.25;overflow-wrap:break-word}
+.hb .nm .k{flex:none}
+.hb .nm .k+.nmbtn,.hb .nm .k+b{max-width:calc(100% - 40px)}
 .hb .nm .k{display:inline-block;min-width:24px;padding:2px 4px;border-radius:2px;color:#fff;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center;line-height:1.1}
-.hb .nm .pt{color:var(--ink-3);font-size:11.5px;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.hb .nm b,.hb .nm .nmbtn{flex:none;min-width:0}
+.hb .nm .pt{color:var(--ink-3);font-size:11.5px;flex:none;max-width:100%}
+.hb .nm .pt span{white-space:nowrap}
+.hb .nm b,.hb .nm .nmbtn{flex:0 1 auto;min-width:0}
+.hbars.res .hb .nm>b,.hbars.res .hb .nm .nmbtn{flex:1 1 0}
+.hbars.res .hb .nm .pt{flex:0 0 100%}
 .nmbtn{appearance:none;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:inline-flex;max-width:100%}
 .nmbtn:hover b,.nmbtn:focus-visible b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .hb .bar{height:16px;background:var(--line-2);border-radius:2px;overflow:hidden}
@@ -1157,7 +1165,8 @@ svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wd
 .g2t .ufn{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .g2t .lin{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;font-size:13px}
 .g2t .lin i{width:10px;height:10px;border-radius:2px;display:block}
-.g2t .lin .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g2t .lin .nm{min-width:0;line-height:1.25;overflow-wrap:break-word}
+.g2t .lin .nm .pt{white-space:nowrap}
 .g2t .lin .nm b{font-weight:600}
 .g2t .lin .pt{color:var(--ink-3);font-size:11.5px}
 .g2t .lin .v{font-variant-numeric:tabular-nums;font-weight:600}
@@ -1729,7 +1738,7 @@ table th{background:#000;color:#fff;border-bottom:0}
   <p class="sub" id="e-sub-pesq"></p>
   <details class="howto"><summary>Como ler</summary><p id="e-como-ler">Cada ponto é uma rodada de pesquisa. A linha é a média das pesquisas, calculada como a da Presidência, com janela de 14 dias, e aparece quando o candidato tem três rodadas ou mais. Para ver a corrida medida por um instituto só, use os filtros. Quando uma rodada testa vários cenários, o gráfico usa o cenário mais parecido com as candidaturas registradas no TSE, e os outros ficam no seletor da rodada em destaque. No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas estão em jogo. Os dois primeiros aparecem sublinhados, e o sublinhado pontilhado indica empate na disputa pela segunda vaga.</p></details>
   <div class="panel main" id="e-p2t" hidden><div class="ph"><h3 id="e-h-2t">2º turno</h3><span class="cap" style="margin:0" id="e-cap-2tm"></span></div>
-    <div id="e-ch-2tm"></div>
+    <div id="e-ch-2tm"></div><div class="legend" id="e-leg-2tm"></div>
     <p class="cap" id="e-txt-2t"></p>
     <div class="tablewrap"><table id="e-tb-2t"><thead><tr><th>Instituto</th><th>Campo</th><th class="num">Amostra</th><th class="num">Margem</th><th>Registro</th><th class="num" id="e-th-2a"></th><th class="num" id="e-th-2b"></th><th>Fonte</th></tr></thead><tbody></tbody></table></div></div>
   <div class="panel main" id="e-panel-corrida"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
@@ -1838,6 +1847,9 @@ const $$=(s,el=document)=>[...el.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fInt=n=>n==null?"":new Intl.NumberFormat("pt-BR").format(n);
 const fPct=n=>{if(n==null)return"";const r=Math.round(n*10)/10;return new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format(r===0?0:r);};
+// acessos diários à Wikipédia no eixo e no rótulo: "11,6 mil", com vírgula. Até 14/10/2026 saía v/1000 cru,
+// "11.633 mil", que em português se lê onze milhões
+const fAcessos=v=>v>=999.5?fPct(v/1000)+" mil":fInt(Math.round(v));
 const fM=n=>{const milArred=Math.round(n/1e3);return n>=1e6||milArred>=1000?fPct(Math.round(n/1e5)/10)+" mi":n>=1e3?fInt(milArred)+" mil":fInt(n);};
 const fBRL=n=>n==null?"":(n>=1e9?"R$ "+fPct(Math.round(n/1e7)/100)+" bi":n>=1e6?"R$ "+fPct(Math.round(n/1e5)/10).replace(/,0$/,"")+" mi":"R$ "+fInt(Math.round(n)));
 const dBR=d=>d?d.slice(8,10)+"/"+d.slice(5,7):"";
@@ -2136,7 +2148,9 @@ function chartTempo(o){
   const M=marcos.filter(m=>m.t>=t0&&m.t<=t1).sort((a,b)=>a.t-b.t);
   if(M.length){
     const grupos=[];for(const m of M){const x=X(m.t);const g=grupos[grupos.length-1];if(g&&x-g.x1<22){g.itens.push(m);g.x1=x;}else grupos.push({x0:x,x1:x,itens:[m]});}
-    s+=`<g class="marcos">`+grupos.map(g=>{const cx=((g.x0+g.x1)/2).toFixed(1);const crit=g.itens.some(m=>m.cor==="var(--crit)");const cor=g.itens.length>1?(crit?"var(--crit)":"var(--m2)"):(g.itens[0].cor||"var(--ink-3)");
+    // o círculo numerado não sai da área do gráfico: marco na borda esquerda (o 1º turno na janela "Desde o
+    // 1º turno") cobria o rótulo do topo do eixo Y. A linha tracejada continua na data certa.
+    s+=`<g class="marcos">`+grupos.map(g=>{const rr=g.itens.length>1?9:8,cx=Math.min(Math.max((g.x0+g.x1)/2,ml+rr+1),W-mr-rr-1).toFixed(1);const crit=g.itens.some(m=>m.cor==="var(--crit)");const cor=g.itens.length>1?(crit?"var(--crit)":"var(--m2)"):(g.itens[0].cor||"var(--ink-3)");
       const tipTxt=(g.itens.length>1?`<b>${g.itens.length} marcos</b><br>`:"")+g.itens.map(m=>m.tip||m.txt).join("<br><br>");const idx=g.itens.map(m=>M.indexOf(m)+1);
       return (g.itens.length>1?`<line x1="${cx}" x2="${cx}" y1="${mt-2}" y2="${mt+ih}" stroke="${cor}" stroke-width="1" stroke-dasharray="3 4" opacity=".5"/>`:g.itens.map(m=>`<line x1="${X(m.t).toFixed(1)}" x2="${X(m.t).toFixed(1)}" y1="${mt-2}" y2="${mt+ih}" stroke="${m.cor||"var(--ink-3)"}" stroke-width="1" stroke-dasharray="3 4" opacity=".55"/>`).join(""))+`<g data-tip="${esc(tipTxt)}" style="cursor:help"><circle cx="${cx}" cy="${mt-2}" r="${g.itens.length>1?9:8}" fill="${cor}"/><text x="${cx}" y="${mt+1.5}" text-anchor="middle" style="font-size:9px;font-weight:700;fill:var(--paper);font-family:Archivo,sans-serif">${g.itens.length>1?g.itens.length:idx[0]}</text></g>`;}).join("")+`</g>`;}
   const rot=[],meta=[];
@@ -3118,24 +3132,46 @@ const difVesp=d=>fPct(Math.abs(d))==="0"?"":fmtDelta(d);
 const rotUrna=x=>`${curto(x.nome)} ${fPct2(x.urna)}${x.dif>=1?" ▲":x.dif<=-1?" ▼":""}${difVesp(x.dif)?" "+difVesp(x.dif):""}`;
 const tipVesp=x=>`<b>${esc(x.nome)}</b> · média publicada na véspera: ${fPct(x.media)}% dos válidos`;
 const tipUrna=x=>{const c=byName[x.nome];return `<b>${esc(x.nome)}</b> · urna: ${fPct2(x.urna)}% dos válidos${c&&c.r1?` (${fInt(c.r1.votos)} votos)`:""}, TSE<br>${fmtDelta(x.dif)} ${pts(x.dif)} contra a média da véspera<br>clique para abrir o dossiê`;};
+// Rótulos acima de um eixo horizontal, em escada (14/10/2026). Pontos próximos formam um grupo, e os
+// rótulos do grupo ficam empilhados numa coluna ao lado dele; a guia sobe do ponto e vira na altura
+// do rótulo. Na coluna à direita, o ponto mais à direita fica na linha mais baixa (à esquerda, o mais
+// à esquerda), então nenhuma guia cruza rótulo ou outra guia. Antes, com duas filas, a guia da fila
+// de cima descia por cima do rótulo da de baixo ("Zema 0,27" sobre "Samara 0,10"). Grupo cuja coluna
+// cai sobre a de um grupo anterior sobe acima das linhas dele. Devolve o SVG e o número de linhas.
+function rotulosEscada(items,base,passo,W,fs=12){
+  const est=t=>String(t).replace(/<[^>]+>/g,"").length*fs*.6+6,folga=12,L=items.map(it=>({...it,w:est(it.txt)})).sort((a,b)=>a.x-b.x);
+  const G=[];
+  for(const it of L){const g=G[G.length-1];if(g&&it.x<g.fim+8)g.itens.push(it);else G.push({itens:[it]});
+    const h=G[G.length-1];h.x0=Math.min(...h.itens.map(i=>i.x));h.x1=Math.max(...h.itens.map(i=>i.x));h.w=Math.max(...h.itens.map(i=>i.w));h.fim=h.x1+folga+h.w;}
+  let s="",nLin=0;const feitos=[];
+  for(const g of G){
+    const dir=g.x1+folga+g.w<=W-4,cx=dir?g.x1+folga:g.x0-folga,a=dir?cx:cx-g.w,b=dir?cx+g.w:cx;
+    const ini=Math.max(0,...feitos.filter(f=>a<f.b+8&&f.a<b+8).map(f=>f.top));
+    const ord=g.itens.slice().sort((p,q)=>dir?q.x-p.x:p.x-q.x);
+    ord.forEach((it,i)=>{const y=base-(ini+i)*passo,yl=y-fs*.35;
+      s+=`<g class="lbl${it.dim?" dim":""}"><path class="lead-line" d="M${it.x.toFixed(1)} ${it.y.toFixed(1)} L${it.x.toFixed(1)} ${yl.toFixed(1)} L${(dir?cx-3:cx+3).toFixed(1)} ${yl.toFixed(1)}" fill="none"/><text class="cand-label" x="${cx.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${dir?"start":"end"}" style="fill:${it.cor};font-size:${fs}px">${it.txt}</text></g>`;});
+    const top=ini+ord.length;nLin=Math.max(nLin,top);feitos.push({a:Math.min(a,g.x0),b:Math.max(b,g.x1),top});
+  }
+  return {s,nLin};
+}
 function urnaHorizontal(L,lw){
-  const W=lw,H=168,ml=24,mr=24,yAxis=92,iw=W-ml-mr;
+  const W=lw,ml=24,mr=24,iw=W-ml-mr,passo=15;
   const max=Math.max(10,Math.ceil(Math.max(...L.map(x=>Math.max(x.media,x.urna)))/10)*10);
   const X=v=>ml+Math.min(v,max)/max*iw,tk=[];for(let v=0;v<=max;v+=10)tk.push(v);
+  // a altura sai do número de linhas da escada: a linha mais alta fica a 14px do topo
+  const rot=L.map(x=>({x:X(x.urna),cor:COR[x.nome],txt:rotUrna(x)})),nL=rotulosEscada(rot.map(r=>({...r,y:0})),0,passo,W).nLin;
+  const yAxis=Math.max(64,36+Math.max(0,nL-1)*passo),H=yAxis+76;
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pesquisas x urna no 1º turno: média publicada na véspera e resultado do TSE por candidato" data-w="${W}" data-w0="${Math.max(W,1180)}">`;
   s+=`<g class="tick">`+tk.map(v=>`<line x1="${X(v)}" x2="${X(v)}" y1="${yAxis-6}" y2="${yAxis+6}" stroke="var(--ink-3)"/><text x="${X(v)}" y="${yAxis+22}" text-anchor="middle">${v}%</text>`).join("")+`</g>`;
   s+=`<line x1="${ml}" x2="${W-mr}" y1="${yAxis}" y2="${yAxis}" stroke="var(--ink)" stroke-width="2.5"/>`;
-  const alto=[],baixo=[],vesp=[];
+  const vesp=[];
   for(const x of L){
     const x0=X(x.media),x1=X(x.urna),cor=COR[x.nome];
     s+=`<g class="ser"><line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${yAxis}" y2="${yAxis}" stroke="${cor}" stroke-width="3" opacity=".55"/><circle cx="${x0.toFixed(1)}" cy="${yAxis}" r="5" fill="var(--paper)" stroke="${cor}" stroke-width="2" data-tip="${esc(tipVesp(x))}"/>`;
     s+=`<circle cx="${x1.toFixed(1)}" cy="${yAxis}" r="9" fill="${cor}" stroke="var(--paper)" stroke-width="2.5" style="cursor:pointer" data-dossie="${esc(x.nome)}" data-tip="${esc(tipUrna(x))}"/></g>`;
-    (x.urna>=6?alto:baixo).push({x:x1,y:yAxis-9,cor,txt:rotUrna(x)});
     if(ehFinal(x.nome))vesp.push({x:x0,y:yAxis+5,cor,txt:`véspera ${fPct(x.media)}`});
   }
-  baixo.sort((a,b)=>a.x-b.x);
-  const fila1=[...alto,...baixo.filter((_,i)=>i%2===0)],fila2=baixo.filter((_,i)=>i%2===1);
-  s+=rotulosEmFila(fila1,58,W,10,12)+rotulosEmFila(fila2,30,W,10,12)+rotulosEmFila(vesp,150,W,10,12)+`</svg>`;
+  s+=rotulosEscada(rot.map(r=>({...r,y:yAxis-11})),yAxis-22,passo,W).s+rotulosEmFila(vesp,yAxis+58,W,10,12)+`</svg>`;
   return s;
 }
 // no celular: eixo de cima para baixo e um rótulo por linha à direita
@@ -3699,7 +3735,7 @@ for(const k of ["#ch-trends","#ch-wiki","#ch-termos","#ch-ig","#ch-idx"])DRAW[k]
 function drawBusca(){
   const tr=OITO.filter(n=>DATA.trends[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.trends[n]).map(p=>({...p,tip:`<b>${esc(n)}</b> · índice ${p.v}<br>${dBR(dISO(p.t))}`}))}));
   const wk=OITO.filter(n=>DATA.wiki[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.wiki[n]).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fInt(p.v)} acessos<br>${dBR(dISO(p.t))}`}))}));
-  const optT={ticks:[0,25,50,75,100],fmtY:v=>v}, optW={log:true,ymin:1,ymax:200000,ticks:[1,10,100,1000,10000,100000],fmtY:v=>v>=1000?(v/1000)+" mil":v};
+  const optT={ticks:[0,25,50,75,100],fmtY:v=>v}, optW={log:true,ymin:1,ymax:200000,ticks:[1,10,100,1000,10000,100000],fmtY:fAcessos};
   if(prefs.multi){multiplos("#ch-trends",tr,{...optT});multiplos("#ch-wiki",wk,{...optW});}
   else{pinta("#ch-trends",chartTempo({id:"#ch-trends",H:300,ml:52,mr:110,series:tr.filter(s=>!some(s.nome)),...optT,...janelaDe(ultDe(tr)),linhas:[MARCO1T.t],aria:"Buscas no Google por candidato"}));
        pinta("#ch-wiki",chartTempo({id:"#ch-wiki",W:560,H:260,ml:52,mr:96,series:wk.filter(s=>!some(s.nome)),...optW,...janelaDe(ultDe(wk)),linhas:[MARCO1T.t],aria:"Acessos ao verbete de cada candidato na Wikipédia",fs:11.5}));}
@@ -3741,7 +3777,8 @@ function drawPartidosBarras(){
   const rotC=(p,c)=>`<span class="lab">${c?`<span class="k">${esc(c.numero)}</span>`:""}<b>${esc(p.sigla)}</b><span style="color:var(--ink-3)">${c?esc(curto(c.nome)):(p.secundario?"apoio":"")}</span></span>`;
   let h="";
   if(R){
-    const rows=P.filter(p=>p.cand).sort((a,b)=>((b.cand.r1||{}).pct??-1)-((a.cand.r1||{}).pct??-1)),max=Math.max(...rows.map(p=>(p.cand.r1||{}).pct||0),1);
+    // o percentual do TSE vem com duas casas: no empate (Wilson Grassi e Rui Costa Pimenta, 0,01%), vale quem teve mais votos
+    const rows=P.filter(p=>p.cand).sort((a,b)=>((b.cand.r1||{}).pct??-1)-((a.cand.r1||{}).pct??-1)||((b.cand.r1||{}).votos??-1)-((a.cand.r1||{}).votos??-1)),max=Math.max(...rows.map(p=>(p.cand.r1||{}).pct||0),1);
     h+=`<div class="panel"><h3>Candidato a presidente, 1º turno</h3><div class="bars">${rows.map(p=>{const c=p.cand,r=c.r1;
       return `<div class="brow${cls(c)}">${rotC(p,c)}${r?`<span class="bar"><i style="width:${Math.max(1,r.pct/max*100).toFixed(1)}%;--bc:${COR[c.nome]}"></i></span><span class="val">${fPct2(r.pct)}%</span>`:`<span class="sem">sem candidato na totalização</span>`}</div>`;}).join("")}</div><div class="cap">Votos válidos do candidato do partido, ${esc(fonteTSE1T())}.</div></div>`;
   }
@@ -4021,7 +4058,7 @@ const CRIT_URNA=[
  ["Urna, 1º turno","Votos",c=>c.r1?{v:c.r1.votos,txt:fInt(c.r1.votos),src:fonteTSE1T(),better:"max",bar:true}:{txt:"fora da urna"}],
  ["Urna, 1º turno","Estados em 1º lugar",c=>c.r1?{v:(c.r1.ufs1||[]).length,txt:String((c.r1.ufs1||[]).length),src:(c.r1.ufs1||[]).length?(c.r1.ufs1||[]).join(", "):"nenhum",better:"max",bar:true}:{txt:"fora da urna"}],
  ["Urna, 1º turno","Estado mais forte",c=>c.r1&&c.r1.melhor?{txt:`${c.r1.melhor[0]} · ${fPct2(c.r1.melhor[1])}%`,src:"dos válidos na UF; o exterior fica de fora",plain:true}:{txt:"fora da urna",plain:true}],
- ["Urna, 1º turno","Média do mural na véspera",c=>{const v=vespDe(c.nome);return v?{v:v.media,txt:fPct(v.media)+"%",src:`votos válidos, edição de ${edVespera()} · urna ${v.dif>=0?"+":"-"}${fPct(Math.abs(v.dif))} ${pts(v.dif)}`,bar:true}:{txt:"fora da média"};}],
+ ["Urna, 1º turno","Média do mural na véspera",c=>{const v=vespDe(c.nome);return v?{v:v.media,txt:fPct(v.media)+"%",src:`votos válidos, edição de ${edVespera()} · urna ${difVesp(v.dif)?`${difVesp(v.dif)} ${pts(v.dif)}`:"igual"}`,bar:true}:{txt:"fora da média"};}],
 ];
 const CRIT_1T=[
  ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de ${diasTxt(SIG)}${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":""}`,better:"max",bar:true};}],
@@ -4097,7 +4134,12 @@ function renderTL(){
   const rows=TL.filter(e=>okCand(e)&&(!fCat.size||!fCat.has(e.categoria))&&(!q||(e.evento+" "+e.descricao+" "+e.candidato).toLowerCase().includes(q))&&(!fDia||e.data===fDia));
   const chipDia=$("#tl-dia");if(chipDia)chipDia.innerHTML=fDia?`<button type="button" class="chipbtn plain" aria-pressed="true" data-limpa-dia="1">Dia ${dBR(fDia)} ✕</button>`:"";
   const fut=rows.filter(e=>e.data>HOJE).sort((a,b)=>a.data.localeCompare(b.data)),pas=rows.filter(e=>e.data<=HOJE);
-  $("#proximos").innerHTML=fut.length&&!q&&!fDia?`<div class="ph"><span class="eyebrow">${HOJE<TURNOS.t2?"Até o 2º turno":"A seguir"}</span></div><div class="prox">${fut.slice(0,8).map(e=>`<div class="px" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></div>`).join("")}</div>`:"";
+  // o que vem pela frente em dois blocos, como na linha do tempo do estado: até o dia do 2º turno e depois
+  // dele (diplomação, posse). Até 14/10/2026 a posse aparecia sob "Até o 2º turno".
+  const px=e=>`<div class="px" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}</span></div>`;
+  const ate=fut.filter(e=>e.data.slice(0,10)<=TURNOS.t2).slice(0,8),depois=fut.filter(e=>e.data.slice(0,10)>TURNOS.t2).slice(0,Math.max(2,8-ate.length));
+  const bloco=(tit,evs)=>evs.length?`<div class="ph"><span class="eyebrow">${tit}</span></div><div class="prox">${evs.map(px).join("")}</div>`:"";
+  $("#proximos").innerHTML=fut.length&&!q&&!fDia?bloco("Até o 2º turno",ate)+bloco(ate.length?"Depois do 2º turno":"A seguir",depois):"";
   let h="",mes="";
   for(const e of pas.slice(0,shown)){
     // no mês da votação do 1º turno, o separador diz também a fase: "outubro 2026 · 2º turno" para o que
@@ -4201,14 +4243,15 @@ function encaixarDossie(render){
   const top=dz.scrollTop;dz.innerHTML=render(m);bindTips(dz);dz.scrollTop=top;
 }
 // Percentual de um candidato em cada uma das 27 UFs no 1º turno, do maior para o menor, com a posição
-// dele na UF. O exterior (ZZ) fica de fora do ranking, como em r1.melhor.
+// dele na UF. O exterior (ZZ) fica de fora do ranking, como em r1.melhor, e o empate no percentual
+// arredondado se desfaz pelos votos, também como lá.
 function porUF1T(nome){
   const P=(RES&&RES.pres&&RES.pres["1"])||{},out=[];
   for(const [uf,A] of Object.entries(P)){
     if(uf==="BR"||uf==="ZZ"||!A||!A.c)continue;
     const i=A.c.findIndex(x=>x[0]===nome);if(i>=0)out.push({uf,pct:A.c[i][5],votos:A.c[i][4],pos:i+1});
   }
-  return out.sort((a,b)=>b.pct-a.pct||a.uf.localeCompare(b.uf));
+  return out.sort((a,b)=>b.pct-a.pct||b.votos-a.votos||a.uf.localeCompare(b.uf));
 }
 // A caixa "Resultado do 1º turno" do dossiê: o número oficial, a frase de situação, a média que o
 // mural publicou na véspera (só para quem estava nela e na urna) e as 27 UFs em barras HTML.
@@ -4220,7 +4263,7 @@ function caixaResultado1T(c){
   const L=porUF1T(c.nome),max=Math.max(0.01,...L.map(x=>x.pct)),cor=COR[c.nome],v=vespDe(c.nome);
   const rows=L.map((x,i)=>`<div class="ub${x.pos===1?" primeiro":""}${i>=5&&i<L.length-5?" meio":""}"${x.pos===1?` title="1º lugar em ${x.uf}"`:""}><span class="uf">${x.uf}</span><span class="bar"><i style="width:${Math.max(1,x.pct/max*100).toFixed(1)}%;--bc:${cor}"></i></span><span class="val">${fPct2(x.pct)}%</span></div>`);
   if(L.length>10)rows.splice(5,0,`<div class="ub gap" aria-hidden="true">⋯</div>`);
-  const vesp=v?`<p class="vesp1t">Na véspera (${edVespera()}), a média do mural tinha ${fPct(v.media)}% dos válidos; a urna deu ${fPct2(v.urna)}%, ${fPct(Math.abs(v.dif))} ${pts(v.dif)} ${v.dif>=0?"acima":"abaixo"} da média.</p>`:"";
+  const vesp=v?`<p class="vesp1t">Na véspera (${edVespera()}), a média do mural tinha ${fPct(v.media)}% dos válidos; a urna deu ${fPct2(v.urna)}%, ${difVesp(v.dif)?`${fPct(Math.abs(v.dif))} ${pts(v.dif)} ${v.dif>=0?"acima":"abaixo"} da média`:"igual à média"}.</p>`:"";
   return `<div class="box r1box"><h4>Resultado do 1º turno</h4>
     <div class="r1top"><span class="big display tnum">${fPct2(r1.pct)}<small>%</small></span><span class="meta">dos votos válidos · ${r1.pos}º de ${r1.de} · ${fInt(r1.votos)} votos</span></div>
     <p class="sit">${esc(fraseResultado(c))}</p>${vesp}
@@ -4288,8 +4331,15 @@ function renderDossie(c,cwMed=0){
       <div class="box"><h4>Cronologia do candidato</h4><div class="cap">${evsC.length} eventos datados sobre ${esc(nome)}; os marcos gerais da eleição aparecem esmaecidos.</div><ul class="evs">${evsC.slice(0,40).map(e=>evLi(e,false)).join("")}${evsG.slice(0,6).map(e=>evLi(e,true)).join("")}</ul>${evsC.length>40||evsG.length>6?`<div><button type="button" class="btn" data-tl="${esc(nome)}">Ver tudo na linha do tempo</button></div>`:""}</div>
       ${R?cobH:""}
       <div class="foot-acts"><button type="button" class="btn" data-copy="1">Copiar link</button></div>
-      <div class="foot"><span>Fontes deste dossiê: ${fontesTSE}TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições${R&&fin?` de 1º turno e ${rodadas2TVV().length} rodadas de 2º turno`:""}), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
+      <div class="foot"><span>Fontes deste dossiê: ${fontesTSE}TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições${R&&fin?` de 1º turno, ${contagem2TTxt()}`:""}), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
+}
+// as rodadas do confronto Lula x Flávio separadas como na capa: as do 2º turno desde REGUA2T.inicio e as
+// simulações feitas antes do 1º turno (até 14/10/2026 o rodapé do dossiê somava as duas como rodadas de 2º turno)
+function contagem2TTxt(){
+  const nc=rodadas2TCampanha().length,na=rodadas2TAntes().length;
+  return [nc?`${pl(nc,"rodada de 2º turno","rodadas de 2º turno")} desde ${dBR(REGUA2T.inicio)}`:`nenhuma rodada de 2º turno desde ${dBR(REGUA2T.inicio)}`,
+    na?`${pl(na,"simulação","simulações")} antes do 1º turno`:""].filter(Boolean).join(" e ");
 }
 function openDossie(nome,opener){
   const c=byName[nome];if(!c)return;
@@ -4935,9 +4985,9 @@ function barrasResultado(k,cargo,turno="1"){
   const linhas=A.c.map((x,i)=>{
     const c=candUF(k,x[0]),lead=x[6]==="eleito"||x[6]==="2t";
     const corte=cargo==="senador"&&i===vagas&&A.c.length>vagas?`<div class="hb-corte" role="presentation"><span>${fin?`linha de corte: ${pl(vagas,"vaga")}, preenchidas por quem está acima`:`linha de corte das ${pl(vagas,"vaga")}, na apuração parcial`}</span></div>`:"";
-    return corte+`<div class="hb${lead?" lead":""}"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(x[1])}</b></button>`:`<b>${esc(x[1])}</b>`}<span class="pt">${esc(x[3])} · ${fInt(x[4])} votos${sitDe(k,x)?" · "+sitDe(k,x):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,x[5]/max*100)}%;background:${c?c.cor:"var(--neutro)"}"></i></span><span class="val display tnum">${fPct2(x[5])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
+    return corte+`<div class="hb${lead?" lead":""}"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(x[1])}</b></button>`:`<b>${esc(x[1])}</b>`}<span class="pt">${[esc(x[3]),fInt(x[4])+" votos",sitDe(k,x)].filter(Boolean).map(t=>`<span>${t}</span>`).join(" · ")}</span></span><span class="bar"><i style="width:${Math.max(1.5,x[5]/max*100)}%;background:${c?c.cor:"var(--neutro)"}"></i></span><span class="val display tnum">${fPct2(x[5])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
   }).join("");
-  return `<div class="hbars">${linhas}</div><div class="cap">${linkTSE(`TSE, ${fin?"resultado oficial":"apuração parcial"} do ${turno}º turno, ${secoesTSE(A)} totalizadas${A.tot.at?", "+horaTSE(A.tot.at):""}`)}. Percentual sobre os votos válidos${cargo==="senador"?"; cada eleitor votou em dois nomes":""}.</div>`;
+  return `<div class="hbars res">${linhas}</div><div class="cap">${linkTSE(`TSE, ${fin?"resultado oficial":"apuração parcial"} do ${turno}º turno, ${secoesTSE(A)} totalizadas${A.tot.at?", "+horaTSE(A.tot.at):""}`)}. Percentual sobre os votos válidos${cargo==="senador"?"; cada eleitor votou em dois nomes":""}.</div>`;
 }
 // barras de uma rodada do 2º turno estadual, com os números publicados pelo instituto
 function barras2TUF(k,R){
@@ -5166,7 +5216,8 @@ function heroResultadoUF(k,est){
       const [g,un]=dif2(x,y);
       eyebrow=`${u.nome} · Governo · sem definição no TSE · 1º turno, ${secoesTSE(a1)}`;
       duelo=lado(x,fPct2(x[5]),`1º turno · ${pv(x)}`,false)+meio(g,un,"sem definição no TSE",false,"")+lado(y,fPct2(y[5]),`1º turno · ${pv(y)}`,true);
-      tag=`Governo sem definição no TSE: ${x[1]} ${fPct2(x[5])}% · ${y[1]} ${fPct2(y[5])}%`;
+      // no máximo duas linhas a 1280px: o cargo já está no chapéu, e a manchete fica com o fato e os dois números
+      tag=`Sem definição no TSE: ${x[1]} ${fPct2(x[5])}%, ${y[1]} ${fPct2(y[5])}%`;
       lede=textoPend(k);
       desenharResultado(vv,a1,{nome:c=>c[1],cor:c=>corLinha(k,c)});
     }else{
@@ -5393,7 +5444,7 @@ function drawRodadaUF(){
   else ufCen="principal";
   $("#e-h-rod").textContent=`${ufCargo==="senador"?"Senado":"Governo"}: ${r.inst}, ${dBR(r.data)}`;
   const fonte=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${r.fonte==="W"?"Wikipédia":"fonte"}</a>`:"";
-  $("#e-cap-rod").innerHTML=[`Campo ${esc(String(r.campo).replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"))}`,r.amostra?`amostra de ${esc(r.amostra)}`:"",r.margem?`margem de ${esc(r.margem)} pontos`:"",r.modo&&r.modo!=="não informada"?`coleta ${esc(r.modo)}`:"",r.contratante?`contratante ${esc(r.contratante)}`:"",r.reg?`registro <b>${esc(r.reg)}</b>`:"sem número de registro na fonte",r.ncen>1?`${r.ncen} cenários testados`:"",fonte].filter(Boolean).join(" · ");
+  $("#e-cap-rod").innerHTML=[`Campo ${esc(String(r.campo).replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"))}`,r.amostra?`amostra de ${esc(r.amostra)}`:"",margemDe(r)?`margem de ${fPct(margemDe(r))} ${pts(margemDe(r))}`:"",r.modo&&r.modo!=="não informada"?`coleta ${esc(r.modo)}`:"",r.contratante?`contratante ${esc(r.contratante)}`:"",r.reg?`registro <b>${esc(r.reg)}</b>`:"sem número de registro na fonte",r.ncen>1?`${r.ncen} cenários testados`:"",fonte].filter(Boolean).join(" · ");
   pinta("#e-ch-rodada",barrasRodada(ufAtual,r.cargo,{rodada:r,cen:ufCen}),{zoom:false});
 }
 // O painel principal do 2º turno estadual, no topo de Pesquisas nas UFs com 2º turno: o confronto que
@@ -5410,8 +5461,12 @@ function drawConfronto2TUF(){
   const series=[];
   for(const s of [sa,sb]){
     if(antes.length)series.push({nome:nm(s),cor:corSl(k,s),sombra:true,linha:[],r:2.6,pts:antes.map(r=>ponto(s,r)),rotulo:false});
-    if(camp.length)series.push({nome:nm(s),cor:corSl(k,s),linha:m?(lc[s]||[]):[],r:3.8,lw:2.4,pts:camp.map(r=>ponto(s,r)),rotulo:m?`${esc(curtoNome(nm(s)))} ${fPct(s===m.a?m.va:m.vb)}%`:false});
+    // sem a média, o rótulo é só o nome: um número ali seria o de uma rodada, não o da média
+    if(camp.length)series.push({nome:nm(s),cor:corSl(k,s),linha:m?(lc[s]||[]):[],r:3.8,lw:2.4,pts:camp.map(r=>ponto(s,r)),rotulo:m?`${esc(curtoNome(nm(s)))} ${fPct(s===m.a?m.va:m.vb)}%`:esc(curtoNome(nm(s)))});
   }
+  // a legenda diz de quem é cada cor mesmo sem rótulo no gráfico (só simulações antes do 1º turno, que
+  // são pontos apagados e não levam rótulo)
+  $("#e-leg-2tm").innerHTML=R.length?[sa,sb].map(s=>`<span><i style="background:${corSl(k,s)}"></i>${esc(nm(s))}</span>`).join("")+(antes.length?`<span style="color:var(--ink-3)">pontos apagados: simulações antes do 1º turno</span>`:""):"";
   if(!R.length)$("#e-ch-2tm").innerHTML=`<div class="empty"><b>Sem pesquisa do confronto</b>Nenhuma rodada testou ${esc(nm(sa))} contra ${esc(nm(sb))} até agora.</div>`;
   else{
     const tUlt=R[R.length-1].t,j=janelaDe(tUlt),z=ZOOM["#e-ch-2tm"],ex=eixoVV(series,z?z[0]:j.tIni);
@@ -5488,7 +5543,7 @@ function drawPesquisasUF(){
   const todas=[...rs.map(x=>({...x,turno:1})),...r2].sort((a,b)=>b.data.localeCompare(a.data)||a.turno-b.turno);
   $("#e-cap-tb").textContent=`${pl(rs.length,"rodada")}${comRes||r2.length?" de 1º turno":""}${r2.length?` e ${r2.length} de 2º turno`:""}; a coluna fonte diz de onde vêm os números e a ficha`;
   const fmtCampo=c=>esc(String(c||"").replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"));
-  $("#e-tb-rodadas tbody").innerHTML=todas.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${esc(x.margem||"")}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${fonteRod(u,x)}</td><td>${x.turno}º</td></tr>`).join("")||`<tr><td colspan="10" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
+  $("#e-tb-rodadas tbody").innerHTML=todas.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${margemDe(x)?fPct(margemDe(x)):""}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${fonteRod(u,x)}</td><td>${x.turno}º</td></tr>`).join("")||`<tr><td colspan="10" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
   {const tb=$("#e-tb-rodadas");tb.classList.toggle("sem-contratante",!todas.some(x=>x.contratante));tb.classList.toggle("sem-cenarios",!todas.some(x=>(x.ncen||1)>1));}
   const rm=rs.filter(r=>r.modo&&r.modo!=="não informada");
   const porModo={};for(const x of rm){(porModo[x.modo]=porModo[x.modo]||[]).push(x);}
@@ -5510,7 +5565,7 @@ function drawBuscaUF(){
   const nTr=cands.filter(c=>B.tr&&B.tr[c.slug]).length, nWk=cands.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).length, nIg=cands.filter(c=>B.ig&&B.ig[c.slug]&&B.ig[c.slug].n!=null).length;
   const semDados=!nTr&&!nWk&&!nIg;
   const nCand=candsDe(ufAtual,cargo).length;
-  $("#e-sub-busca").innerHTML=semDados?`A coleta própria de busca e redes para ${cargoLabel(cargo)} ${emUF(ufAtual)} ainda não entrou nesta edição.`:`Para ${cargoLabel(cargo)}: ${nTr} de ${pl(nCand,"nome")} com série no Google Trends dentro do estado, ${nWk} com verbete na Wikipédia e ${nIg} com perfil público no Instagram informado ao TSE. Coleta própria pelo navegador do observatório${B.data?`, ${dBR(B.data)}`:""}.${nCand-nTr>0?` Faltam ${nCand-nTr} nomes, entrados depois da última coleta de busca.`:""}`;
+  $("#e-sub-busca").innerHTML=semDados?`A coleta própria de busca e redes para ${cargoLabel(cargo)} ${emUF(ufAtual)} ainda não entrou nesta edição.`:`Para ${cargoLabel(cargo)}: ${nTr} de ${pl(nCand,"nome")} com série no Google Trends dentro do estado, ${nWk} com verbete na Wikipédia e ${nIg} com perfil público no Instagram informado ao TSE. Coleta própria pelo navegador do observatório${B.data?`, ${dBR(B.data)}`:""}.${nCand-nTr>0?` ${nCand-nTr===1?"Falta 1 nome, entrado":`Faltam ${nCand-nTr} nomes, entrados`} depois da última coleta de busca.`:""}`;
   const foc=focoUF();
   // ---- trends
   const l=liderDe(ufAtual,cargo);
@@ -5530,7 +5585,7 @@ function drawBuscaUF(){
   // ---- wikipedia
   const wk=ordem.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).slice(0,8).map(c=>({nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:1.7,r:5,pontoTransp:true,pts:sStr(B.wk[c.slug].pv).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · ${fInt(p.v)} acessos<br>verbete "${esc(B.wk[c.slug].t)}"<br>${dBR(dISO(p.t))}`}))}));
   $("#e-cap-wiki").textContent=nWk?`acessos diários, escala logarítmica; ${nWk} com verbete`:"";
-  if(wk.length)pinta("#e-ch-wiki",chartTempo({id:"#e-ch-wiki",W:560,H:260,ml:52,mr:96,...janelaDe(ultDe(wk)),linhas:[MARCO1T.t],log:true,ymin:1,ymax:100000,ticks:[1,10,100,1000,10000,100000],fmtY:v=>v>=1000?(v/1000)+" mil":v,series:wk,aria:"Acessos ao verbete na Wikipédia",fs:11.5}));
+  if(wk.length)pinta("#e-ch-wiki",chartTempo({id:"#e-ch-wiki",W:560,H:260,ml:52,mr:96,...janelaDe(ultDe(wk)),linhas:[MARCO1T.t],log:true,ymin:1,ymax:100000,ticks:[1,10,100,1000,10000,100000],fmtY:fAcessos,series:wk,aria:"Acessos ao verbete na Wikipédia",fs:11.5}));
   else $("#e-ch-wiki").innerHTML=`<div class="empty"><b>Sem verbete localizado</b>Nenhum candidato desta disputa tem verbete na Wikipédia localizado pela coleta.</div>`;
   // ---- instagram (snapshot em barras)
   const ig=ordem.filter(c=>B.ig&&B.ig[c.slug]&&B.ig[c.slug].n!=null).sort((a,b)=>B.ig[b.slug].n-B.ig[a.slug].n);
