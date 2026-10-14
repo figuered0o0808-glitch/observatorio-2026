@@ -3784,6 +3784,8 @@ let ufCargoCards = ufCargo, ufRodada = null, ufLado = [], ufCen = null, ufInstOf
 const VAGAS = c => (CARGOS[c]||CARGOS.governador).vagas;
 const cargoLabel = c => (CARGOS[c]||CARGOS.governador).label;
 const cargoArt = c => (CARGOS[c]||CARGOS.governador).art;
+// "ao governo", "ao Senado", "à Assembleia Legislativa": a preposição contraída com o artigo do cargo
+const aoCargo = c => {const a=cargoArt(c);return a.startsWith("o ")?"a"+a:a.startsWith("a ")?"à "+a.slice(2):"a "+a;};
 const cargoPor = c => (CARGOS[c]||CARGOS.governador).por;
 const cargoDisputa = c => c==="senador"?"Senado (2 vagas)":c==="governador"?"Governo do estado":cargoLabel(c);
 const temPesquisa = c => (CARGOS[c]||CARGOS.governador).pesq;
@@ -4659,8 +4661,8 @@ function subCand(u){
   if(temPesquisa(ufCargoCards)){
     // com resultado: quantas estiveram na urna e o que a apuração diz, contado do dado
     const l=listaDe(u,ufCargoCards),urna=l.filter(c=>c.r1).length,fora=l.filter(c=>c.fora).length;
-    if(urna)return `Todas as ${l.length} candidaturas a ${cargoArt(ufCargoCards)} registradas no TSE ${emUf}: ${urna} na urna em ${dBR(TURNOS.t1)}${fora?` e ${fora} fora da apuração`:""}. Os cartões vão na ordem dos votos; "Abrir dossiê" traz o resultado no TSE, a ficha completa e as pesquisas.`;
-    return `Todas as ${l.length} candidaturas a ${cargoArt(ufCargoCards)} registradas no TSE ${emUf}. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;}
+    if(urna)return `Todas as ${l.length} candidaturas ${aoCargo(ufCargoCards)} registradas no TSE ${emUf}: ${urna} na urna em ${dBR(TURNOS.t1)}${fora?` e ${fora} fora da apuração`:""}. Por padrão, os cartões vão na ordem dos votos; "Abrir dossiê" traz o resultado no TSE, a ficha completa e as pesquisas.`;
+    return `Todas as ${l.length} candidaturas ${aoCargo(ufCargoCards)} registradas no TSE ${emUf}. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;}
   const l=listaDe(u,ufCargoCards),a=l.filter(c=>c.cat==="A").length,b=l.filter(c=>c.cat==="B").length;
   return `${pl(l.length,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargoCards)} ${emUf}: `
     +(a||b?`${a} em busca de reeleição e ${b} de estreia com repercussão. `:"")
