@@ -2072,6 +2072,16 @@ with sync_playwright() as p:
     graf_ok = all(v is not None and all(x["series"] >= 1 and not x["dim"] for x in v.values()) for k, v in n13.items() if k.startswith("#"))
     check("N13: com outro nome em foco no modo 'só eles', os dois do 2º turno seguem visíveis e sem esmaecer nos gráficos do 2º turno da capa",
           graf_ok and all(n13["rotulos"]) and n13["tilesDim"] == 0 and n13["duelo"] == 2, n13)
+    # B10 na integração de 14/10/2026: a barra #focus não aparece na capa, que não obedece ao foco, e em
+    # Pesquisas diz que o foco é do 1º turno; o Personalizar abre o destaque pelos dois do 2º turno
+    bf = page.evaluate("""() => { prefs.foco = ['Augusto Cury']; atualizarFoco(); const f = document.querySelector('#focus'), out = {};
+        irPara('geral'); out.geral = f.hidden; irPara('pesquisas'); out.pesq = f.hidden; out.rot = (f.querySelector('.eyebrow') || {}).textContent;
+        renderPrefs(); out.prefs = [...document.querySelectorAll('#prefs input[data-foco]')].slice(0, FINAL.length).map(i => i.dataset.foco);
+        out.legenda = (document.querySelector('#prefs legend') || {}).textContent; out.final = [...FINAL].filter(n => OITO.includes(n));
+        prefs.foco = []; salvar(); atualizarFoco(); irPara('geral'); return out; }""")
+    check("B10: a barra de foco some da capa, diz '1º turno' em Pesquisas, e o Personalizar abre pelos dois do 2º turno",
+          bf["geral"] and not bf["pesq"] and "1º turno" in (bf["rot"] or "") and "1º turno" in (bf["legenda"] or "")
+          and sorted(bf["prefs"][:len(bf["final"])]) == sorted(bf["final"]), bf)
     check("N13 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
@@ -2199,6 +2209,17 @@ with sync_playwright() as p:
             ruins += re.findall(r"\bundefined\b|\bNaN\b", r["capa"])
             check(f"N8 {rot}: a capa da fase {fase} sem frase de 1º turno em aberto, travessão ou buraco de dado, manchete em até duas linhas",
                   not ruins and 1 <= r["linhas"] <= 2, {"ruins": ruins[:5], "manchete": r["manchete"], "linhas": r["linhas"]})
+            # o mesmo relógio numa UF com 2º turno de governador (AM quando o dado a lista, senão a
+            # primeira de uf2t; sem resultado, AM): as oito editorias do estado sem buraco de dado nem
+            # travessão (integração de 14/10/2026, quando capa e estados passaram a ler a mesma fase)
+            u = page.evaluate("""() => { const k = UF2T.includes('AM') || !UF2T.length ? 'AM' : UF2T[0], out = {uf: k, ruins: [], abas: 0};
+                trocarEscopo('uf'); trocarUF(k); trocarCargoUF('governador');
+                for (const [a] of ABAS_UF) { irPara(a); const v = document.querySelector('.view.on'); if (!v) continue; out.abas++;
+                    const c = v.cloneNode(true); c.querySelectorAll('#e-stream,#e-tb-rodadas,script,style').forEach(e => e.remove());
+                    const m = c.textContent.match(/\bundefined\b|\bNaN\b|[\u2014\u2013]/g); if (m) out.ruins.push([a, [...new Set(m)]]); }
+                trocarEscopo('br'); return out; }""")
+            check(f"N7/N8 {rot}: as editorias de {u['uf']} (governo) sem 'undefined', 'NaN' nem travessão",
+                  u["abas"] >= 8 and not u["ruins"], u)
             check(f"N7/N8 {rot} sem erro de página", not errs, errs)
             b.close()
     finally:

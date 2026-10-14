@@ -46,7 +46,23 @@ pip install -r requirements.txt --break-system-packages   # uma vez
 playwright install chromium                                # uma vez
 ./testes/verificar.sh                                       # regenera e verifica
 ./testes/verificar.sh --pular-geracao                        # só verifica o que já existe
+./testes/ensaio_rodada.sh                                    # ensaia a rodada automática, sem rede
 ```
+
+`testes/ensaio_rodada.sh` copia o repositório (com o que não foi commitado) para
+uma pasta temporária, roda nela o coletor nacional com uma página da Wikipédia
+guardada em `testes/fixtures/wikipedia/`, o guarda de dados e o `verificar.sh`
+inteiro. É o que o `atualizar.yml` faz, sem rede. Rode antes de juntar qualquer
+mudança de gerador ou template na `main`: foi assim que se viu, em 13/10/2026,
+que as primeiras rodadas só de 2º turno derrubavam a regressão e travavam a
+publicação.
+
+A regressão também gera murais numa pasta temporária com as fixtures de
+resultado de `testes/fixtures/resultados/` (`zerado`, `parcial`, `final`, mais
+o mural sem resultado), via `MURAL_RESULTADOS`, e abre a capa e uma UF de 2º
+turno com o relógio fixo em Brasília (`page.clock.install`) em cada fase da
+noite de 25/10. Teste que depende do dia nunca fixa o número do dia: confere a
+regra contra o dado (o CSV de resultados, as rodadas da página).
 
 `testes/regressao_bugs_conhecidos.py` reproduz cada bug já corrigido e falha se
 algum voltar. `testes/varredura_geral.py` é uma rede de segurança mais ampla:
@@ -75,8 +91,16 @@ testes antes de publicar qualquer edição nova.
   o gerador, linha a linha e sem nunca derrubá-lo; `MURAL_RESULTADOS` aponta para
   outra pasta, como as fixtures de `testes/fixtures/resultados/`. Sem os CSVs, o
   mural fica só com as pesquisas.
+- `dados/resultados/` - o resultado oficial do TSE (`candidatos.csv` e
+  `totais.csv`), gravado pela rodada automática. A coluna que vale é
+  `situacao`; a coluna `eleito` vem `s` também para quem foi ao 2º turno e não
+  se usa. As UFs com 2º turno de governador saem das linhas de turno 2 de
+  `totais.csv`, nunca da situação do 1º turno (Tocantins). Não se edita à mão.
 - `dados/medias-publicadas.csv` - a média que o mural publicou na véspera do 1º
-  turno (3/10/2026, 23h12), guardada como registro; arquivo manual.
+  turno (3/10/2026, 23h12), guardada como registro; arquivo manual, protegido
+  pelo guarda. A comparação pesquisas x urna usa esse número, não a conta
+  refeita (três rodadas de 3/10 só entraram na base em 4/10), e mostra a conta
+  refeita ao lado.
 - `mural/mural.html` - o mural gerado, o que é publicado.
 - `index.html` - cópia idêntica do mural na raiz, gerada junto, é o que o
   GitHub Pages serve em https://muraldoscandidatos.com/.
@@ -195,16 +219,36 @@ projeto:
   factuais. A da home sai de `textoManchete()`: a apuração do 2º turno pelo TSE
   quando ela começar, a média do 2º turno (`media2T`) na campanha, o resultado
   do 1º turno sem média da campanha e, sem resultado nenhum, as simulações ou
-  `ORDEM()`; a dos estados, de `liderDe()` (última rodada do estado). Não
+  `ORDEM()`. `ORDEM()` é a média do 1º turno e só vale para o histórico e para
+  o mural sem resultado: nenhuma manchete, placar, mensagem ou cartão og do 2º
+  turno traz o trio dela. A dos estados sai do caso do estado (`estadoUF`): o
+  resultado do TSE, a média do 2º turno (`mediaUF2T`) nas UFs de 2º turno com
+  rodadas bastantes e, só sem resultado, a média de pesquisa do estado. Não
   escrever leitura editorial ali: o observatório publica número com data e
   fonte, e quem lidera muda com o dado. O placar (`#duelo`), a régua
   (`#validos`), o lede, o cartão og (`montarOG`) e as mensagens de compartilhar
   seguem a mesma ordem, e a fase do dia sai de `faseAgora()`.
 - Gráficos: `chartTempo` desenha na largura do contêiner sempre que ela for
-  menor que o viewBox pedido, e `drawRegua`/`drawBens` aceitam largura (versão
-  vertical no celular). Ao mostrar uma editoria que estava oculta,
+  menor que o viewBox pedido, e `drawUrna` (pesquisas x urna na capa) e
+  `drawBens` aceitam largura (versão vertical no celular). Ao mostrar uma editoria que estava oculta,
   `reajustarGraficos()` redesenha na largura real; `DRAW` guarda quem redesenha
   cada contêiner.
+- A capa (`#v-geral`) é do 2º turno desde 13/10/2026, nesta ordem: o hero
+  (`#duelo` por `drawDuelo`, `#validos`, `#ch-hero`), os tiles do resultado
+  oficial do 1º turno (`drawTiles`), o painel do 2º turno (`#p-home-2t`, janela
+  padrão `'2t'`), os governos em 2º turno (`#p-home-gov`), pesquisas x urna
+  (`#p-urna`), o placar e os destaques. A fase do dia (`FASE`, de
+  `faseAgora()`: `entre`, `votacao`, `apuracao`, `fim`) decide o chapéu, a
+  contagem, a manchete e as mensagens. Sem os CSVs de resultado, ou sem rodada
+  de 2º turno depois de 4/10, cada bloco cai no comportamento de pesquisa
+  (resultado ausente, simulações anteriores) em vez de quebrar; o N7/N8 da
+  regressão confere isso.
+- Nenhum número nem contagem do TSE é escrito no template: UFs com 2º turno
+  (`UF2T`), Tocantins (`UFPEND`), eleitos, a ordem dos candidatos e os
+  percentuais saem de `DATA.resultados` (`RES`). O foco (`prefs.foco`, a barra
+  `#focus`) vale só para o histórico do 1º turno, busca e redes, bens e o filtro
+  da linha do tempo; os gráficos e cartões do 2º turno não esmaecem nem somem
+  ninguém.
 - Ausência de dado não vira texto repetido: quando a rodada não traz modo de
   coleta, o texto omite o trecho em vez de anunciar a falta em cada linha. A
   falta de registro no TSE continua dita uma vez, porque muda o valor da ficha.

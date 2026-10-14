@@ -2626,8 +2626,7 @@ function trocarEscopo(e,push=true){
   ABAS = escopo==="uf"?ABAS_UF:ABAS_BR;
   $$("[data-escopo]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.escopo===escopo));
   $("#ufbar").hidden = escopo!=="uf";
-  $("#focus").hidden = escopo==="uf" || !prefs.foco.length;
-  abaAtual = ABAS[0][0]; pintarAbas();
+  abaAtual = ABAS[0][0]; mostrarFoco(); pintarAbas();
   if(escopo==="uf")desenharUF();
   irPara(abaAtual,push);
 }
@@ -2635,7 +2634,7 @@ function irPara(id,push=true){
   if(!ABAS.some(a=>a[0]===id))id=ABAS[0][0];
   // editoria que pede conta: em vez de mostrar uma página vazia, abre o cadastro e fica onde está
   if(precisaConta(id)){abrirConta("criar");return;}
-  abaAtual=id;
+  abaAtual=id;mostrarFoco();
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+id));
   $$("#tabs-editorias button").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===id));
   centrarAba();
@@ -4090,7 +4089,7 @@ function renderTL(){
     if(k!==mes){mes=k;h+=`<li class="month">${MES[+m.slice(5,7)-1]||m} ${m.slice(0,4)}${fase}</li>`;}
     h+=`<li class="ev" style="--evc:${CATC[e.categoria]||"var(--ink-3)"}"><span class="dt">${e.data.length>=10?dBR(e.data)+"/"+e.data.slice(2,4):esc(e.data)}</span><div><span class="who">${e.candidato==="todos"?"eleição":esc(e.candidato)}</span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.evento)}</a>`:esc(e.evento)}<span class="tag">${esc(e.categoria)}</span>${e.descricao?`<span class="desc" title="Clique para ler tudo">${esc(e.descricao)}</span>`:""}</div></li>`;
   }
-  $("#stream").innerHTML=h||`<li><div class="empty"><b>${fCand==="__foco"&&!prefs.foco.length?"Ninguém em foco":"Nada apurado"}</b>${fCand==="__foco"&&!prefs.foco.length?"Marque candidatos com a estrela nas fichas para filtrar por eles.":"Nenhum evento datado com esse filtro."}</div></li>`;
+  $("#stream").innerHTML=h||`<li><div class="empty"><b>${fCand==="__foco"&&!prefs.foco.length?"Ninguém em foco":"Nada apurado"}</b>${fCand==="__foco"&&!prefs.foco.length?"Escolha candidatos em Personalizar, no item Destaque nos gráficos do 1º turno, para filtrar por eles.":"Nenhum evento datado com esse filtro."}</div></li>`;
   $("#more").textContent=pas.length>shown?`Mostrar mais (${pas.length-shown} restantes)`:`Todos os ${pas.length} eventos exibidos`;
   $("#more").disabled=pas.length<=shown;
 }
@@ -4297,10 +4296,18 @@ document.addEventListener("click",e=>{
 
 // ---- foco (personalização dos gráficos)
 function toggleFoco(nome){const i=prefs.foco.indexOf(nome);if(i>=0)prefs.foco.splice(i,1);else prefs.foco.push(nome);salvar();atualizarFoco();}
+// Desde 13/10/2026 o foco não mexe nos gráficos do 2º turno (a capa, o gráfico principal de Pesquisas):
+// ele vale para o histórico do 1º turno, para busca e redes, para os bens e para o filtro da linha do
+// tempo. A barra só aparece nessas editorias, para não sugerir que a capa obedece a ela.
+function mostrarFoco(){
+  const el=$("#focus");if(!el)return;
+  el.hidden=escopo==="uf"||!prefs.foco.length||!["pesquisas","busca","candidatos","tempo"].includes(abaAtual);
+  const e=el.querySelector(".eyebrow");if(e)e.textContent=abaAtual==="pesquisas"?"Em foco no 1º turno":"Em foco";
+}
 function atualizarFoco(){
   const el=$("#focus");
-  if(!prefs.foco.length)el.hidden=true;
-  else{el.hidden=false;el.innerHTML=`<span class="eyebrow">Em foco</span>`+prefs.foco.map(n=>`<button type="button" class="chip" data-vig="${esc(n)}" title="Tirar do foco"><i style="width:8px;height:8px;border-radius:2px;background:${COR[n]||"var(--neutro)"};display:inline-block;align-self:center"></i><b>${esc(n)}</b><span class="x" aria-hidden="true">✕</span></button>`).join("")+`<div class="seg" role="group" aria-label="Como aplicar o foco"><button type="button" data-modo="destacar" aria-pressed="${prefs.modo==="destacar"}">Destacar</button><button type="button" data-modo="so" aria-pressed="${prefs.modo==="so"}">Só eles</button></div><button type="button" class="btn" data-limpar="1">Limpar</button>`;}
+  mostrarFoco();
+  if(prefs.foco.length){el.innerHTML=`<span class="eyebrow">${abaAtual==="pesquisas"?"Em foco no 1º turno":"Em foco"}</span>`+prefs.foco.map(n=>`<button type="button" class="chip" data-vig="${esc(n)}" title="Tirar do foco"><i style="width:8px;height:8px;border-radius:2px;background:${COR[n]||"var(--neutro)"};display:inline-block;align-self:center"></i><b>${esc(n)}</b><span class="x" aria-hidden="true">✕</span></button>`).join("")+`<div class="seg" role="group" aria-label="Como aplicar o foco"><button type="button" data-modo="destacar" aria-pressed="${prefs.modo==="destacar"}">Destacar</button><button type="button" data-modo="so" aria-pressed="${prefs.modo==="so"}">Só eles</button></div><button type="button" class="btn" data-limpar="1">Limpar</button>`;}
   $$(".btn.star").forEach(b=>{const on=prefs.foco.includes(b.dataset.vig);b.setAttribute("aria-pressed",on);b.innerHTML=`<span class="glyph" aria-hidden="true">${on?"★":"☆"}</span>${on?"Em foco":"Pôr em foco"}`;const cd=b.closest(".card");if(cd)cd.classList.toggle("vigiado",on);});
   redraw();
 }
@@ -4315,7 +4322,7 @@ function renderPrefs(){
   const seg=(k,opts)=>`<div class="seg" role="group">${opts.map(([v,t])=>`<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(prefs[k])===String(v)}">${t}</button>`).join("")}</div>`;
   pr.innerHTML=`<div class="dr"><div class="dhead"><h2 id="prefs-title" class="display">Personalizar</h2><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
   <div class="dbody">
-    <fieldset><legend>Candidatos em foco</legend><div class="opts">${OITO.map(n=>`<label class="ck${prefs.foco.includes(n)?" on":""}"><input type="checkbox" data-foco="${esc(n)}" ${prefs.foco.includes(n)?"checked":""}><i style="background:${COR[n]}"></i>${esc(n)}</label>`).join("")}</div><p class="hint">Os demais registrados entram pela estrela da ficha. Vale para todos os gráficos, o comparador e a linha do tempo.</p>${seg("modo",[["destacar","Destacar"],["so","Só eles"]])}<p class="hint">"Destacar" esmaece os demais; "Só eles" tira os demais dos gráficos.</p></fieldset>
+    <fieldset><legend>Destaque nos gráficos do 1º turno</legend><div class="opts">${[...OITO.filter(n=>ehFinal(n)),...OITO.filter(n=>!ehFinal(n))].map(n=>`<label class="ck${prefs.foco.includes(n)?" on":""}"><input type="checkbox" data-foco="${esc(n)}" ${prefs.foco.includes(n)?"checked":""}><i style="background:${COR[n]}"></i>${esc(n)}</label>`).join("")}</div><p class="hint">Vale para o histórico do 1º turno em Pesquisas, para Busca e redes, para os bens e para o filtro da linha do tempo. Os gráficos do 2º turno mostram sempre os dois que disputam o 2º turno.</p>${seg("modo",[["destacar","Destacar"],["so","Só eles"]])}<p class="hint">"Destacar" esmaece os demais; "Só eles" tira os demais dos gráficos.</p></fieldset>
     <fieldset><legend>Janela de tempo</legend>${seg("janela",JANELAS.map(j=>[j[0],j[1]]))}<p class="hint">Vale para todos os gráficos de série temporal. A faixa sombreada é a fase do turno de cada gráfico: ${esc(FAIXA1T.rot)}, desde ${dBR(dISO(FAIXA1T.ini))}, e ${esc(FAIXA2T.rot)}, desde ${dBR(dISO(FAIXA2T.ini))}.</p></fieldset>
     <fieldset><legend>Busca e redes</legend>${seg("multi",[["0","Sobrepostos"],["1","Um por candidato"]])}</fieldset>
     <fieldset><legend>Tema</legend>${seg("tema",[["sistema","Sistema"],["claro","Claro"],["escuro","Escuro"]])}</fieldset>
