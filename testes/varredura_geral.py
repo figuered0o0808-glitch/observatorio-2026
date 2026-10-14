@@ -147,7 +147,8 @@ with sync_playwright() as p:
     check("todos os dossiês de estado abriram", all(a[2] for a in amostra), amostra)
     b.close()
 
-    # ---- 3. abas nacionais + dossiê nacional
+    # ---- 3. abas nacionais + dossiês nacionais: desde 13/10/2026, todos os presidenciáveis (os do
+    # 2º turno, os não eleitos e os que ficaram fora da urna), sem "undefined" nem "NaN" no texto
     b, page, errs = novo_ctx(p)
     page.goto(URL)
     page.wait_for_timeout(500)
@@ -156,12 +157,15 @@ with sync_playwright() as p:
         // as editorias saem da barra desenhada, e não de uma lista escrita aqui
         const abas = [...document.querySelectorAll('#tabs-editorias button[role=tab]')].map(b => b.dataset.aba);
         for (const a of abas) irPara(a);
-        openDossie('Lula'); document.querySelector('#dossie').close();
-        openDossie('Flávio Bolsonaro'); document.querySelector('#dossie').close();
-        return abas.length;
+        const ruins = [];
+        for (const c of C) { openDossie(c.nome); const d = document.querySelector('#dossie');
+            if (!d.open || /undefined|NaN/.test(d.textContent)) ruins.push(c.nome); d.close(); }
+        const telas = ['#v-candidatos', '#v-lado', '#v-partidos'].filter(sel => /undefined|NaN/.test(document.querySelector(sel).textContent));
+        return {abas: abas.length, n: C.length, ruins, telas};
     }""")
     novos = [e for e in errs if ruim(e)]
-    check("abas nacionais + 2 dossiês sem erro novo", r >= 8 and len(novos) == 0, {"abas": r, "erros": novos[:10]})
+    check("abas nacionais + %d dossiês nacionais sem erro novo" % r["n"], r["abas"] >= 8 and len(novos) == 0, {"abas": r["abas"], "erros": novos[:10]})
+    check("dossiês nacionais, Candidatos, Lado a lado e Partidos sem 'undefined' nem 'NaN'", not r["ruins"] and not r["telas"], r)
     b.close()
 
     # ---- 4. mobile (390px), tema claro
