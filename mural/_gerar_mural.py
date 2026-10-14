@@ -77,10 +77,13 @@ for r in pesq:
         r["instituto"] = INST_ALIAS.get(r["instituto"], r["instituto"])
 
 # ---------------------------------------------------------------- pesquisas
-# A ficha de cada rodada (instituto, divulgação) sai de uma linha da base. Quando as linhas da
-# rodada trazem metadados diferentes, vale a que tem registro no TSE: o Datafolha de 3/10/2026 tem
-# o 1º turno de uma reportagem (n=2002, sem registro) e o 2º turno da ficha presencial (n=4006,
-# BR-01708/2026), e a ficha mostrava a primeira. O CSV não muda; o aviso lista as rodadas misturadas.
+# O modo de coleta da rodada (instituto, divulgação) sai de uma linha da base, a que tem registro no TSE
+# quando alguma tem. A ficha técnica que o mural mostra não mistura linhas: quando as linhas da rodada
+# trazem campo, metodologia ou registro diferentes, cada grupo vira uma ficha própria, com a URL e o
+# turno das suas linhas (mais abaixo, em fichas). O Datafolha de 3/10/2026 tem o 1º turno de uma
+# reportagem (campo de 1 a 3/10, n=2002, sem registro) e o 2º turno da ficha presencial (campo em 3/10,
+# n=4006, BR-01708/2026); o PoderData de 3/10 tem o registro só na linha de rejeição, que vem de outro
+# artigo. O CSV não muda, e o aviso lista essas rodadas para a conferência à mão.
 _CAMPOS_FICHA = ("data_campo_inicio", "data_campo_fim", "metodologia", "registro_tse")
 rodadas, _linhas_rodada = {}, defaultdict(list)
 for r in pesq:
@@ -92,9 +95,9 @@ for r in pesq:
 rodadas_misturadas = sorted((k for k, ls in _linhas_rodada.items()
                              if len({tuple(x[c] for c in _CAMPOS_FICHA) for x in ls}) > 1), key=lambda k: (k[1], k[0]))
 for _k in rodadas_misturadas:
-    _reg = rodadas[_k]["registro_tse"].strip()
-    print(f"AVISO rodada com metadados diferentes entre as linhas: {_k[0]} {_k[1]}; a ficha usa "
-          + (f"a linha com registro {_reg}" if _reg else "a primeira linha, nenhuma tem registro"))
+    _n = len({tuple(x[c] for c in _CAMPOS_FICHA) for x in _linhas_rodada[_k]})
+    print(f"AVISO rodada com metadados diferentes entre as linhas: {_k[0]} {_k[1]}; a tabela mostra "
+          f"{_n} fichas, uma por grupo de linhas, cada uma com a sua fonte")
 def modo_de(met):
     m = (met or "").lower()
     if "telefon" in m: return "telefônica"
@@ -220,13 +223,25 @@ _pos = {k for k in chaves2t if cf2t.get(k, k[1]) > FIM_1T}
 meta["t2"].update({"pos1t": len(_pos), "inst_pos1t": len({k[0] for k in _pos}),
                    "primeira_pos1t": min((k[1] for k in _pos), default="")})
 
-# fichas técnicas por rodada (para tooltip e tabela de rodadas); "t" diz de que turno a rodada traz
-# intenção de voto ("1", "2", "12" ou "" para rodada só de rejeição ou de outro confronto)
-fichas = [{"inst": k[0], "dt": k[1], "campo": f'{v["data_campo_inicio"]} a {v["data_campo_fim"]}',
-           "met": v["metodologia"], "reg": v["registro_tse"], "url": v["url"],
-           "t": ("1" if k in chaves1t else "") + ("2" if k in chaves2t else ""),
-           "modo": modo_rodada.get(k, "não informada")}
-          for k, v in sorted(rodadas.items(), key=lambda kv: kv[0][1])]
+# fichas técnicas por rodada (para tooltip e tabela de rodadas); "t" diz de que turno a ficha traz
+# intenção de voto ("1", "2", "12" ou "" para rodada só de rejeição ou de outro confronto). Rodada com
+# linhas de ficha diferente tem uma ficha por grupo, na ordem da base, e cada uma leva a URL da primeira
+# linha do grupo e o turno das linhas do grupo, as mesmas regras de chaves1t e chaves2t.
+def _turnos_de(ls):
+    t1 = any(num(x["percentual"]) is not None and x["cenario"].startswith("1º turno") for x in ls)
+    t2 = any(num(x["percentual"]) is not None and x["cenario"] == CENARIO_2T
+             and x["candidato"] in ("Lula", "Flávio Bolsonaro") for x in ls)
+    return ("1" if t1 else "") + ("2" if t2 else "")
+fichas = []
+for k in sorted(rodadas, key=lambda k: k[1]):
+    _grupos_ficha = {}
+    for x in _linhas_rodada[k]:
+        _grupos_ficha.setdefault(tuple(x[c] for c in _CAMPOS_FICHA), []).append(x)
+    for ls in _grupos_ficha.values():
+        v = ls[0]
+        fichas.append({"inst": k[0], "dt": k[1], "campo": f'{v["data_campo_inicio"]} a {v["data_campo_fim"]}',
+                       "met": v["metodologia"], "reg": v["registro_tse"], "url": v["url"], "t": _turnos_de(ls),
+                       "modo": modo_rodada.get(k, "não informada")})
 
 # ---------------------------------------------------------------- redes
 ig_serie = defaultdict(list)
@@ -400,9 +415,14 @@ def _r_pres(nome, turno):
         return next((y for y in a["c"] if y[0] == nome), None) if a else None
     nas_ufs = [(uf, linha_em(uf)) for uf in _R.UFS if linha_em(uf)]
     if nas_ufs:
-        # o percentual vem arredondado em duas casas, e o empate nele se desfaz pelos votos (Edmilson
-        # Costa tinha 0,03% no AC, com 140 votos, e no RJ, com 2.854; o AC saía por vir antes na lista)
-        uf, y = max(nas_ufs, key=lambda t: (t[1][5], t[1][4]))
+        # o percentual vem arredondado em duas casas, e o empate nele se desfaz pela fração exata, votos
+        # sobre válidos da UF (totais.csv). Votos absolutos não servem: comparam eleitorados diferentes e
+        # dão a vitória ao estado mais populoso (Rui Costa Pimenta empata no arredondado em SP, RJ, RS e DF;
+        # a fração é maior no DF, e o desempate pelos votos dava SP)
+        def fracao(t):
+            vv = (por_ab[t[0]].get("tot") or {}).get("vv")
+            return t[1][4] / vv if vv else t[1][5] / 100
+        uf, y = max(nas_ufs, key=lambda t: (t[1][5], fracao(t)))
         r["melhor"] = [uf, y[5]]
         r["ufs1"] = sorted(uf for uf, _ in nas_ufs if por_ab[uf]["c"][0][0] == nome)
     ext = linha_em("ZZ")

@@ -2240,15 +2240,29 @@ with sync_playwright() as p:
     pct18 = lambda v: f"{float(v):.2f}".replace(".", ",")
     # dois retângulos se tocam ou se cruzam (com folga de 1px)
     JS_TOCA = "const toca = (a, b, g = 1) => a.left < b.right + g && b.left < a.right + g && a.top < b.bottom + g && b.top < a.bottom + g;"
-    JS_G2T = """() => { const out = [], ufs = UF2T.filter(uf => resGov('1', uf) || resGov('2', uf)); let n = 0;
+    # linhas de texto de um elemento, contadas palavra a palavra pelo centro vertical de cada uma (o partido,
+    # menor, tem outro topo na mesma linha); o percentual (.v) fica de fora
+    JS_LINHAS = """const linhasDe = (el) => { const ys = [], tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let t;
+        while ((t = tw.nextNode())) { if (t.parentElement.closest('.v')) continue; const re = /\\S+/g; let m;
+          while ((m = re.exec(t.data))) { const r = document.createRange(); r.setStart(t, m.index); r.setEnd(t, m.index + m[0].length);
+            const q = r.getBoundingClientRect(), y = (q.top + q.bottom) / 2; if (q.width && !ys.some(v => Math.abs(v - y) < 6)) ys.push(y); } }
+        return ys.length; };"""
+    # (a) nome inteiro em até duas linhas, partido inteiro em uma linha a mais no máximo, nada transbordando
+    JS_G2T = """() => { """ + JS_LINHAS + """ const out = [], ufs = UF2T.filter(uf => resGov('1', uf) || resGov('2', uf)); let n = 0;
         for (const uf of ufs) { const A = resGov('2', uf) || resGov('1', uf), card = document.querySelector('#home-gov a[href="#uf-' + uf.toLowerCase() + '-governo"]');
           if (!card) { out.push([uf, 'sem cartão']); continue; }
           const lins = [...card.querySelectorAll('.lin')];
           A.c.slice(0, 2).forEach((c, i) => { n++; const nm = lins[i] && lins[i].querySelector('.nm'), b = nm && nm.querySelector('b'), pt = nm && nm.querySelector('.pt');
-            const linhas = b ? new Set([...b.getClientRects()].map(r => Math.round(r.top))).size : 0;
-            if (!b || b.textContent !== c[1] || !pt || pt.textContent.indexOf(c[3]) !== 0 || nm.scrollWidth > nm.clientWidth + 1 || linhas > 2)
-              out.push([uf, c[1], b ? b.textContent : null, nm ? [nm.scrollWidth, nm.clientWidth] : null, linhas]); }); }
+            const lb = b ? linhasDe(b) : 0, lt = nm ? linhasDe(nm) : 0;
+            if (!b || b.textContent !== c[1] || !pt || pt.textContent.indexOf(c[3]) !== 0 || nm.scrollWidth > nm.clientWidth + 1 || lb > 2 || lt > lb + 1)
+              out.push([uf, c[1], b ? b.textContent : null, nm ? [nm.scrollWidth, nm.clientWidth] : null, lb, lt, Math.round(card.getBoundingClientRect().width)]); }); }
         return {ruins: out, n, esperado: 2 * ufs.length}; }"""
+    # o mesmo, com a lista dos cartões em toda largura de 1232px a 200px, de 4 em 4: em larguras
+    # intermediárias (1180, 960, 700, 460px) o nome "Professora Maria do Carmo" saía em três linhas, e a
+    # conferência em três larguras de tela não pegava
+    JS_G2T_VARRE = """() => { const el = document.querySelector('#home-gov'), w0 = el.style.width, ruins = []; let n = 0;
+        for (let w = 1232; w >= 200; w -= 4) { el.style.width = w + 'px'; const r = (""" + JS_G2T + """)(); n++; if (r.ruins.length) ruins.push([w, r.ruins[0]]); }
+        el.style.width = w0; return {n, ruins: ruins.slice(0, 6), nRuins: ruins.length}; }"""
     JS_URNA18 = "() => { " + JS_TOCA + """ const svg = document.querySelector('#ch-urna svg'); if (!svg) return {n: 0, ruins: ['sem svg']};
         const txt = [...svg.querySelectorAll('g.lbl text, g.tick text')].map(t => ({s: t.textContent, b: t.getBoundingClientRect()})), out = [];
         for (let i = 0; i < txt.length; i++) for (let j = i + 1; j < txt.length; j++) if (toca(txt[i].b, txt[j].b, 0)) out.push(txt[i].s + ' | ' + txt[j].s);
@@ -2259,7 +2273,7 @@ with sync_playwright() as p:
             if (t) { out.push('guia de ' + s + ' sobre ' + t.s); break; } } }
         return {n: svg.querySelectorAll('g.lbl text').length, ruins: [...new Set(out)]}; }"""
     JS_MARCO18 = "(sel) => { " + JS_TOCA + """ const svg = document.querySelector(sel + ' svg'); if (!svg) return {n: 0, ruins: ['sem svg']};
-        const ax = [...svg.querySelectorAll('text.axis')].map(t => ({s: t.textContent, b: t.getBoundingClientRect()}));
+        const ax = [...svg.querySelectorAll('text.axis, text.reta-l')].map(t => ({s: t.textContent, b: t.getBoundingClientRect()}));
         const mk = [...svg.querySelectorAll('g.marcos circle')].map(c => c.getBoundingClientRect());
         return {n: mk.length, ruins: mk.flatMap(m => ax.filter(a => toca(m, a.b)).map(a => a.s))}; }"""
     for w18, h18 in ((1280, 900), (768, 1024), (390, 844)):
@@ -2270,6 +2284,10 @@ with sync_playwright() as p:
         if g18["esperado"]:
             check(f"N18a: a {w18}px cada finalista de 'Governo em 2º turno' aparece com o nome inteiro, em até duas linhas, e o partido",
                   g18["n"] == g18["esperado"] and not g18["ruins"], g18)
+            if w18 == 1280:
+                v18 = page.evaluate(JS_G2T_VARRE)
+                check("N18a: com a lista dos cartões de 1232 a 200px, o nome de cada finalista fica em até duas linhas e o partido em uma a mais",
+                      v18["n"] > 200 and not v18["nRuins"], v18)
         u18 = page.evaluate(JS_URNA18)
         if page.evaluate("() => !!(vespera1T().length && resPres('1'))"):
             check(f"N18c: a {w18}px os rótulos de pesquisas x urna não se tocam e nenhuma guia passa sobre outro rótulo", u18["n"] > 0 and not u18["ruins"], u18)
@@ -2279,8 +2297,20 @@ with sync_playwright() as p:
         page.evaluate("() => { const b = document.querySelector('#corrida-seg [data-cj=\"2t\"]'); if (b) b.click(); }")
         page.wait_for_timeout(300)
         mc18 = page.evaluate(JS_MARCO18, "#ch-corrida")
-        check(f"N18d: a {w18}px os marcos do 2º turno (capa e Pesquisas, desde o 1º turno) não cobrem rótulo do eixo Y",
+        check(f"N18d: a {w18}px os marcos do 2º turno (capa e Pesquisas, desde o 1º turno) não cobrem rótulo do eixo Y nem o da faixa",
               mc18["n"] > 0 and not mc18["ruins"] and not mh18["ruins"], {"#ch-corrida": mc18, "#ch-home-2t": mh18})
+        # nos estados, a corrida e o 2º turno: a 390px o marco de 4/10 cobria o fim de "RETA FINAL DO 1º
+        # TURNO" na corrida de Tocantins (governo e Senado). Vale para as UFs sem definição e as de 2º turno.
+        est18 = page.evaluate("() => { const pend = UFLIST.filter(k => estadoGov(k) === 'pend'); return [...pend.map(k => [k, 'governo']), ...pend.map(k => [k, 'senado']), ...UF2T.map(k => [k, 'governo'])]; }")
+        ruins18 = {}
+        for k, cg in est18:
+            page.goto(URL + f"#uf-{k.lower()}-{cg}-pesquisas")
+            page.wait_for_timeout(500)
+            for sel in ("#e-ch-corrida", "#e-ch-2tm"):
+                r18 = page.evaluate(JS_MARCO18, sel)
+                if r18["ruins"] and r18["ruins"] != ["sem svg"]:
+                    ruins18[f"{k} {cg} {sel}"] = r18["ruins"]
+        check(f"N18d: a {w18}px os marcos da corrida estadual não cobrem rótulo do eixo nem o da faixa da fase", est18 and not ruins18, ruins18)
         check(f"N18 ({w18}px) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
         b.close()
 
@@ -2379,28 +2409,63 @@ with sync_playwright() as p:
     j18 = page.evaluate("() => (DATA.vies || []).map(v => [v.inst, v.n, rodadas1T().filter(r => r.inst === v.inst).length]).filter(x => x[1] !== x[2])")
     check("N18j: o n do desvio por instituto no 1º turno conta só as rodadas de 1º turno, como o Método",
           page.evaluate("() => (DATA.vies || []).length") > 0 and not j18, j18)
-    # (k) a ficha da rodada usa a linha com registro quando alguma linha da rodada tem um
+    # (k) a ficha não mistura linhas: rodada com linhas de ficha diferente (campo, metodologia, registro) tem
+    # uma ficha por grupo, e cada ficha leva campo, metodologia, registro, URL e turno do seu grupo. Até a
+    # revisão de 14/10/2026 a ficha trocava a linha inteira pela que tinha registro, e a do PoderData de 3/10
+    # ("1º e 2º") passava a apontar para o artigo de rejeição.
     excl18 = {(x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) for x in _ler4("rodadas-excluidas.csv")}
     lin18 = [x for x in _ler4("pesquisas-registradas.csv") if (x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) not in excl18] + _ler4("pesquisas-corrigidas.csv")
     lin18 = [x for x in lin18 if not x["instituto"].startswith("Agregador")]
-    regs18 = {}
+    campos18 = ("data_campo_inicio", "data_campo_fim", "metodologia", "registro_tse")
+    grp18 = {}
     for x in lin18:
-        if x["registro_tse"].strip():
-            regs18.setdefault((x["instituto"], x["data_divulgacao"]), set()).add(x["registro_tse"].strip())
-    fich18 = {(f["inst"], f["dt"]): f["reg"] for f in page.evaluate("() => DATA.fichas")}
-    ruins = [(k, fich18.get(k), sorted(v)) for k, v in regs18.items() if k in fich18 and fich18[k] not in v]
-    check("N18k: a ficha de cada rodada com registro em alguma linha mostra esse registro", regs18 and not ruins, ruins[:6])
-    # (l) desempate pelos votos: estado mais forte (r1.melhor), painel de Partidos e ranking por UF do dossiê
-    if (ARQ_RES / "candidatos.csv").exists():
+        # o gerador acerta na leitura o nome do Vox Brasil nas rodadas depois de 4/10 (INST_ALIAS)
+        inst = "Vox Brasil" if x["instituto"] == "Vox" and x["data_divulgacao"] > "2026-10-04" else x["instituto"]
+        grp18.setdefault((inst, x["data_divulgacao"]), {}).setdefault(tuple(x[c] for c in campos18), []).append(x)
+    def turnos18(ls):
+        n = lambda v: re.match(r"^-?\d+(\.\d+)?$", (v or "").strip())
+        return (("1" if any(n(x["percentual"]) and x["cenario"].startswith("1º turno") for x in ls) else "")
+                + ("2" if any(n(x["percentual"]) and x["cenario"] == CENARIO_2T and x["candidato"] in ("Lula", "Flávio Bolsonaro") for x in ls) else ""))
+    fich18 = {}
+    for f in page.evaluate("() => DATA.fichas"):
+        fich18.setdefault((f["inst"], f["dt"]), []).append(f)
+    ruins, mist18n = [], 0
+    for k, fs in fich18.items():
+        gs = grp18.get(k)
+        if not gs:
+            ruins.append((k, "sem linha na base"))
+            continue
+        mist18n += len(gs) > 1
+        if len(fs) != len(gs):
+            ruins.append((k, "fichas", len(fs), "grupos", len(gs)))
+            continue
+        for f in fs:
+            ch = (f["campo"][:10], f["campo"][13:], f["met"], f["reg"])
+            ls = gs.get(ch)
+            if not ls or f["url"] not in {x["url"] for x in ls} or (len(gs) > 1 and f["t"] != turnos18(ls)):
+                ruins.append((k, ch, f["url"][-50:], f["t"]))
+    check("N18k: cada ficha leva campo, metodologia, registro, URL e turno de um grupo só de linhas, uma ficha por grupo",
+          fich18 and mist18n > 0 and not ruins, ruins[:6])
+    # (l) empate do percentual arredondado: estado mais forte (r1.melhor) e ranking por UF do dossiê se
+    # desempatam pela fração exata, votos sobre válidos da UF (totais.csv), e o painel de Partidos, que compara
+    # candidatos no país inteiro (mesmo denominador), pelos votos. Até 14/10/2026 as UFs também se desempatavam
+    # pelos votos, o que favorece o estado mais populoso: o "mais forte" de Rui Costa Pimenta saía SP, e é o DF.
+    if (ARQ_RES / "candidatos.csv").exists() and (ARQ_RES / "totais.csv").exists():
+        vv18 = {x["abrangencia"].upper(): int(x["validos"]) for x in ler_csv_res(ARQ_RES / "totais.csv")
+                if x["turno"] == "1" and x["cargo"] == "presidente" and (x["validos"] or "").strip().isdigit() and int(x["validos"]) > 0}
         porc18 = {}
         for x in ler_csv_res(ARQ_RES / "candidatos.csv"):
-            if x["turno"] == "1" and x["cargo"] == "presidente" and x["abrangencia"].lower() not in ("br", "zz") and x["mural"]:
-                porc18.setdefault(x["mural"], []).append((float(x["pct_validos"]), int(x["votos"]), x["abrangencia"].upper()))
+            ab = x["abrangencia"].upper()
+            if x["turno"] == "1" and x["cargo"] == "presidente" and ab not in ("BR", "ZZ") and x["mural"] and ab in vv18:
+                porc18.setdefault(x["mural"], []).append((float(x["pct_validos"]), int(x["votos"]) / vv18[ab], ab))
         mel18 = dict(page.evaluate("() => C.filter(c => c.r1 && c.r1.melhor).map(c => [c.nome, c.r1.melhor[0]])"))
         ruins = [(n, mel18.get(n), max(v)[2]) for n, v in porc18.items() if n in mel18 and mel18[n] != max(v)[2]]
-        check("N18l: o estado mais forte é o de maior percentual e, no empate do arredondado, o de mais votos", mel18 and not ruins, ruins)
-        ruins = page.evaluate("""() => C.filter(c => c.r1).map(c => porUF1T(c.nome)).filter(L => L.some((x, i) => i && (L[i-1].pct < x.pct || (L[i-1].pct === x.pct && L[i-1].votos < x.votos)))).length""")
-        check("N18l: o ranking por UF do dossiê ordena por percentual e, no empate, por votos", ruins == 0, ruins)
+        check("N18l: o estado mais forte é o de maior percentual e, no empate do arredondado, o de maior fração de votos válidos na UF",
+              mel18 and not ruins, ruins)
+        fr18 = page.evaluate("""() => C.filter(c => c.r1).map(c => [c.nome, porUF1T(c.nome).map(x => [x.uf, x.pct, x.votos / RES.pres['1'][x.uf].tot.vv])])""")
+        ruins = [(n, L[i - 1][0], L[i][0]) for n, L in fr18 for i in range(1, len(L)) if (L[i - 1][1], L[i - 1][2]) < (L[i][1], L[i][2])]
+        check("N18l: o ranking por UF do dossiê ordena por percentual e, no empate, pela fração de votos válidos na UF",
+              fr18 and not ruins, ruins[:8])
         page.goto(URL + "#partidos")
         page.wait_for_timeout(800)
         l18 = page.evaluate("""() => { const p = [...document.querySelectorAll('#v-partidos .panel')].find(e => /Candidato a presidente/.test(e.querySelector('h3').textContent));
@@ -2453,6 +2518,105 @@ with sync_playwright() as p:
                   pr18.returncode == 0 and not falta, {"falta": falta, "avisos": av18[:8], "erro": pr18.stderr[-300:]})
         finally:
             _shc.rmtree(d18, ignore_errors=True)
+
+    # ---- N19: segunda revisão do acabamento (14/10/2026), cada achado conferido pela regra:
+    # (a) nas barras dos estados, o partido fica ao lado do nome ou embaixo dele, nunca embaixo do selo com o
+    #     número (a caixa do nome ocupava a largura toda e o partido descia para o começo da linha);
+    # (b) o carimbo de Pesquisas conta as rodadas de 2º turno desde o mesmo dia que a capa e o dossiê;
+    # (c) com o resultado do Senado no TSE, a legenda da rodada em destaque fala da rodada no passado e não
+    #     anuncia vaga em disputa nem indefinida;
+    # (d) o índice do Trends estadual (reescalado, com uma casa) sai com vírgula, e a soma de 7 dias sem
+    #     resíduo de ponto flutuante ("14.399999999999999");
+    # (e) concordância com 1: "1 evento", "1 acesso", "+1 ponto", nunca "1 eventos", "1 acessos" ou "pts";
+    # (f) a caixa "Buscas no Google" do dossiê não repete rótulo no eixo nem anuncia "pico 0".
+    JS_PT19 = """(sel) => { const out = []; let n = 0;
+        for (const nm of document.querySelectorAll(sel + ' .hb .nm')) { if (!nm.getClientRects().length) continue;
+          const pt = nm.querySelector('.pt'), nome = nm.querySelector('.nmbtn') || [...nm.querySelectorAll('b')].find(b => !b.closest('.pt')), k = nm.querySelector('.k');
+          if (!pt || !pt.textContent.trim()) continue; n++;
+          if (!nome) { out.push(['sem nome', nm.textContent]); continue; }
+          const p = pt.getBoundingClientRect(), b = nome.getBoundingClientRect();
+          if (p.left < b.left - 1 || (k && p.left < k.getBoundingClientRect().right)) out.push([nm.textContent, Math.round(p.left - b.left)]); }
+        return {n, ruins: out}; }"""
+    for w19, h19 in ((1280, 900), (390, 844)):
+        b, page, errs = novo_ctx(p, viewport=(w19, h19))
+        ufs19 = None
+        n19, ruins19 = 0, {}
+        for rota, sels in (("governo", ("#e-ch-gov", "#e-ch-2tg")), ("governo-pesquisas", ("#e-ch-rodada", "#e-ch-modo", "#e-ch-2tg")),
+                           ("senado-pesquisas", ("#e-ch-rodada",)), ("governo-busca", ("#e-ch-ig",))):
+            page.goto(URL + "#uf-am-" + rota)
+            page.wait_for_timeout(700)
+            if ufs19 is None:
+                ufs19 = page.evaluate("() => [...new Set([...UF2T, ...UFLIST.filter(k => estadoGov(k) === 'pend'), 'SP'])]")
+            for k in ufs19:
+                page.evaluate("(k) => trocarUF(k)", k)
+                page.wait_for_timeout(150)
+                for sel in sels:
+                    r19 = page.evaluate(JS_PT19, sel)
+                    n19 += r19["n"]
+                    if r19["ruins"]:
+                        ruins19[f"{k} {rota} {sel}"] = r19["ruins"][:3]
+        check(f"N19a: a {w19}px o partido das barras dos estados fica ao lado do nome ou embaixo dele, nunca embaixo do selo",
+              n19 > 0 and not ruins19, ruins19)
+        check(f"N19 ({w19}px) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+        b.close()
+
+    b, page, errs = novo_ctx(p, viewport=(1280, 900))
+    page.goto(URL + "#pesquisas")
+    page.wait_for_timeout(900)
+    b19 = page.evaluate("""() => { const capa = document.querySelector('#home-2t-fonte').textContent, carimbo = document.querySelector('[data-carimbo="pesquisas"]').textContent;
+        let foot = ''; if (FINAL.length && resPres('1')) { openDossie(FINAL[0]); foot = document.querySelector('dialog[open] .foot span').textContent; document.querySelector('dialog[open]').close(); }
+        return {capa, carimbo, foot, nc: rodadas2TCampanha().length}; }""")
+    if b19["nc"]:
+        datas19 = [(re.search(r"rodadas? de 2º turno desde (\d\d/\d\d)", t) or [None, None])[1] for t in (b19["capa"], b19["carimbo"], b19["foot"]) if t]
+        check("N19b: o carimbo de Pesquisas conta as rodadas de 2º turno desde o mesmo dia que a capa e o dossiê",
+              len(datas19) >= 2 and None not in datas19 and len(set(datas19)) == 1, b19)
+    # (c) a legenda da rodada do Senado em todas as UFs com resultado do Senado
+    page.goto(URL + "#uf-sp-senado-pesquisas")
+    page.wait_for_timeout(700)
+    c19 = page.evaluate("""() => UFLIST.map(k => { trocarUF(k); trocarCargoUF('senador'); const c = document.querySelector('#e-ch-rodada .cap');
+        return [k, !!resSen(k), c ? c.textContent : '', dBR(TURNOS.t1)]; }).filter(x => x[1] && x[2])""")
+    ruins = [(k, t) for k, _, t, d in c19 if re.search(r"em disputa\.|está em|segue indefinida|estão empatados", t) or d not in t]
+    check("N19c: com o resultado do Senado no TSE, a legenda da rodada fala no passado e não anuncia vaga em disputa",
+          c19 and not ruins, ruins[:4])
+    # (d) e (e) Busca e redes nos 27 estados: índice do Trends com vírgula, soma de 7 dias arredondada,
+    # nota da reescala com vírgula e "1 acesso" no singular
+    page.goto(URL + "#uf-sp-governo-busca")
+    page.wait_for_timeout(800)
+    d19 = page.evaluate("""() => { const out = {tb: [], tip: [], wk: [], n: 0};
+        for (const k of UFLIST) for (const cg of ['governador', 'senador']) { trocarUF(k); trocarCargoUF(cg);
+          for (const tr of document.querySelectorAll('#e-tb-redes tbody tr')) { const c = [...tr.children].map(td => td.textContent); out.n++;
+            if (/\\d\\.\\d|,\\d\\d/.test(c[4] || '') || /\\d\\.\\d|,\\d\\d/.test(c[5] || '')) out.tb.push([k, cg, c[0], c[4], c[5]]); }
+          for (const e of document.querySelectorAll('#e-ch-trends [data-tip], #e-f-trends button')) { const t = e.dataset.tip || e.title || '';
+            if (/índice \\d+\\.\\d|por \\d+\\.\\d/.test(t)) out.tip.push([k, cg, t.slice(0, 90)]); }
+          for (const e of document.querySelectorAll('#e-ch-wiki [data-tip]')) if (/(^|[^\\d.,])1 acessos/.test(e.dataset.tip)) out.wk.push([k, cg, e.dataset.tip.slice(0, 60)]); }
+        return out; }""")
+    check("N19d: Trends estadual com vírgula decimal e soma de 7 dias arredondada nos 27 estados, na tabela, nas dicas e na nota",
+          d19["n"] > 100 and not d19["tb"] and not d19["tip"], {"tb": d19["tb"][:5], "tip": d19["tip"][:3]})
+    check("N19e: a dica de acessos à Wikipédia nos estados diz '1 acesso', no singular", not d19["wk"], d19["wk"][:3])
+    # (e) dossiês nacionais e o Lado a lado estadual; (f) a caixa de buscas do dossiê
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(800)
+    e19 = page.evaluate("""() => C.map(c => { openDossie(c.nome); const d = document.querySelector('dialog[open]');
+        const bx = [...d.querySelectorAll('.box')].find(x => /Buscas no Google/.test((x.querySelector('h4') || {}).textContent || ''));
+        const ax = bx ? [...bx.querySelectorAll('svg text.axis')].map(t => t.textContent).filter(t => /^\\d+$/.test(t)) : [];
+        const r = [c.nome, d.innerText, ax, bx ? [...bx.querySelectorAll('svg text')].map(t => t.textContent).filter(t => /^pico /.test(t)) : []]; d.close(); return r; })""")
+    rx_um = r"(?<![\d.,])1 (eventos|acessos|pontos|pts)\b|\bpts\b"
+    ruins = [(n, m.group(0)) for n, t, _, _ in e19 for m in [re.search(rx_um, t)] if m]
+    check("N19e: os dossiês concordam com 1 (evento, acesso, ponto) e não abreviam pontos", e19 and not ruins, ruins[:4])
+    ruins = [(n, ax, pc) for n, _, ax, pc in e19 if len(ax) != len(set(ax)) or [x for x in pc if re.match(r"pico 0\b", x)]]
+    check("N19f: a caixa 'Buscas no Google' do dossiê não repete rótulo no eixo nem anuncia 'pico 0'", not ruins, ruins[:4])
+    page.goto(URL + "#uf-am-governo-lado")
+    page.wait_for_timeout(800)
+    # innerText, e não textContent: o textContent cola os blocos ("+1 ptsmédia móvel") e a borda de palavra some
+    l19 = page.evaluate("""() => UFLIST.map(k => { trocarUF(k); return [k, document.querySelector('#v-e-lado').innerText]; })""")
+    ruins = [(k, m.group(0)) for k, t in l19 for m in [re.search(rx_um, t)] if m]
+    check("N19e: o Lado a lado dos 27 estados concorda com 1 e escreve 'pontos' por extenso", len(l19) == 27 and not ruins, ruins[:4])
+    page.goto(URL + "#busca")
+    page.wait_for_timeout(800)
+    w19 = page.evaluate("() => [...document.querySelectorAll('#ch-wiki [data-tip]')].map(e => e.dataset.tip).filter(t => /(^|[^\\d.,])1 acessos/.test(t))")
+    check("N19e: a dica de acessos à Wikipédia nacional diz '1 acesso', no singular", not w19, w19[:3])
+    check("N19 (1280px) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
 
     # ---- N11: o cartão og é do 2º turno: a edição não diz "1º turno", não traz o trio da média do 1º
     # turno nem travessão, e a cabeça tem os dois do 2º turno

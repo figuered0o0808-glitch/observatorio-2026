@@ -851,18 +851,18 @@ details.mapa{margin-top:var(--gap)}
 .hbars{display:flex;flex-direction:column;gap:7px;margin-top:8px}
 .hb{display:grid;grid-template-columns:minmax(120px,210px) 1fr 64px auto;gap:10px;align-items:center;font-size:13px}
 .hb.dim{opacity:.35}
-/* o nome e o partido nunca saem cortados: o partido desce para a linha de baixo quando não cabe ao lado
-   do nome, e o nome quebra em duas linhas sem sair de perto do número. No resultado do TSE (.hbars.res),
-   partido, votos e situação ficam sempre na segunda linha, cada trecho inteiro */
-.hb .nm{display:flex;align-items:center;flex-wrap:wrap;gap:1px 6px;min-width:0;line-height:1.25;overflow-wrap:break-word}
-.hb .nm .k{flex:none}
-.hb .nm .k+.nmbtn,.hb .nm .k+b{max-width:calc(100% - 40px)}
+/* o nome e o partido nunca saem cortados. O selo com o número fica numa coluna e o texto (.tx) na outra:
+   o partido segue o nome na mesma linha quando cabe e, quando não cabe, desce para baixo do nome, nunca
+   para baixo do selo. No resultado do TSE (.hbars.res), partido, votos e situação ficam sempre na
+   segunda linha, cada trecho inteiro */
+.hb .nm{display:flex;align-items:flex-start;gap:6px;min-width:0;line-height:1.25;overflow-wrap:break-word}
+.hb .nm .k{flex:none;margin-top:.5px}
+.hb .nm .tx{flex:1 1 auto;min-width:0}
 .hb .nm .k{display:inline-block;min-width:24px;padding:2px 4px;border-radius:2px;color:#fff;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center;line-height:1.1}
-.hb .nm .pt{color:var(--ink-3);font-size:11.5px;flex:none;max-width:100%}
+.hb .nm .pt{color:var(--ink-3);font-size:11.5px;display:inline-block;max-width:100%}
 .hb .nm .pt span{white-space:nowrap}
-.hb .nm b,.hb .nm .nmbtn{flex:0 1 auto;min-width:0}
-.hbars.res .hb .nm>b,.hbars.res .hb .nm .nmbtn{flex:1 1 0}
-.hbars.res .hb .nm .pt{flex:0 0 100%}
+.hb .nm>b,.hb .nm>.nmbtn{flex:0 1 auto;min-width:0}
+.hbars.res .hb .nm .pt{display:block}
 .nmbtn{appearance:none;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:inline-flex;max-width:100%}
 .nmbtn:hover b,.nmbtn:focus-visible b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .hb .bar{height:16px;background:var(--line-2);border-radius:2px;overflow:hidden}
@@ -885,9 +885,7 @@ details.mapa{margin-top:var(--gap)}
   .hbars{gap:4px}
   .hb{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm val" "bar bar";gap:2px 10px;padding:4px 0 5px;border-top:1px solid var(--line-2)}
   .hb:first-child{border-top:0}
-  .hb .nm{grid-area:nm;white-space:normal;overflow:visible;flex-wrap:wrap;line-height:1.3}
-  .hb .nm b,.hb .nm .nmbtn{flex:initial}
-  .hb .nm .pt{white-space:normal;overflow:visible}
+  .hb .nm{grid-area:nm;line-height:1.3}
   .hb .bar{grid-area:bar;height:10px}
   .hb .val{grid-area:val;align-self:end;font-size:17px}
   .hb .mini{display:none}
@@ -1163,13 +1161,16 @@ svg.tempo text.reta-l{font-family:Archivo,sans-serif;font-variation-settings:"wd
 .g2t .topo{display:flex;align-items:baseline;gap:8px;min-width:0}
 .g2t .uf{font-size:26px;line-height:1}
 .g2t .ufn{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.g2t .lin{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;font-size:13px}
+.g2t .lin{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px;align-items:center;font-size:13px}
 .g2t .lin i{width:10px;height:10px;border-radius:2px;display:block}
+/* o percentual flutua à direita da primeira linha e o nome contorna: da segunda linha em diante o nome
+   usa a largura toda do cartão. Com o percentual numa coluna própria, o nome ficava com uns 110px nos
+   cartões mais estreitos e "Professora Maria do Carmo" saía em três linhas */
 .g2t .lin .nm{min-width:0;line-height:1.25;overflow-wrap:break-word}
 .g2t .lin .nm .pt{white-space:nowrap}
 .g2t .lin .nm b{font-weight:600}
 .g2t .lin .pt{color:var(--ink-3);font-size:11.5px}
-.g2t .lin .v{font-variant-numeric:tabular-nums;font-weight:600}
+.g2t .lin .v{float:right;margin-left:7px;font-variant-numeric:tabular-nums;font-weight:600}
 .g2t .ft{font-size:11.5px;color:var(--ink-3)}
 /* contagem só com horas e minutos (último dia, votação em andamento) */
 .count.so-hm{grid-template-areas:"pl pl" "hm hm" "pd pd"}
@@ -2009,8 +2010,8 @@ const REGUA2T={inicio:"2026-10-05",sigma0:1,passo:10,minimo:1};
 const SIG2=sigmaDe(REGUA2T,HOJE);
 // A faixa sombreada de cada gráfico de tempo é a fase do turno que ele desenha, e o que vem antes
 // dela fica apagado. Os gráficos do 2º turno ganham ainda o marco da votação do 1º.
-const FAIXA1T={ini:RETA0,fim:Date.parse(TURNOS.t1)+864e5,rot:"reta final do 1º turno"};
-const FAIXA2T={ini:Date.parse(REGUA2T.inicio),fim:Date.parse(TURNOS.t2)+864e5,rot:"campanha do 2º turno"};
+const FAIXA1T={ini:RETA0,fim:Date.parse(TURNOS.t1)+864e5,rot:"reta final do 1º turno",curto:"reta final"};
+const FAIXA2T={ini:Date.parse(REGUA2T.inicio),fim:Date.parse(TURNOS.t2)+864e5,rot:"campanha do 2º turno",curto:"2º turno"};
 const MARCO1T={t:Date.parse(TURNOS.t1),txt:"1º turno",tip:`<b>${dBR(TURNOS.t1)}</b> · votação do 1º turno`,cor:"var(--ink-3)"};
 // a janela escrita: "1 dia" no singular. pl() não serve aqui porque é declarada mais abaixo
 const diasTxt=n=>n===1?"1 dia":n+" dias";
@@ -2138,19 +2139,27 @@ function chartTempo(o){
   s+=`<g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmtY(v)}</text>`).join("")+eixoTempo(X,mt,mt+ih,t0,t1)+`</g>`;
   s+=`<clipPath id="${cpid}"><rect x="${ml-1}" y="${mt-8}" width="${iw+2}" height="${ih+8}"/></clipPath>`;
   s+=`<rect class="plotbg" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  // marcos (eventos) no eixo do tempo, agrupados quando ficam a menos de 22px um do outro. O círculo
+  // numerado não sai da área do gráfico: marco na borda esquerda (o 1º turno na janela "Desde o 1º turno")
+  // cobria o rótulo do topo do eixo Y. A linha tracejada continua na data certa.
+  const M=marcos.filter(m=>m.t>=t0&&m.t<=t1).sort((a,b)=>a.t-b.t);
+  const grupos=[];for(const m of M){const x=X(m.t);const g=grupos[grupos.length-1];if(g&&x-g.x1<22){g.itens.push(m);g.x1=x;}else grupos.push({x0:x,x1:x,itens:[m]});}
+  for(const g of grupos){g.rr=g.itens.length>1?9:8;g.cx=Math.min(Math.max((g.x0+g.x1)/2,ml+g.rr+1),W-mr-g.rr-1);}
   if(reta){const xr=X(F0),xf=Math.min(W-mr,fase.fim!=null?X(fase.fim):W-mr);s+=`<rect class="reta" x="${xr.toFixed(1)}" y="${mt}" width="${Math.max(0,xf-xr).toFixed(1)}" height="${ih}"/>`;
-    if(xf-xr>fase.rot.length*6.2+12)s+=`<text class="reta-l" x="${(xr+6).toFixed(1)}" y="${mt+11}">${esc(fase.rot)}</text>`;}
+    // o rótulo da faixa entra só onde não encosta no círculo de um marco (a 390px, o marco de 4/10 cobria o
+    // fim de "RETA FINAL DO 1º TURNO" na corrida de Tocantins): círculo no começo da faixa empurra o rótulo
+    // para a direita dele, e sem espaço para o nome inteiro vai o curto. A largura estimada é a do texto em
+    // caixa alta com o espaçamento da classe.
+    const ondeCabe=t=>{let a=xr+6;const w=t.length*7.7;
+      for(const g of grupos){if(g.cx+g.rr+2<=a)continue;if(g.cx-g.rr-2>=a+w)break;if(g.cx<=a+4){a=g.cx+g.rr+4;continue;}return null;}
+      return a+w<=xf-6?a:null;};
+    for(const t of [fase.rot,fase.curto]){const a=t?ondeCabe(t):null;if(a!=null){s+=`<text class="reta-l" x="${a.toFixed(1)}" y="${mt+11}">${esc(t)}</text>`;break;}}}
   // linhas verticais sem número (a votação de 4/10 nos gráficos de busca e redes)
   for(const lt of o.linhas||[])if(lt>=t0&&lt<=t1)s+=`<line class="linha-dia" x1="${X(lt).toFixed(1)}" x2="${X(lt).toFixed(1)}" y1="${mt}" y2="${mt+ih}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 4" opacity=".55"/>`;
   // linha de referência horizontal (os 50% dos votos válidos no 2º turno)
   if(o.ref!=null&&o.ref>ymin&&o.ref<ymax)s+=`<line class="ref" x1="${ml}" x2="${W-mr}" y1="${Y(o.ref).toFixed(1)}" y2="${Y(o.ref).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.2" stroke-dasharray="5 4" opacity=".7"/>`;
-  // marcos (eventos) no eixo do tempo
-  const M=marcos.filter(m=>m.t>=t0&&m.t<=t1).sort((a,b)=>a.t-b.t);
   if(M.length){
-    const grupos=[];for(const m of M){const x=X(m.t);const g=grupos[grupos.length-1];if(g&&x-g.x1<22){g.itens.push(m);g.x1=x;}else grupos.push({x0:x,x1:x,itens:[m]});}
-    // o círculo numerado não sai da área do gráfico: marco na borda esquerda (o 1º turno na janela "Desde o
-    // 1º turno") cobria o rótulo do topo do eixo Y. A linha tracejada continua na data certa.
-    s+=`<g class="marcos">`+grupos.map(g=>{const rr=g.itens.length>1?9:8,cx=Math.min(Math.max((g.x0+g.x1)/2,ml+rr+1),W-mr-rr-1).toFixed(1);const crit=g.itens.some(m=>m.cor==="var(--crit)");const cor=g.itens.length>1?(crit?"var(--crit)":"var(--m2)"):(g.itens[0].cor||"var(--ink-3)");
+    s+=`<g class="marcos">`+grupos.map(g=>{const cx=g.cx.toFixed(1);const crit=g.itens.some(m=>m.cor==="var(--crit)");const cor=g.itens.length>1?(crit?"var(--crit)":"var(--m2)"):(g.itens[0].cor||"var(--ink-3)");
       const tipTxt=(g.itens.length>1?`<b>${g.itens.length} marcos</b><br>`:"")+g.itens.map(m=>m.tip||m.txt).join("<br><br>");const idx=g.itens.map(m=>M.indexOf(m)+1);
       return (g.itens.length>1?`<line x1="${cx}" x2="${cx}" y1="${mt-2}" y2="${mt+ih}" stroke="${cor}" stroke-width="1" stroke-dasharray="3 4" opacity=".5"/>`:g.itens.map(m=>`<line x1="${X(m.t).toFixed(1)}" x2="${X(m.t).toFixed(1)}" y1="${mt-2}" y2="${mt+ih}" stroke="${m.cor||"var(--ink-3)"}" stroke-width="1" stroke-dasharray="3 4" opacity=".55"/>`).join(""))+`<g data-tip="${esc(tipTxt)}" style="cursor:help"><circle cx="${cx}" cy="${mt-2}" r="${g.itens.length>1?9:8}" fill="${cor}"/><text x="${cx}" y="${mt+1.5}" text-anchor="middle" style="font-size:9px;font-weight:700;fill:var(--paper);font-family:Archivo,sans-serif">${g.itens.length>1?g.itens.length:idx[0]}</text></g>`;}).join("")+`</g>`;}
   const rot=[],meta=[];
@@ -2774,6 +2783,12 @@ function posicao(n){
   const antes=agregar1T(SIG,tAntes,tAntes+SIG*864e5)[n];
   return {nome:n,agora,antes,delta:antes==null?null:agora-antes,ultima:pts[pts.length-1]};
 }
+// a ficha de uma rodada no turno pedido ("1" ou "2"): rodada cujas linhas vêm de fontes com ficha diferente
+// tem uma ficha por fonte (o gerador separa; Datafolha de 3/10/2026), e cada número fica com a da sua fonte
+function fichaDe(inst,dt,turno){
+  const fs=DATA.fichas.filter(f=>f.inst===inst&&f.dt===dt);
+  return (turno&&fs.find(f=>String(f.t??"1").includes(turno)))||fs[0]||null;
+}
 // última rodada registrada de um turno ("1" ou "2"; sem turno, a mais recente que traga intenção de
 // voto em qualquer dos dois) e o modo de coleta dela. Desde 5/10/2026 a rodada mais nova costuma ser só
 // do confronto Lula x Flávio, e a ficha dela não tem ponto de 1º turno: buscar os pontos sempre no
@@ -3025,7 +3040,7 @@ function drawHome2T(){
   $("#home-2t-ate").textContent=`até ${dBR(ult2T())}`;
   // as rodadas da campanha chegam pela compilação da Wikipédia, quase sempre sem número de registro
   // (13/10/2026: nenhuma das 10). A fonte diz de onde vêm e quantas trazem o registro, contado do dado
-  const regs=new Set(DATA.fichas.filter(f=>f.reg).map(f=>f.inst+"|"+f.dt)),nr=rodadas2TCampanha().filter(r=>regs.has(r.inst+"|"+r.dt)).length;
+  const regs=new Set(DATA.fichas.filter(f=>f.reg&&String(f.t||"").includes("2")).map(f=>f.inst+"|"+f.dt)),nr=rodadas2TCampanha().filter(r=>regs.has(r.inst+"|"+r.dt)).length;
   $("#home-2t-fonte").textContent=`Fonte: divulgações dos institutos, pela compilação da Wikipédia ou pela ficha registrada no TSE · ${nc?pl(nc,"rodada de 2º turno","rodadas de 2º turno")+" desde "+dBR(REGUA2T.inicio)+`, ${nr?nr+" com":"nenhuma com"} número de registro na fonte`:"nenhuma rodada de 2º turno desde "+dBR(REGUA2T.inicio)}${na?" · "+pl(na,"simulação","simulações")+" antes do 1º turno":""} · votos válidos${m?", média de "+diasTxt(m.sigma):""}`;
 }
 // ---- governo em 2º turno: um cartão por UF com 2º turno de governador (lidas de totais.csv pelo
@@ -3036,7 +3051,7 @@ function drawGov2T(){
   const el=$("#p-home-gov");if(!el)return;
   const ufs=UF2T.filter(uf=>resGov("1",uf)||resGov("2",uf));
   if(!RES||(!ufs.length&&!UFPEND.length)){el.hidden=true;return;}el.hidden=false;
-  const lin=c=>`<span class="lin"><i style="background:${corPartido(c[3])}"></i><span class="nm"><b>${esc(c[1])}</b> <span class="pt">${esc(c[3])}${c[6]==="eleito"?" · eleito":""}</span></span><span class="v">${fPct2(c[5])}%</span></span>`;
+  const lin=c=>`<span class="lin"><i style="background:${corPartido(c[3])}"></i><span class="nm"><span class="v">${fPct2(c[5])}%</span><b>${esc(c[1])}</b> <span class="pt">${esc(c[3])}${c[6]==="eleito"?" · eleito":""}</span></span></span>`;
   $("#home-gov").innerHTML=ufs.map(uf=>{const A2=resGov("2",uf),A=A2||resGov("1",uf);
     const ft=A2?(A2.est==="final"?"2º turno, resultado do TSE":`apuração do 2º turno, ${fPct2(A2.tot.pst)}% das seções`):`1º turno, TSE · 2º turno em ${dCurto(TURNOS.t2)}`;
     return `<a class="g2t" href="#uf-${uf.toLowerCase()}-governo"><span class="topo"><b class="uf display">${uf}</b><span class="ufn">${UF[uf]?esc(UF[uf].nome):""}</span></span>${A.c.slice(0,2).map(lin).join("")}<span class="ft">${ft}</span></a>`;}).join("");
@@ -3067,7 +3082,7 @@ function drawUltimaRodada(){
   const el=$("#ult-rodada"),camp=rodadas2TCampanha(),r=camp[camp.length-1];
   if(!r){const an=rodadas2TAntes(),u=an[an.length-1];
     el.innerHTML=`<span class="eyebrow">Última rodada · 2º turno</span><div class="empty"><b>Nenhuma ainda</b>Nenhuma pesquisa de 2º turno feita depois de ${dBR(TURNOS.t1)} entrou no mural${u?`; a última simulação é de ${dBR(u.dt)}`:""}.</div>`;return;}
-  const f=DATA.fichas.find(x=>x.inst===r.inst&&x.dt===r.dt)||{};
+  const f=fichaDe(r.inst,r.dt,"2")||{};
   const pub=FINAL.map(n=>{const p=DATA.polls2t.find(p=>p[0]===r.inst&&p[1]===r.dt&&p[2]===n&&(p[4]||"")===r.url);return {n,p:p?p[3]:null,vv:r.v[n]};}).sort((a,b)=>b.vv-a.vv);
   const tot=r.base!=="v"&&pub.every(x=>x.p!=null);
   const barras=pub.map(x=>({n:x.n,v:tot?x.p:x.vv,cor:COR[x.n]}));
@@ -3260,7 +3275,7 @@ function drawAlertas(){
       :{s:"info",k:"Apuração",t:`Urnas fechadas às ${+TURNOS.fecha.slice(0,2)}h; a primeira parcial do TSE entra na próxima edição`,src:"TSE",go:"geral"});}
   const camp=rodadas2TCampanha();
   for(const r of camp.filter(r=>r.t<=tRef&&tRef-r.t<=864e5).slice(-2).reverse()){
-    const f=DATA.fichas.find(x=>x.inst===r.inst&&x.dt===r.dt)||{};
+    const f=fichaDe(r.inst,r.dt,"2")||{};
     const pub=FINAL.map(n=>{const p=DATA.polls2t.find(p=>p[0]===r.inst&&p[1]===r.dt&&p[2]===n&&(p[4]||"")===r.url);return [n,p?p[3]:r.v[n]];}).sort((a,b)=>b[1]-a[1]);
     A.push({s:"info",k:"Nova rodada",t:`<b>${esc(r.inst)}</b> divulgada em ${dBR(r.dt)}, 2º turno: ${pub.map(([n,v])=>esc(curto(n))+" "+fPct(v)+"%").join(", ")}${r.base==="v"?" (votos válidos)":` (em válidos, ${fPct(r.v[pub[0][0]])}% e ${fPct(r.v[pub[1][0]])}%)`}`,src:[f.met,f.reg?"registro "+f.reg:""].filter(Boolean).map(esc).join(" · ")||"sem ficha técnica na fonte",go:"pesquisas"});}
   // salto: a rodada recente que se afasta 4 pontos ou mais, nos válidos, da média anterior a ela
@@ -3451,7 +3466,7 @@ function erro1T(){
   // nulos e indecisos), vale a anterior do mesmo instituto, desde que o campo tenha terminado nas duas
   // semanas antes da votação, e a tabela diz isso.
   const ini=dISO(Date.parse(TURNOS.t1)-7*864e5),ini2=dISO(Date.parse(TURNOS.t1)-14*864e5);
-  const fichas=new Map(DATA.fichas.map(f=>[f.inst+"|"+f.dt,f]));
+  const fichas=new Map(rodadas1T().map(r=>[r.inst+"|"+dISO(r.t),fichaDe(r.inst,dISO(r.t),"1")]));
   const porInst={};
   for(const r of rodadas1T()){const f=fichas.get(r.inst+"|"+dISO(r.t)),cf=f?cfFicha(f):dISO(r.t);if(cf>dia)continue;(porInst[r.inst]=porInst[r.inst]||[]).push({r,cf,f});}
   const fecha=x=>somaVV1T(x.r)>0&&x.r.v[A]!=null&&x.r.v[B]!=null;
@@ -3734,7 +3749,7 @@ function multiplos(id,series,o){
 for(const k of ["#ch-trends","#ch-wiki","#ch-termos","#ch-ig","#ch-idx"])DRAW[k]=()=>drawBusca();
 function drawBusca(){
   const tr=OITO.filter(n=>DATA.trends[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.trends[n]).map(p=>({...p,tip:`<b>${esc(n)}</b> · índice ${p.v}<br>${dBR(dISO(p.t))}`}))}));
-  const wk=OITO.filter(n=>DATA.wiki[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.wiki[n]).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fInt(p.v)} acessos<br>${dBR(dISO(p.t))}`}))}));
+  const wk=OITO.filter(n=>DATA.wiki[n]).map(n=>({nome:n,cor:COR[n],dim:dimDe(n),lw:1.7,r:5,pontoTransp:true,pts:sMMDD(DATA.wiki[n]).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(n)}</b> · ${fInt(p.v)} ${p.v===1?"acesso":"acessos"}<br>${dBR(dISO(p.t))}`}))}));
   const optT={ticks:[0,25,50,75,100],fmtY:v=>v}, optW={log:true,ymin:1,ymax:200000,ticks:[1,10,100,1000,10000,100000],fmtY:fAcessos};
   if(prefs.multi){multiplos("#ch-trends",tr,{...optT});multiplos("#ch-wiki",wk,{...optW});}
   else{pinta("#ch-trends",chartTempo({id:"#ch-trends",H:300,ml:52,mr:110,series:tr.filter(s=>!some(s.nome)),...optT,...janelaDe(ultDe(tr)),linhas:[MARCO1T.t],aria:"Buscas no Google por candidato"}));
@@ -3897,7 +3912,7 @@ const card=c=>{
   return `<article class="card${minor?" minor":""}" id="card-${slug(c.nome)}">
     <div class="head">${fotoOuNumero(c)}<div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${colig} · vice ${esc(c.vice)} (${esc(c.vice_partido)})</div><div class="pills">${pillSit(c)}</div></div></div>
     <div class="stats">
-      <div class="st"><span>Intenção</span><b class="display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem menção</small>"}</b><span class="d">${p&&p.delta!=null?(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":"média móvel"}</span></div>
+      <div class="st"><span>Intenção</span><b class="display tnum">${p?fPct(p.agora)+"<small>%</small>":"<small>sem menção</small>"}</b><span class="d">${p&&p.delta!=null?(p.delta>0?"+":"")+fPct(p.delta)+" "+pts(p.delta)+" em 30 dias":"média móvel"}</span></div>
       <div class="st"><span>Rejeição</span><b class="display tnum">${rj?fPct(rj[3])+"<small>%</small>":"<small>não medida</small>"}</b><span class="d">${rj?esc(rj[0].split("/")[0].split(" (")[0])+" · "+dBR(rj[1]):""}</span></div>
       <div class="st"><span>Instagram</span><b class="display tnum">${ig?fM(ig.valor):"<small>sem número</small>"}</b><span class="d">${ig?dBR(ig.data):""}</span></div>
     </div>
@@ -4061,7 +4076,7 @@ const CRIT_URNA=[
  ["Urna, 1º turno","Média do mural na véspera",c=>{const v=vespDe(c.nome);return v?{v:v.media,txt:fPct(v.media)+"%",src:`votos válidos, edição de ${edVespera()} · urna ${difVesp(v.dif)?`${difVesp(v.dif)} ${pts(v.dif)}`:"igual"}`,bar:true}:{txt:"fora da média"};}],
 ];
 const CRIT_1T=[
- ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de ${diasTxt(SIG)}${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" pts em 30 dias":""}`,better:"max",bar:true};}],
+ ["Pesquisas","Intenção de voto",c=>{const p=posicao(c.nome);if(!p)return {txt:"sem menção nominal"};return {v:p.agora,txt:fPct(p.agora)+"%",src:`média móvel de ${diasTxt(SIG)}${p.delta!=null?" · "+(p.delta>0?"+":"")+fPct(p.delta)+" "+pts(p.delta)+" em 30 dias":""}`,better:"max",bar:true};}],
  ["Pesquisas","Última rodada",c=>{const r=ultimaRodada(c.nome);if(!r)return {txt:"não medido"};return {v:r[3],txt:fPct(r[3])+"%",src:`${r[0]}, ${dBR(r[1])} · ${r[5]}`,bar:true};}],
 ];
 // quem não está no 2º turno não tem número ali: "não disputa", sem valor, para não entrar na barra
@@ -4179,7 +4194,8 @@ function drawMetodo(){
   ].map(([k,itens],i)=>(i?`<div class="parrow" aria-hidden="true">→</div>`:"")+`<div class="pnode"><span class="eyebrow">${k}</span>${itens.map(x=>`<span>${x}</span>`).join("")}</div>`).join("");
   const ABR=["TSE","Bens","Chapa","Perfis","Seguid.","Pesq.","Rejeiç.","Google","Wiki","Eventos"];
   $("#ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Candidato</th><th>Total</th>${ABR.map(a=>`<th>${a}</th>`).join("")}</tr></thead><tbody>${C.map(c=>{const ok=FONTES10.map(([n,f])=>!!f(c));return `<tr><td>${esc(c.nome)}</td><td class="tot">${ok.filter(Boolean).length}/10</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(FONTES10[i][0])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
-  const cont={};for(const f of DATA.fichas){const m=f.modo||(DATA.polls.find(p=>p[0]===f.inst&&p[1]===f.dt)||[])[5]||"não informada";cont[m]=(cont[m]||0)+1;}
+  // uma conta por rodada, mesmo quando a rodada tem uma ficha por fonte
+  const cont={},vistas=new Set();for(const f of DATA.fichas){if(vistas.has(f.inst+"|"+f.dt))continue;vistas.add(f.inst+"|"+f.dt);const m=f.modo||(DATA.polls.find(p=>p[0]===f.inst&&p[1]===f.dt)||[])[5]||"não informada";cont[m]=(cont[m]||0)+1;}
   const KW={"presencial":"presencial, domiciliar, face a face","telefônica":"telefone, telefônica, IVR","digital":"digital, online, eletrônica, web, formulário, internet","não informada":"ficha sem o modo"};
   const max=Math.max(...Object.values(cont),1);
   $("#ch-modos").innerHTML=`<div class="modos">${MODOS.map(([m,c])=>`<div class="mr"><span class="lab"><i style="background:${c}"></i>${m}</span><span class="bar"><i style="width:${Math.round((cont[m]||0)/max*100)}%;background:${c}"></i></span><span class="val">${cont[m]||0} rodadas</span><span class="kw">${KW[m]}</span></div>`).join("")}</div>`;
@@ -4211,13 +4227,19 @@ function svgSerie(P,o={}){
   // ponto depois da borda do mural (amanhã, no máximo) não entra: eixo de tempo não desenha o futuro
   P=(P||[]).filter(p=>p.t<=T1);
   if(P.length<2)return `<div class="empty">Sem série para este candidato.</div>`;
+  // série toda em zero não tem escala para desenhar: o eixo repetia "0, 0, 1, 1, 1" e o rótulo dizia "pico 0"
+  // (Samara Martins, 14/10/2026). Vai o fato, com o período e a nota de quem chamou.
+  if(!log&&zero&&P.every(p=>p.v===0))return `<div class="empty">${o.zeroTxt||"Valor 0"} em todos os dias, de ${dBR(dISO(P[0].t))} a ${dBR(dISO(P[P.length-1].t))}.${o.zeroNota?" "+o.zeroNota:""}</div>`;
   const iw=W-ml-mr,ih=H-mt-mb,t0=Date.parse("2026-01-01");
   const vs=P.map(p=>p.v);let lo,hi;
   if(log){lo=1;hi=10**Math.ceil(Math.log10(Math.max(...vs,10)));}
   else if(zero){lo=0;const m=Math.max(...vs,1),e=10**Math.floor(Math.log10(m)),f=m/e;hi=(f<=1?1:f<=2?2:f<=5?5:10)*e;}
   else{lo=Math.min(...vs);hi=Math.max(...vs);if(hi===lo)hi=lo+1;}
   const X=t=>ml+(t-t0)/(T1-t0)*iw, Y=v=>{const a=log?Math.log10(Math.max(v,1)):v,l=log?Math.log10(lo):lo,h=log?Math.log10(hi):hi;return mt+ih-(a-l)/(h-l)*ih;};
-  const ticks=log?Array.from({length:Math.log10(hi)+1},(_,i)=>10**i):[0,1,2,3,4].map(i=>lo+(hi-lo)*i/4);
+  // índice inteiro (Trends): as divisões caem em números inteiros, senão o eixo arredondado se repetia
+  // ("0, 0, 1, 1, 1" para Zema e Marçal, cujo índice nunca passou de 1)
+  const nDiv=o.inteiro&&zero&&!log?[4,5,2,1].find(n=>Number.isInteger(hi/n)):4;
+  const ticks=log?Array.from({length:Math.log10(hi)+1},(_,i)=>10**i):Array.from({length:nDiv+1},(_,i)=>lo+(hi-lo)*i/nDiv);
   const meses=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-w="${W}"><g class="grid">`+ticks.map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/><text class="axis" x="${ml-8}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`).join("");
   const curto=X(t0+30*864e5)-X(t0)<34;
@@ -4243,15 +4265,18 @@ function encaixarDossie(render){
   const top=dz.scrollTop;dz.innerHTML=render(m);bindTips(dz);dz.scrollTop=top;
 }
 // Percentual de um candidato em cada uma das 27 UFs no 1º turno, do maior para o menor, com a posição
-// dele na UF. O exterior (ZZ) fica de fora do ranking, como em r1.melhor, e o empate no percentual
-// arredondado se desfaz pelos votos, também como lá.
+// dele na UF. O exterior (ZZ) fica de fora do ranking, como em r1.melhor. O percentual do TSE vem com
+// duas casas, e o empate nele se desfaz pela fração exata, votos sobre válidos da UF, também como em
+// r1.melhor: votos absolutos favoreceriam o estado mais populoso (Rui Costa Pimenta empata no arredondado
+// em SP e no DF, e a fração é maior no DF).
 function porUF1T(nome){
   const P=(RES&&RES.pres&&RES.pres["1"])||{},out=[];
   for(const [uf,A] of Object.entries(P)){
     if(uf==="BR"||uf==="ZZ"||!A||!A.c)continue;
-    const i=A.c.findIndex(x=>x[0]===nome);if(i>=0)out.push({uf,pct:A.c[i][5],votos:A.c[i][4],pos:i+1});
+    const i=A.c.findIndex(x=>x[0]===nome),vv=A.tot&&A.tot.vv;
+    if(i>=0)out.push({uf,pct:A.c[i][5],votos:A.c[i][4],fr:vv?A.c[i][4]/vv:A.c[i][5]/100,pos:i+1});
   }
-  return out.sort((a,b)=>b.pct-a.pct||b.votos-a.votos||a.uf.localeCompare(b.uf));
+  return out.sort((a,b)=>b.pct-a.pct||b.fr-a.fr||a.uf.localeCompare(b.uf));
 }
 // A caixa "Resultado do 1º turno" do dossiê: o número oficial, a frase de situação, a média que o
 // mural publicou na véspera (só para quem estava nela e na urna) e as 27 UFs em barras HTML.
@@ -4313,7 +4338,7 @@ function renderDossie(c,cwMed=0){
   const modoCap=nPolls?(R?`${nPolls} medições nominais até ${dBR(ULT1T)}; pontos por modo de coleta e média móvel de cada modo.`:`${nPolls} medições nominais em 2026; pontos por modo de coleta e média móvel de cada modo.`):(R?"Nenhuma medição nominal no 1º turno.":"Nenhuma medição nominal em 2026.");
   caixas.push(`<div class="box"><h4>${modoTit}</h4><div class="cap">${modoCap}</div><div class="chart">${modoSvg}</div>${nPolls?`<div class="legend">${legendaModos()}</div>`:""}</div>`);
   caixas.push(`<div class="box"><h4>Redes</h4>${igs?`<div class="igrow"><span class="big display tnum">${fInt(igs.valor)}</span><span class="meta">seguidores no Instagram em ${dBR(igs.data)} · <a href="${esc(igs.url)}" target="_blank" rel="noopener">${esc(resumoFonte(igs.fonte))}</a></span></div>`:`<p class="sit">Nenhum número de seguidores publicado para este perfil.</p>`}${igP.length>1?`<div class="cap">Medianas diárias dos números publicados; o eixo não começa em zero.</div><div class="chart">${svgSerie(igP,{cor,fmt:v=>fM(v),fmtV:v=>fInt(v),zero:false,H:170,...so})}</div>`:""}${c.redes.length?`<div class="redes" style="margin-top:6px">${redes}</div>`:`<p class="sit">Nenhum perfil pessoal localizado.</p>`}${c.confianca?`<div class="miss">Confiança dos perfis: ${esc(c.confianca)}</div>`:""}</div>`);
-  caixas.push(`<div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div><div class="chart">${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170,...so})}</div></div>`);
+  caixas.push(`<div class="box"><h4>Buscas no Google</h4><div class="cap">Índice relativo (0 a 100), Brasil, diário.</div><div class="chart">${svgSerie(trendsP,{cor,fmt:v=>String(Math.round(v)),H:170,inteiro:true,zeroTxt:"Índice 0",zeroNota:"No Google Trends, zero quer dizer volume de busca insuficiente para o índice.",...so})}</div></div>`);
   caixas.push(`<div class="box"><h4>Acessos ao verbete na Wikipédia</h4><div class="cap">Acessos diários, escala logarítmica.</div><div class="chart">${svgSerie(wikiP.filter(p=>p.v>0),{cor,log:true,fmt:v=>v>=1e6?fPct(v/1e6)+" mi":v>=1000?fInt(v/1000)+" mil":fInt(v),fmtV:v=>fInt(v),H:170,...so})}</div></div>`);
   let linhas="";for(let i=0;i<caixas.length;i+=2)linhas+=`<div class="row2${i+1<caixas.length?"":" so1"}">${caixas[i]}${caixas[i+1]||""}</div>`;
   const txt1T=c.situacao_1t||c.situacao_texto||"";
@@ -4328,10 +4353,10 @@ function renderDossie(c,cwMed=0){
       ${R?caixaResultado1T(c):cobH}
       ${linhas}
       ${antes}
-      <div class="box"><h4>Cronologia do candidato</h4><div class="cap">${evsC.length} eventos datados sobre ${esc(nome)}; os marcos gerais da eleição aparecem esmaecidos.</div><ul class="evs">${evsC.slice(0,40).map(e=>evLi(e,false)).join("")}${evsG.slice(0,6).map(e=>evLi(e,true)).join("")}</ul>${evsC.length>40||evsG.length>6?`<div><button type="button" class="btn" data-tl="${esc(nome)}">Ver tudo na linha do tempo</button></div>`:""}</div>
+      <div class="box"><h4>Cronologia do candidato</h4><div class="cap">${pl(evsC.length,"evento datado","eventos datados")} sobre ${esc(nome)}; os marcos gerais da eleição aparecem esmaecidos.</div><ul class="evs">${evsC.slice(0,40).map(e=>evLi(e,false)).join("")}${evsG.slice(0,6).map(e=>evLi(e,true)).join("")}</ul>${evsC.length>40||evsG.length>6?`<div><button type="button" class="btn" data-tl="${esc(nome)}">Ver tudo na linha do tempo</button></div>`:""}</div>
       ${R?cobH:""}
       <div class="foot-acts"><button type="button" class="btn" data-copy="1">Copiar link</button></div>
-      <div class="foot"><span>Fontes deste dossiê: ${fontesTSE}TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições${R&&fin?` de 1º turno, ${contagem2TTxt()}`:""}), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${evsC.length} eventos).</span><span>Nenhum número entra sem data e fonte.</span></div>
+      <div class="foot"><span>Fontes deste dossiê: ${fontesTSE}TSE DivulgaCandContas (ficha e bens), ${DATA.meta.institutos} institutos registrados (${nPolls} medições${R&&fin?` de 1º turno, ${contagem2TTxt()}`:""}), Google Trends e Wikimedia (coleta própria), ${igs?esc(resumoFonte(igs.fonte))+" (seguidores)":"sem fonte de seguidores"}, imprensa (${pl(evsC.length,"evento")}).</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 // as rodadas do confronto Lula x Flávio separadas como na capa: as do 2º turno desde REGUA2T.inicio e as
@@ -4973,8 +4998,14 @@ function barrasRodada(u, cargo, o={}){
     const c = candPorSlug(p[5]), dim = foc.size&&!foc.has(p[5]);
     const naLinha = emp!=null && p[4]===emp;
     const elege = (cargo==="senador" ? i<vagas : i===0) && !naLinha;
-    return `<div class="hb${dim?" dim":""}${elege?" lead":""}${naLinha?" tie":""}"><span class="nm">${c?`<span class="k" style="background:${corViva(p[6])}">${esc(c.num)}</span>`:""}${c?`<button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(p[3])}</b></button>`:`<b>${esc(p[3])}</b>`}<span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,p[4]/max*100)}%;background:${corViva(p[6])}"></i></span><span class="val display tnum">${fPct(p[4])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
-  }).join("")+`</div>`+(corte!=null?`<div class="cap">Duas vagas em disputa. Nesta rodada, a linha de corte está em ${fPct(corte)}%.${emp!=null?` ${nEmp} nomes estão empatados nesse patamar, e a segunda vaga segue indefinida.`:""}</div>`:"");
+    return `<div class="hb${dim?" dim":""}${elege?" lead":""}${naLinha?" tie":""}"><span class="nm">${c?`<span class="k" style="background:${corViva(p[6])}">${esc(c.num)}</span>`:""}<span class="tx">${c?`<button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(p[3])}</b></button> <span class="pt">${esc(c.partido)}</span>`:`<b>${esc(p[3])}</b>`}</span></span><span class="bar"><i style="width:${Math.max(1.5,p[4]/max*100)}%;background:${corViva(p[6])}"></i></span><span class="val display tnum">${fPct(p[4])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
+  }).join("")+`</div>`+(corte==null?"":(()=>{
+    // com o resultado do TSE, a rodada é de antes da votação e a legenda fala no passado: as vagas já foram
+    // preenchidas, e um empate na pesquisa não deixa vaga nenhuma indefinida (até 14/10/2026 a legenda do AM
+    // dizia "a segunda vaga segue indefinida" ao lado dos dois eleitos)
+    const Rs=cargo==="senador"?resSen(u):null;
+    if(!Rs)return `<div class="cap">Duas vagas em disputa. Nesta rodada, a linha de corte está em ${fPct(corte)}%.${emp!=null?` ${nEmp} nomes estão empatados nesse patamar, e a segunda vaga segue indefinida.`:""}</div>`;
+    return `<div class="cap">Rodada feita antes da votação de ${dBR(TURNOS.t1)}, quando duas vagas estavam em disputa: nela, a linha de corte ficava em ${fPct(corte)}%${emp!=null?`, com ${nEmp} nomes empatados nesse patamar`:""}.${Rs.est==="final"?` As duas vagas foram preenchidas na votação, pelo resultado do TSE.`:" O TSE ainda apura o resultado."}</div>`;})());
 }
 // barras do resultado oficial: todos por votos, percentual com duas casas e votos, sublinhado no eleito
 // ou nos dois do 2º turno, a linha de corte das vagas do Senado e o carimbo do TSE com o link
@@ -4985,14 +5016,14 @@ function barrasResultado(k,cargo,turno="1"){
   const linhas=A.c.map((x,i)=>{
     const c=candUF(k,x[0]),lead=x[6]==="eleito"||x[6]==="2t";
     const corte=cargo==="senador"&&i===vagas&&A.c.length>vagas?`<div class="hb-corte" role="presentation"><span>${fin?`linha de corte: ${pl(vagas,"vaga")}, preenchidas por quem está acima`:`linha de corte das ${pl(vagas,"vaga")}, na apuração parcial`}</span></div>`:"";
-    return corte+`<div class="hb${lead?" lead":""}"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(x[1])}</b></button>`:`<b>${esc(x[1])}</b>`}<span class="pt">${[esc(x[3]),fInt(x[4])+" votos",sitDe(k,x)].filter(Boolean).map(t=>`<span>${t}</span>`).join(" · ")}</span></span><span class="bar"><i style="width:${Math.max(1.5,x[5]/max*100)}%;background:${c?c.cor:"var(--neutro)"}"></i></span><span class="val display tnum">${fPct2(x[5])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
+    return corte+`<div class="hb${lead?" lead":""}"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span>`:""}<span class="tx">${c?`<button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(x[1])}</b></button>`:`<b>${esc(x[1])}</b>`}<span class="pt">${[esc(x[3]),fInt(x[4])+" votos",sitDe(k,x)].filter(Boolean).map(t=>`<span>${t}</span>`).join(" · ")}</span></span></span><span class="bar"><i style="width:${Math.max(1.5,x[5]/max*100)}%;background:${c?c.cor:"var(--neutro)"}"></i></span><span class="val display tnum">${fPct2(x[5])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
   }).join("");
   return `<div class="hbars res">${linhas}</div><div class="cap">${linkTSE(`TSE, ${fin?"resultado oficial":"apuração parcial"} do ${turno}º turno, ${secoesTSE(A)} totalizadas${A.tot.at?", "+horaTSE(A.tot.at):""}`)}. Percentual sobre os votos válidos${cargo==="senador"?"; cada eleitor votou em dois nomes":""}.</div>`;
 }
 // barras de uma rodada do 2º turno estadual, com os números publicados pelo instituto
 function barras2TUF(k,R){
   const fin=finalUF(k).map(c=>c[0]),max=Math.max(...fin.map(s=>R.pub[s]||0),10);
-  return `<div class="hbars">`+fin.map(s=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button>`:`<b>${esc(nomeSl(k,s))}</b>`}<span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,(R.pub[s]||0)/max*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(R.pub[s])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(s)}" title="Abrir dossiê">ficha</button>`:""}</div>`;}).join("")
+  return `<div class="hbars">`+fin.map(s=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span>`:""}<span class="tx">${c?`<button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button> <span class="pt">${esc(c.partido)}</span>`:`<b>${esc(nomeSl(k,s))}</b>`}</span></span><span class="bar"><i style="width:${Math.max(1.5,(R.pub[s]||0)/max*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(R.pub[s])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(s)}" title="Abrir dossiê">ficha</button>`:""}</div>`;}).join("")
     +`</div><div class="cap">Números publicados pelo instituto. Em votos válidos, a parte de cada um na soma dos dois: ${fin.map(s=>`${esc(curtoNome(nomeSl(k,s)))} ${fPct(R.v[s])}%`).join(", ")}.</div>`;
 }
 // evolução entre rodadas (quando há 2+)
@@ -5247,7 +5278,7 @@ function drawPainel2TUF(k){
     $("#e-h-2tg").textContent="2º turno: média das pesquisas";
     $("#e-cap-2tg").textContent=`votos válidos · ${pl(m.n,"rodada")} depois de ${dBR(TURNOS.t1)} · até ${dBR(m.ultima)}`;
     const mx=Math.max(m.va,m.vb);
-    $("#e-ch-2tg").innerHTML=`<div class="hbars">${[[m.a,m.va],[m.b,m.vb]].map(([s,v])=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button><span class="pt">${esc(c.partido)}</span>`:`<b>${esc(nomeSl(k,s))}</b>`}</span><span class="bar"><i style="width:${Math.max(1.5,v/mx*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(v)}<small>%</small></span></div>`;}).join("")}</div><div class="cap">${textoUF2T(k,m)} ${ir}</div>`;
+    $("#e-ch-2tg").innerHTML=`<div class="hbars">${[[m.a,m.va],[m.b,m.vb]].map(([s,v])=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span>`:""}<span class="tx">${c?`<button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button> <span class="pt">${esc(c.partido)}</span>`:`<b>${esc(nomeSl(k,s))}</b>`}</span></span><span class="bar"><i style="width:${Math.max(1.5,v/mx*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(v)}<small>%</small></span></div>`;}).join("")}</div><div class="cap">${textoUF2T(k,m)} ${ir}</div>`;
   }else if(camp.length){
     const R=camp[camp.length-1];
     $("#e-h-2tg").textContent="2º turno: as pesquisas até agora";
@@ -5552,7 +5583,7 @@ function drawPesquisasUF(){
   const nomes={};
   for(const x of rm){for(const p of pontosRodada(ufAtual,x)){(nomes[p[3]]=nomes[p[3]]||[]).push({modo:x.modo,v:p[4],inst:x.inst,data:x.data,cor:corViva(p[6])});}}
   const comp=Object.entries(nomes).filter(([n,a])=>new Set(a.map(x=>x.modo)).size>1).slice(0,8);
-  $("#e-ch-modo").innerHTML=comp.length?`<div class="hbars">`+comp.map(([n,a])=>{const byM={};for(const x of a){(byM[x.modo]=byM[x.modo]||[]).push(x.v);}const mx=Math.max(...a.map(y=>y.v));return Object.entries(byM).map(([m,vs])=>{const med=vs.reduce((s,v)=>s+v,0)/vs.length;return `<div class="hb"><span class="nm"><b>${esc(n)}</b><span class="pt">${esc(m)} · ${pl(vs.length,"rodada")}</span></span><span class="bar"><i style="width:${Math.max(1.5,med/mx*100)}%;background:${a[0].cor}"></i></span><span class="val display tnum">${fPct(med)}<small>%</small></span></div>`;}).join("");}).join("")+`</div><div class="cap">Média simples das rodadas de cada modo, por candidato.</div>`:`<div class="empty"><b>Sem comparação possível</b>É preciso ao menos duas rodadas com modos de coleta diferentes no mesmo estado, com o modo declarado na ficha.</div>`;
+  $("#e-ch-modo").innerHTML=comp.length?`<div class="hbars">`+comp.map(([n,a])=>{const byM={};for(const x of a){(byM[x.modo]=byM[x.modo]||[]).push(x.v);}const mx=Math.max(...a.map(y=>y.v));return Object.entries(byM).map(([m,vs])=>{const med=vs.reduce((s,v)=>s+v,0)/vs.length;return `<div class="hb"><span class="nm"><span class="tx"><b>${esc(n)}</b> <span class="pt"><span>${esc(m)}</span> · <span>${pl(vs.length,"rodada")}</span></span></span></span><span class="bar"><i style="width:${Math.max(1.5,med/mx*100)}%;background:${a[0].cor}"></i></span><span class="val display tnum">${fPct(med)}<small>%</small></span></div>`;}).join("");}).join("")+`</div><div class="cap">Média simples das rodadas de cada modo, por candidato.</div>`:`<div class="empty"><b>Sem comparação possível</b>É preciso ao menos duas rodadas com modos de coleta diferentes no mesmo estado, com o modo declarado na ficha.</div>`;
 }
 // busca e redes do estado
 const T_DIA0=Date.parse(DATA.dia0||"2026-01-01");
@@ -5572,9 +5603,13 @@ function drawBuscaUF(){
   const ordem=cands.slice().sort((a,b)=>{const va=l?(l.pts.find(p=>p[5]===a.slug)||[0,0,0,0,-1])[4]:-1,vb=l?(l.pts.find(p=>p[5]===b.slug)||[0,0,0,0,-1])[4]:-1;return vb-va;});
   const comTr=ordem.filter(c=>B.tr&&B.tr[c.slug]);
   if(!ufTrVis)ufTrVis=new Set(comTr.slice(0,8).map(c=>c.slug));
-  $("#e-f-trends").innerHTML=comTr.map(c=>`<button type="button" class="chipbtn" data-k="${esc(c.slug)}" aria-pressed="${ufTrVis.has(c.slug)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${B.trn&&B.trn[c.slug]?" · "+esc(B.trn[c.slug]):""}"><i></i>${esc(curtoNome(c.nome))}${B.trn&&B.trn[c.slug]?" ?":""}</button>`).join("");
+  // o índice estadual vem reescalado pela âncora, com uma casa decimal, e a nota da reescala traz o fator com
+  // ponto (dado do CSV): na tela, os dois saem com vírgula, e a soma de 7 dias sai arredondada (até 14/10/2026
+  // a tabela mostrava "3.5" ao lado do "374.805" do Instagram, e somas como "14.399999999999999")
+  const notaTr=slug=>B.trn&&B.trn[slug]?esc(B.trn[slug]).replace(/(\d)\.(\d)/g,"$1,$2"):"";
+  $("#e-f-trends").innerHTML=comTr.map(c=>`<button type="button" class="chipbtn" data-k="${esc(c.slug)}" aria-pressed="${ufTrVis.has(c.slug)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${notaTr(c.slug)?" · "+notaTr(c.slug):""}"><i></i>${esc(curtoNome(c.nome))}${B.trn&&B.trn[c.slug]?" ?":""}</button>`).join("");
   $("#e-f-trends").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufTrVis.has(k)?ufTrVis.delete(k):ufTrVis.add(k);b.setAttribute("aria-pressed",ufTrVis.has(k));drawBuscaUF();}));
-  const tr=comTr.filter(c=>ufTrVis.has(c.slug)).map(c=>{const pts=sStr(B.tr[c.slug]).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · índice ${p.v}${B.trn&&B.trn[c.slug]?"<br><i>"+esc(B.trn[c.slug])+"</i>":""}<br>${dBR(dISO(p.t))}`}));const mm=mediaMovel(pts,4);return {nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:2,r:2.6,op:.35,sigma:4,pts,rotulo:`${esc(curtoNome(c.nome))} ${Math.round(mm.length?mm[mm.length-1].v:0)}`};});
+  const tr=comTr.filter(c=>ufTrVis.has(c.slug)).map(c=>{const pts=sStr(B.tr[c.slug]).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · índice ${fPct(p.v)}${notaTr(c.slug)?"<br><i>"+notaTr(c.slug)+"</i>":""}<br>${dBR(dISO(p.t))}`}));const mm=mediaMovel(pts,4);return {nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:2,r:2.6,op:.35,sigma:4,pts,rotulo:`${esc(curtoNome(c.nome))} ${Math.round(mm.length?mm[mm.length-1].v:0)}`};});
   // a âncora verdadeira está registrada na nota da reescala; o primeiro da lista só serve de
   // último recurso, e nas proporcionais ele nem é o mais buscado, porque não há pesquisa
   const ancora=(()=>{for(const c of cands){const n=B.trn&&B.trn[c.slug];const m=n&&n.match(/pela âncora ([^;]+)/);if(m)return m[1].trim();}return comTr[0]?comTr[0].nome:"";})();
@@ -5583,7 +5618,7 @@ function drawBuscaUF(){
   if(tr.length)pinta("#e-ch-trends",chartTempo({id:"#e-ch-trends",H:300,ml:52,mr:120,...janelaDe(ultDe(tr)),linhas:[MARCO1T.t],ymax:yT,ticks:yT>100?[0,50,100,Math.round(yT/2),yT].filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b):[0,25,50,75,100],fmtY:v=>v,series:tr,aria:`Buscas no Google por candidato ${emUF(ufAtual)}`}));
   else $("#e-ch-trends").innerHTML=`<div class="empty"><b>Sem série de busca</b>${nTr?"Escolha ao menos um nome nos filtros.":"A coleta do Google Trends para esta disputa ainda não entrou."}</div>`;
   // ---- wikipedia
-  const wk=ordem.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).slice(0,8).map(c=>({nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:1.7,r:5,pontoTransp:true,pts:sStr(B.wk[c.slug].pv).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · ${fInt(p.v)} acessos<br>verbete "${esc(B.wk[c.slug].t)}"<br>${dBR(dISO(p.t))}`}))}));
+  const wk=ordem.filter(c=>B.wk&&B.wk[c.slug]&&B.wk[c.slug].pv).slice(0,8).map(c=>({nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),lw:1.7,r:5,pontoTransp:true,pts:sStr(B.wk[c.slug].pv).filter(p=>p.v>0).map(p=>({...p,tip:`<b>${esc(c.nome)}</b> · ${fInt(p.v)} ${p.v===1?"acesso":"acessos"}<br>verbete "${esc(B.wk[c.slug].t)}"<br>${dBR(dISO(p.t))}`}))}));
   $("#e-cap-wiki").textContent=nWk?`acessos diários, escala logarítmica; ${nWk} com verbete`:"";
   if(wk.length)pinta("#e-ch-wiki",chartTempo({id:"#e-ch-wiki",W:560,H:260,ml:52,mr:96,...janelaDe(ultDe(wk)),linhas:[MARCO1T.t],log:true,ymin:1,ymax:100000,ticks:[1,10,100,1000,10000,100000],fmtY:fAcessos,series:wk,aria:"Acessos ao verbete na Wikipédia",fs:11.5}));
   else $("#e-ch-wiki").innerHTML=`<div class="empty"><b>Sem verbete localizado</b>Nenhum candidato desta disputa tem verbete na Wikipédia localizado pela coleta.</div>`;
@@ -5591,14 +5626,14 @@ function drawBuscaUF(){
   const ig=ordem.filter(c=>B.ig&&B.ig[c.slug]&&B.ig[c.slug].n!=null).sort((a,b)=>B.ig[b.slug].n-B.ig[a.slug].n);
   const nAp=ig.filter(c=>B.ig[c.slug].a).length;$("#e-cap-ig").textContent=ig.length?`leitura do perfil público em ${dBR(B.ig[ig[0].slug].d)}${nAp?`; ≈ marca ${pl(nAp,"número aproximado","números aproximados")} (perfil comercial, lido da meta da página)`:""}; a série diária começa nesta edição`:"";
   const mx=ig.length?Math.max(...ig.map(c=>B.ig[c.slug].n),1):1;
-  $("#e-ch-ig").innerHTML=ig.length?`<div class="hbars">`+ig.slice(0,12).map(c=>`<div class="hb${foc.size&&!foc.has(c.slug)?" dim":""}"><span class="nm"><span class="k" style="background:${c.cor}">${esc(c.num)}</span><b>${esc(c.nome)}</b><span class="pt">@${esc(B.ig[c.slug].h)}</span></span><span class="bar"><i style="width:${Math.max(1.5,B.ig[c.slug].n/mx*100)}%;background:${c.cor}"></i></span><span class="val display tnum" style="font-size:15px" title="${B.ig[c.slug].a?"número aproximado, lido da meta da página do perfil":"contagem exata em "+dBR(B.ig[c.slug].d)}">${B.ig[c.slug].a?"≈":""}${fM(B.ig[c.slug].n)}</span></div>`).join("")+`</div>`:`<div class="empty"><b>Sem perfil lido</b>Nenhum perfil público de Instagram desta disputa foi lido nesta edição.</div>`;
+  $("#e-ch-ig").innerHTML=ig.length?`<div class="hbars">`+ig.slice(0,12).map(c=>`<div class="hb${foc.size&&!foc.has(c.slug)?" dim":""}"><span class="nm"><span class="k" style="background:${c.cor}">${esc(c.num)}</span><span class="tx"><b>${esc(c.nome)}</b> <span class="pt">@${esc(B.ig[c.slug].h)}</span></span></span><span class="bar"><i style="width:${Math.max(1.5,B.ig[c.slug].n/mx*100)}%;background:${c.cor}"></i></span><span class="val display tnum" style="font-size:15px" title="${B.ig[c.slug].a?"número aproximado, lido da meta da página do perfil":"contagem exata em "+dBR(B.ig[c.slug].d)}">${B.ig[c.slug].a?"≈":""}${fM(B.ig[c.slug].n)}</span></div>`).join("")+`</div>`:`<div class="empty"><b>Sem perfil lido</b>Nenhum perfil público de Instagram desta disputa foi lido nesta edição.</div>`;
   // ---- tabela
   const ult7=T1-8*864e5;
   $("#e-tb-redes tbody").innerHTML=ordem.map(c=>{
     const t=B.tr&&B.tr[c.slug]?sStr(B.tr[c.slug]):null, w=B.wk&&B.wk[c.slug]?B.wk[c.slug]:null, i=B.ig&&B.ig[c.slug]?B.ig[c.slug]:null;
     const pico=t&&t.length?t.reduce((a,b)=>b.v>a.v?b:a):null, s7=t?t.filter(p=>p.t>=ult7).reduce((s,p)=>s+p.v,0):null;
     const w7=w&&w.pv?sStr(w.pv).filter(p=>p.t>=ult7).reduce((s,p)=>s+p.v,0):null;
-    return `<tr><td><b>${esc(c.nome)}</b></td><td>${esc(c.partido)}</td><td class="num">${i&&i.n!=null?(i.a?`<span title="número aproximado, lido da meta da página">≈${fInt(i.n)}</span>`:fInt(i.n)):"n/d"}</td><td>${i&&i.h?`<a href="https://www.instagram.com/${esc(i.h)}/" target="_blank" rel="noopener">@${esc(i.h)}</a>`:"<span style=\"color:var(--ink-3)\">não informado ao TSE</span>"}</td><td class="num">${pico?`${pico.v} <small style="color:var(--ink-3)">${dBR(dISO(pico.t))}</small>`:"n/d"}</td><td class="num">${s7!=null?s7:"n/d"}</td><td class="num">${w7!=null?fInt(w7):"n/d"}</td><td>${w&&w.t?`<a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(w.t.replace(/ /g,"_"))}" target="_blank" rel="noopener">${esc(w.t)}</a>`:"<span style=\"color:var(--ink-3)\">sem verbete</span>"}</td></tr>`;}).join("");
+    return `<tr><td><b>${esc(c.nome)}</b></td><td>${esc(c.partido)}</td><td class="num">${i&&i.n!=null?(i.a?`<span title="número aproximado, lido da meta da página">≈${fInt(i.n)}</span>`:fInt(i.n)):"n/d"}</td><td>${i&&i.h?`<a href="https://www.instagram.com/${esc(i.h)}/" target="_blank" rel="noopener">@${esc(i.h)}</a>`:"<span style=\"color:var(--ink-3)\">não informado ao TSE</span>"}</td><td class="num">${pico?`${fPct(pico.v)} <small style="color:var(--ink-3)">${dBR(dISO(pico.t))}</small>`:"n/d"}</td><td class="num">${s7!=null?fPct(s7):"n/d"}</td><td class="num">${w7!=null?fInt(w7):"n/d"}</td><td>${w&&w.t?`<a href="https://pt.wikipedia.org/wiki/${encodeURIComponent(w.t.replace(/ /g,"_"))}" target="_blank" rel="noopener">${esc(w.t)}</a>`:"<span style=\"color:var(--ink-3)\">sem verbete</span>"}</td></tr>`;}).join("");
 }
 for(const k of ["#e-ch-trends","#e-ch-wiki"])DRAW[k]=()=>drawBuscaUF();
 // A pesquisa de deputado não é da mesma família das majoritárias e o mural não pode deixar
@@ -5799,7 +5834,7 @@ const CRIT_UF=[...(RES?CRIT_RES_UF:[]),
  ["Pesquisas",RES?"Última rodada do 1º turno":"Intenção de voto",c=>{const l=liderDe(ufAtual,c.cargo);const p=l?l.pts.find(x=>x[5]===c.slug):null;return p?{v:p[4],txt:fPct(p[4])+"%",src:`${l.r.inst}, ${dBR(l.r.data)}`,better:"max",bar:true}:{txt:"não medido"};}],
  ["Pesquisas","Posição na rodada",c=>{const l=liderDe(ufAtual,c.cargo);const i=l?l.pts.findIndex(x=>x[5]===c.slug):-1;return i>=0?{v:-(i+1),txt:(i+1)+"º",src:`entre ${l.pts.length} testados`,better:"max"}:{txt:"fora da rodada"};}],
  ["Pesquisas","Média das 3 últimas rodadas",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).sort((a,b)=>b[2].localeCompare(a[2])).slice(0,3);if(!ps.length)return {txt:"não medido"};const m=ps.reduce((s,p)=>s+p[4],0)/ps.length;return {v:m,txt:fPct(m)+"%",src:ps.length<3?`só ${pl(ps.length,"rodada")}`:`${dBR(ps[2][2])} a ${dBR(ps[0][2])}`,better:"max",bar:true};}],
- ["Pesquisas","Tendência de 30 dias",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).map(p=>({t:Date.parse(p[2]),v:p[4]})).sort((a,b)=>a.t-b.t);if(ps.length<3)return {txt:"poucas rodadas"};const tf=ps[ps.length-1].t,a=smoothAt(ps,14,tf),b=smoothAt(ps,14,tf-30*864e5);const d=a-b;return {v:d,txt:(d>=0?"+":"")+fPct(d)+" pts",src:"média móvel, últimos 30 dias",better:"max",bar:true};}],
+ ["Pesquisas","Tendência de 30 dias",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).map(p=>({t:Date.parse(p[2]),v:p[4]})).sort((a,b)=>a.t-b.t);if(ps.length<3)return {txt:"poucas rodadas"};const tf=ps[ps.length-1].t,a=smoothAt(ps,14,tf),b=smoothAt(ps,14,tf-30*864e5);const d=a-b;return {v:d,txt:(d>=0?"+":"")+fPct(d)+" "+pts(d),src:"média móvel, últimos 30 dias",better:"max",bar:true};}],
  ["Pesquisas",RES?"Melhor rodada":"Melhor resultado",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug);if(!ps.length)return {txt:"não medido"};const m=ps.reduce((a,b)=>b[4]>a[4]?b:a);return {v:m[4],txt:fPct(m[4])+"%",src:`${m[1]}, ${dBR(m[2])}`,better:"max"};}],
  ["Pesquisas","Rodadas em que aparece",c=>{const n=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).length;return {v:n,txt:String(n),src:"no observatório",better:"max",bar:true};}],
  ["Redes e perfil","Seguidores no Instagram",c=>{const B=UF[ufAtual].busca||{};const i=B.ig&&B.ig[c.slug];return i&&i.n!=null?{v:i.n,txt:(i.a?"≈":"")+fM(i.n),src:`@${i.h}, ${dBR(i.d)}${i.a?", aproximado":""}`,better:"max",bar:true}:{txt:c.ext&&c.ext.ig?"não lido ainda":"sem perfil informado"};}],
@@ -6054,7 +6089,7 @@ function carimboDe(id){
         return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}${at?` · resultado TSE de ${dBR(at)}`:""}`;}
     }return "";}
   switch(id){
-    case "pesquisas":{const n=rodadas2TCampanha().length;return n?`${pl(n,"rodada")} de 2º turno desde ${dBR(TURNOS.t1)} · até ${dBR(ult2T())}`:`${M.t1.rodadas} rodadas de 1º turno · até ${dBR(M.t1.ultima)}`;}
+    case "pesquisas":{const n=rodadas2TCampanha().length;return n?`${pl(n,"rodada")} de 2º turno desde ${dBR(REGUA2T.inicio)} · até ${dBR(ult2T())}`:`${M.t1.rodadas} rodadas de 1º turno · até ${dBR(M.t1.ultima)}`;}
     case "busca":{const t=sMMDD(DATA.trends["Lula"]).pop(),w=sMMDD(DATA.wiki["Lula"]).pop(),ig=Object.values(DATA.ig).flat().map(p=>p.d).filter(d=>d<=HOJE).sort().pop();return [t?`Trends até ${dBR(dISO(t.t))}`:"",w?`Wikipédia até ${dBR(dISO(w.t))}`:"",ig?`Instagram ${dBR(ig)}`:""].filter(Boolean).join(" · ");}
     case "candidatos":{if(!comRes1T())return `${C.length} registrados · ${nDef} deferidos · TSE`;const B=blocosCand();return `${B.fin.length} no 2º turno · ${B.nao.length} não ${B.nao.length===1?"eleito":"eleitos"} no 1º turno · TSE, ${dataTSE(R1C())}`;}
     case "lado":return comRes1T()?`${CRIT.length} critérios · TSE, ${dataTSE(R1C())} · pesquisas de 2º turno até ${dBR(ult2T())}`:`${CRIT.length} critérios · até ${dBR(ULT)}`;
