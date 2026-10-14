@@ -180,6 +180,12 @@ projeto:
   gráfico ou texto do 2º turno refaz a média por conta própria. O resultado do
   TSE vem de `RES` (`resPres`, `resGov`, `resSen`), exibido com `fPct2`; as
   contas do 1º turno se ancoram em `ULT1T` (3/10), não em `ULT`.
+- Nos estados, o caso de cada disputa sai de `estadoGov(uf)` ("decidido", "t2",
+  "pend", "apur" ou "sem") e `estadoUF(uf, cargo)`; só o caso "sem" (sem resultado do
+  TSE) usa a média de 1º turno (`mediaUF`). O 2º turno de governador tem uma conta só,
+  `mediaUF2T(uf)`, sobre `rodadasUF2T(uf)` (o confronto que vai à urna, em válidos),
+  com a mesma regra `MIN_POS1T` do país; abaixo dela, `linhaRodadasUF2T(uf)` mostra as
+  rodadas como rodadas. As barras do TSE saem de `barrasResultado(uf, cargo, turno)`.
 - A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
   factuais, montadas por `ORDEM()` (média móvel do dia) e por `liderDe()`
   (última rodada do estado). Não escrever leitura editorial ali: o observatório
