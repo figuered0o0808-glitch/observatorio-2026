@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Gera mural.html (Mural dos Candidatos) a partir dos CSVs em ../dados.
 Rodar a cada snapshot. Edição 2: histórico completo de pesquisas, redes, partidos."""
-import re, csv, io, json, os, re
+import re, csv, io, json, os, re, unicodedata
 from collections import defaultdict
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -35,12 +35,6 @@ pesq = [r for r in pesq if (r["instituto"], r["data_divulgacao"], r["data_campo_
 # deslocada da Wikipédia.
 if os.path.exists(os.path.join(DADOS, "pesquisas-corrigidas.csv")):
     pesq += ler("pesquisas-corrigidas.csv")
-# Mesmo instituto com dois nomes na base. Em 13/10/2026 a rodada do Vox Brasil de 8/10 chegou da
-# Wikipédia como "Vox", e o coletor gravou o nome da página; a base só aceita acréscimo, então o
-# nome se acerta aqui, na leitura, depois das exclusões e das correções (que usam o nome gravado).
-INST_ALIAS = {"Vox": "Vox Brasil"}
-for r in pesq:
-    r["instituto"] = INST_ALIAS.get(r["instituto"], r["instituto"])
 ev = ler("eventos.csv")
 part = ler("partidos.csv")
 trends_rows = ler("trends-2026.csv")
@@ -70,6 +64,17 @@ TURNOS = {"t1": "2026-10-04", "t2": "2026-10-25", "abre": "08:00", "fecha": "17:
 # Pesquisa de 1º turno vai até a véspera da votação; o mesmo corte do coletor nacional (FIM_1T)
 FIM_1T = TURNOS["t1"]
 VESPERA_1T = "2026-10-03"
+# Mesmo instituto com dois nomes na base. Em 13/10/2026 a rodada do Vox Brasil de 8/10 chegou da
+# Wikipédia como "Vox", e o coletor gravou o nome da página; a base só aceita acréscimo, então o
+# nome se acerta aqui, na leitura, depois das exclusões e das correções (que usam o nome gravado).
+# Só nas rodadas divulgadas depois de 4/10: as de antes (Vox de 15/5 e de 2/10) ficam como a média
+# da véspera as contou, como dois institutos, para a conta refeita do 1º turno no painel pesquisas x
+# urna mudar só pelas três rodadas que chegaram depois da edição. Com o apelido no ano todo, ela
+# dava Flávio 44,18 e Lula 45,18 em vez de 44,08 e 45,23.
+INST_ALIAS = {"Vox": "Vox Brasil"}
+for r in pesq:
+    if r["data_divulgacao"] > FIM_1T:
+        r["instituto"] = INST_ALIAS.get(r["instituto"], r["instituto"])
 
 # ---------------------------------------------------------------- pesquisas
 rodadas = {}
@@ -263,6 +268,16 @@ for e in ev:
 _eventuais = {id(e) for d, es in _cal_dia.items() if len(es) > 1
               for e in es if "(eventual)" in e["evento"] and any("(eventual)" not in o["evento"] for o in es)}
 ev = [e for e in ev if id(e) not in _eventuais]
+# Enquanto essa outra linha não entra (o guarda recusa linha nova com data futura, 13/10/2026), o
+# resultado do TSE já confirma o 2º turno: a "(eventual)" é mostrada com o que se vota, as UFs saindo
+# de totais.csv. O CSV não muda; sem resultado, ou sem 2º turno presidencial, a linha fica como está.
+_br1 = resultados.get("pres", {}).get("1", {}).get("BR")
+if _br1 and any(x[6] == "2t" for x in _br1["c"]):
+    _ufs = " e ".join([", ".join(UF2T[:-1]), UF2T[-1]]) if len(UF2T) > 1 else "".join(UF2T)
+    _o_que = f"Presidência e governo em {_ufs}" if _ufs else "Presidência"
+    ev = [dict(e, evento=f"2º turno: {_o_que}",
+               descricao=f"Votação das {int(TURNOS['abre'][:2])}h às {int(TURNOS['fecha'][:2])}h de Brasília (calendário TSE).")
+          if e["categoria"] == "calendário" and e["data"] == TURNOS["t2"] and "(eventual)" in e["evento"] else e for e in ev]
 ev_sorted = sorted(ev, key=lambda r: r["data"], reverse=True)
 def eventos_de(nome, n=4):
     out = [e for e in ev_sorted if nome in e["candidato"] or e["candidato"] == "todos"]
@@ -572,12 +587,30 @@ for u in ufs.values():
 # ---- resultado de cada candidatura estadual no TSE, casado pelo slug (coluna mural)
 # r1 = [votos, pct, posição, situação] no 1º turno e r2 no 2º. Candidatura do mural sem linha na
 # apuração ganha fora = 1 (26 casos em 4/10/2026); linha da apuração sem slug fica só em
-# DATA.resultados (cinco casos, como Guto Schiavetto no Senado em SP).
+# DATA.resultados (três casos: Ruth Reis no PA, Godeiro Linharess no RN e Adriano Trajano na PB).
+# Antes de marcar fora, a linha sem slug é casada pelo nome de urna, sem caixa nem acento, dentro da
+# mesma UF e cargo, só quando o nome é único dos dois lados. Nunca pelo número: em PA 35 e RN 27 o
+# candidato mudou e o número ficou. Era o caso de Guto Schiavetto (Senado, SP, 392.916 votos) e do
+# Sargento Laudicério (governo, MT), que saíam como "fora da apuração, sem votos" em 13/10/2026. O
+# casamento é feito aqui, na leitura; o CSV do TSE não muda.
+def _sem_acento(t):
+    return "".join(ch for ch in unicodedata.normalize("NFD", str(t).upper()) if unicodedata.category(ch) != "Mn").strip()
 for k, u in ufs.items():
     for lista, cargo in (("gov", "gov"), ("sen", "sen")):
         a1 = resultados.get(cargo, {}).get("1", {}).get(k)
         if not a1: continue
         a2 = resultados.get(cargo, {}).get("2", {}).get(k)
+        for A in (a1, a2):
+            if not A: continue
+            com_slug = {x[0] for x in A["c"] if x[0]}
+            livres = defaultdict(list)
+            for x in A["c"]:
+                if not x[0]: livres[_sem_acento(x[1])].append(x)
+            nomes_mural = _Contador(_sem_acento(c["nome"]) for c in u[lista])
+            for c in u[lista]:
+                n = _sem_acento(c["nome"])
+                if c["slug"] in com_slug or nomes_mural[n] != 1 or len(livres.get(n, [])) != 1: continue
+                livres[n][0][0], livres[n][0][1] = c["slug"], c["nome"]
         pos1 = {x[0]: [x[4], x[5], i, x[6]] for i, x in enumerate(a1["c"], 1) if x[0]}
         pos2 = {x[0]: [x[4], x[5], i, x[6]] for i, x in enumerate(a2["c"], 1) if x[0]} if a2 else {}
         for c in u[lista]:

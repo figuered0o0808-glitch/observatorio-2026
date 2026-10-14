@@ -4,7 +4,8 @@ encontrado e corrigido numa edição anterior, e falha se ele voltar. Ao corrigi
 novo, adicione um bloco aqui em vez de só corrigir e seguir em frente: é isso que evita
 que o mesmo bug volte numa edição futura sem ninguém notar.
 
-Roda contra o mural.html já gerado (não regenera nada). Uso:
+Roda contra o mural já gerado (não regenera nada) e para com aviso se ele estiver mais antigo que as
+fontes (testes/_frescor.py). Uso:
     python3 testes/regressao_bugs_conhecidos.py
 """
 import re
@@ -17,6 +18,13 @@ from playwright.sync_api import sync_playwright
 # sendo gerado para conferência e é contra ele que estes testes rodam, senão eles testariam a
 # tela de cadastro em vez do mural. A trava em si tem bloco próprio na regressão.
 URL = (Path(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").as_uri()
+# mural-inteiro.html é ignorado pelo git e pode estar velho: o teste para antes de abrir o navegador
+# se ele for mais antigo que o template, o gerador ou os CSVs, ou se o DATA.meta divergir do de
+# mural.html (T0.2; ver testes/_frescor.py)
+import sys as _sys_fr
+_sys_fr.path.insert(0, str(Path(__file__).resolve().parent))
+import _frescor
+_frescor.exigir()
 ok, fail = [], []
 
 # Hosts de recurso externo que o mural pede (as fontes do Google). Num ambiente sem rede o
@@ -673,7 +681,13 @@ with sync_playwright() as p:
     for w, h in ((390, 844), (768, 1024), (834, 1112), (1024, 768), (1280, 800), (1600, 900)):
         b, page, errs = novo_ctx(p, viewport=(w, h))
         largos = {}
-        for rota in ("geral", "pesquisas", "metodo", "uf-sp-governo", "uf-sp-senado-pesquisas"):
+        # mais as Pesquisas de uma UF com 2º turno de governador, escolhida pelo dado: em 14/10/2026 o
+        # rótulo da dobra "Outros confrontos testados antes do 1º turno" não quebrava linha e a página
+        # rolava de lado a 390px nessas UFs
+        page.goto(URL + "#geral")
+        page.wait_for_timeout(300)
+        uf2t_r = page.evaluate("() => (ufs2TAbertas()[0] || '').toLowerCase()")
+        for rota in ("geral", "pesquisas", "metodo", "uf-sp-governo", "uf-sp-senado-pesquisas") + ((f"uf-{uf2t_r}-governo-pesquisas",) if uf2t_r else ()):
             page.goto(URL + "#" + rota)
             page.wait_for_timeout(400)
             r = page.evaluate("() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, innerWidth]")
@@ -2103,6 +2117,68 @@ with sync_playwright() as p:
         check(f"N16 a {w}px sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
         b.close()
 
+    # ---- N17: achados da revisão do branch integrado (14/10/2026), cada um conferido pela regra:
+    # (a) com o 2º turno presidencial no CSV do TSE, a linha do tempo nacional não trata 25/10 como
+    #     "eventual" e diz o que se vota, com as UFs de totais.csv;
+    # (b) o cartão "Movimento no 2º turno" mede a média do dia de partida só com as rodadas divulgadas
+    #     até ele (a janela da média é simétrica e puxava as rodadas de depois, trocando o sinal);
+    # (c) o selo e a frase de quem ficou fora do 2º turno não têm adjetivo com gênero (o nacional não
+    #     tem o sexo declarado ao TSE: saía "Não eleito" para Samara Martins e Clariana Barão);
+    # (d) a fonte do painel do 2º turno não atribui as rodadas a fichas registradas no TSE, e a conta
+    #     das que trazem registro bate com o CSV;
+    # (e) toda rodada divulgada até 4/10 fica com o nome de instituto gravado no CSV (o apelido Vox ->
+    #     Vox Brasil, aplicado no ano todo, mudava a base do 1º turno e a conta refeita da véspera);
+    # (f) posse: deputados e senadores tomam posse em 1º de fevereiro, não em janeiro.
+    exc17 = {(x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) for x in _ler4("rodadas-excluidas.csv")}
+    pesq17 = [x for x in _ler4("pesquisas-registradas.csv") if (x["instituto"], x["data_divulgacao"], x["data_campo_fim"]) not in exc17]
+    b, page, errs = novo_ctx(p, viewport=(1280, 900))
+    page.goto(URL + "#geral")
+    page.wait_for_timeout(1200)
+    n17 = page.evaluate("""() => { const t1 = TURNOS.t1, t2 = TURNOS.t2, camp = rodadas2TCampanha(), out = {};
+        out.br2t = !!(resPres('1') && resPres('1').c.some(x => x[6] === '2t'));
+        out.ev = TL.filter(e => e.data === t2 && e.categoria === 'calendário').map(e => e.evento + ' | ' + e.descricao);
+        out.prox = (document.querySelector('#proximos') || {}).textContent || '';
+        const card = [...document.querySelectorAll('#hls .hl')].find(e => /Movimento no 2º turno/i.test(e.querySelector('.eyebrow').textContent));
+        out.mov = card ? card.textContent : '';
+        if (temPos1T(camp)) { const t0 = camp.find(r => temPos1T(camp.filter(x => x.t <= r.t))).t, [n1, n2] = FINAL;
+            const m = agregarEm(camp.filter(r => r.t <= t0), FINAL, SIG2, t0, {base: rodadas2TVV()});
+            const va = 100 * m[n1] / (m[n1] + m[n2]); out.ref = {dia: dBR(dISO(t0)), lider: curto(va >= 50 ? n1 : n2), dif: fPct(Math.abs(2 * va - 100))}; }
+        out.nao = C.filter(c => c.r1 && c.r1.sit === 'nao').map(c => [c.nome, situacaoCand(c)[1], fraseResultado(c), c.r1.pos]);
+        out.fonte = (document.querySelector('#home-2t-fonte') || {}).textContent || '';
+        out.fichas = DATA.fichas.map(f => f.inst + '|' + f.dt);
+        return out; }""")
+    posse17 = ""
+    for rota in ("partidos", "metodo"):
+        page.goto(URL + "#" + rota)
+        page.wait_for_timeout(500)
+        posse17 += page.evaluate(f"() => document.querySelector('#v-{rota}').textContent")
+    if n17["br2t"]:
+        uf17 = sorted({x["abrangencia"].upper() for x in ler_csv_res(ARQ_RES / "totais.csv") if x["turno"] == "2" and x["cargo"] == "governador"}) if (ARQ_RES / "totais.csv").exists() else []
+        ok17 = n17["ev"] and not any("(eventual)" in e for e in n17["ev"]) and all(re.search(r"\b" + u + r"\b", n17["ev"][0]) for u in uf17)
+        check("N17a: com o 2º turno no TSE, 25/10 sem '(eventual)' na linha do tempo e com as UFs de totais.csv",
+              ok17 and "(eventual)" not in n17["prox"], {"ev": n17["ev"], "uf2t": uf17})
+    if n17.get("ref"):
+        r17 = n17["ref"]
+        check("N17b: o movimento do 2º turno parte da média feita só com as rodadas até o dia de partida",
+              f"{r17['lider']} {r17['dif']} ponto" in n17["mov"] and f"em {r17['dia']}" in n17["mov"]
+              or f"empate técnico, em {r17['dia']}" in n17["mov"], {"cartão": n17["mov"][:300], "regra": r17})
+    ruins = [x for x in n17["nao"] if re.search(r"eleit", x[1], re.I) or f"{x[3]}º lugar" not in x[2]]
+    check("N17c: quem ficou fora do 2º turno tem selo e frase sem adjetivo de gênero, com o lugar em número", not ruins, ruins)
+    camp17 = {(x["data_divulgacao"], x["url"]): x["registro_tse"].strip() for x in pesq17
+              if x["cenario"].startswith("2º turno") and x["data_campo_fim"] > "2026-10-04"}
+    if camp17:
+        sem17 = all(not v for v in camp17.values())
+        check("N17d: a fonte do painel do 2º turno não atribui as rodadas da campanha a fichas registradas no TSE",
+              "fichas técnicas registradas no TSE" not in n17["fonte"] and (("nenhuma com número de registro" in n17["fonte"]) == sem17), n17["fonte"])
+    pares17 = sorted({x["instituto"] + "|" + x["data_divulgacao"] for x in pesq17
+                      if x["data_divulgacao"] <= "2026-10-04" and not x["instituto"].startswith("Agregador")})
+    falta17 = [x for x in pares17 if x not in set(n17["fichas"])]
+    check("N17e: toda rodada divulgada até 4/10 mantém no mural o nome de instituto gravado no CSV", not falta17, falta17[:8])
+    check("N17f: a posse dos deputados e senadores eleitos é em 1º de fevereiro",
+          "tomam posse" in posse17 and "posse em janeiro de 2027" not in posse17, re.findall(r".{60}tomam posse.{80}", posse17))
+    check("N17 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+    b.close()
+
     # ---- N11: o cartão og é do 2º turno: a edição não diz "1º turno", não traz o trio da média do 1º
     # turno nem travessão, e a cabeça tem os dois do 2º turno
     b, page, errs = novo_ctx(p, viewport=(1200, 630))
@@ -2186,6 +2262,7 @@ with sync_playwright() as p:
                         alertas: document.querySelector('#alerts').textContent,
                         eyebrow: document.querySelector('#hero-eyebrow').textContent, duelo: document.querySelector('#duelo').textContent,
                         manchete: m.textContent, linhas: Math.round(m.getBoundingClientRect().height / parseFloat(cs.lineHeight)),
+                        govAte: (document.querySelector('#home-gov-ate') || {}).textContent || '', govUfs: [...UF2T, ...UFPEND.map(x => x.uf)],
                         r2: r2 ? {pst: r2.tot.pst, sit: r2.c[0][6], nome: curto(r2.c[0][0] || r2.c[0][1])} : null}; }""")
             rot = f"({fx}, {relogio[:16].replace('T', ' ')})"
             # N7: a contagem
@@ -2203,6 +2280,19 @@ with sync_playwright() as p:
             if fase == "fim":
                 c7 += ["Encerrada" in r["count"], ("eleito" in r["duelo"]) == (r["r2"] is not None and r["r2"]["sit"] == "eleito")]
             check(f"N7 {rot}: contagem e números de apuração da fase {fase}", all(c7), {k: r[k] for k in ("fase", "count", "eyebrow")} | {"r2": r["r2"]})
+            # o carimbo do painel "Governo em 2º turno" é a totalização mais recente das UFs do painel no CSV
+            # da fixture (a do 2º turno quando ela tem seção totalizada). Em 14/10/2026 ele ficava no 1º
+            # turno do Acre, "4/10, 21h08", ao lado das parciais de 25/10
+            if fx != "sem" and r["govUfs"]:
+                tots = ler_csv_res(FIX / fx / "totais.csv")
+                def _at(uf):
+                    gs = {x["turno"]: x for x in tots if x["cargo"] == "governador" and x["abrangencia"].upper() == uf}
+                    x = gs.get("2") if gs.get("2") and float(gs["2"]["pct_totalizado"] or 0) > 0 else gs.get("1")
+                    return x and x["atualizado_tse"]
+                ats = [a for a in map(_at, r["govUfs"]) if a]
+                ult = max(ats, key=lambda a: (a[6:10], a[3:5], a[0:2], a[11:])) if ats else ""
+                esp = f"TSE, {int(ult[0:2])}/{int(ult[3:5])}, {int(ult[11:13])}h{ult[14:16]}" if ult else ""
+                check(f"N7 {rot}: o carimbo do governo em 2º turno é a totalização mais recente do painel", r["govAte"] == esp, {"página": r["govAte"], "csv": esp})
             # N8: nenhum texto da capa trata o 1º turno como disputa aberta, nem traz travessão, buraco
             # de dado ou a reta final do 1º turno; a manchete cabe em duas linhas a 1280px
             ruins = [m.group(0) for m in re.finditer(RX_1T + "|" + RX_TRAVESSAO + r"|reta final|\b0 dias\b", r["capa"], re.I)]
@@ -2309,7 +2399,12 @@ with sync_playwright() as p:
                     out[uf][cargo] = {est: estadoUF(uf, cargo), tagD: txt('#e-duelo .dl-tag'), tag: txt('#e-tag'),
                         hero: txt('#e-eyebrow, #e-duelo, #e-tag, #e-nota, #e-lede, #e-validos'), blocos: txt('#e-alerts, #e-strip, #mapa-sel'),
                         fill: path && path.getAttribute('fill'), tip: path && path.dataset.tip,
-                        lixo: /undefined|NaN/.test(txt('#v-e-geral, #v-e-pesquisas'))}; }
+                        lixo: /undefined|NaN/.test(txt('#v-e-geral, #v-e-pesquisas')),
+                        // o rótulo ao lado de cada nome do resultado (barras e dica do gráfico saem de sitDe)
+                        rot: cargo === 'governador' && resGov('1', uf) ? resGov('1', uf).c.map(x => sitDe(uf, x)).join('|') + ' ' + barrasResultado(uf, 'governador', '1').replace(/<[^>]+>/g, ' ') : '',
+                        // a tira conta "na urna" pelas linhas da apuração
+                        tira: Object.fromEntries([...document.querySelectorAll('#e-strip .pi')].map(e => [e.querySelector('.pl').textContent, e.querySelector('.pv').textContent])),
+                        nA: (A => A ? A.c.length : null)(cargo === 'senador' ? resSen(uf) : resGov('1', uf))}; }
             }
             // o nome de cada slug no mural: o CSV traz o nome de urna do TSE ("JÚLIO CÉSAR O JULIM DO LULA"),
             // e a página o nome do registro ("Julio Cesar"); quem é eleito vem do CSV, o nome vem daqui
@@ -2348,6 +2443,28 @@ with sync_playwright() as p:
         ruins = [f"{k}-{c}" for k, v in U3.items() for c, x in v.items() if x["lixo"]]
         check("N3: nenhum 'undefined' nem 'NaN' na Visão geral e nas Pesquisas dos 27 estados, nos dois cargos", not ruins, ruins)
         check("N3: nenhuma rodada de 2º turno depois de 4/10 em estado sem 2º turno de governador", not n3["dentro"], n3["dentro"][:5])
+        # 14/10/2026: as barras e a dica do resultado no Tocantins diziam "2º turno" ao lado dos dois mais
+        # votados, enquanto o cartão e o duelo da mesma página diziam "Sem definição no TSE"
+        ruins = {k: U3[k]["governador"]["rot"][:240] for k in pend3 if k in U3 and "2º turno" in U3[k]["governador"]["rot"]}
+        ruins.update({k: "sem o rótulo 2º turno" for k in uf2t3 if k in U3 and U3[k]["governador"]["est"] == "t2" and "2º turno" not in U3[k]["governador"]["rot"]})
+        check("N3: rótulo '2º turno' ao lado do nome só nas UFs de 2º turno (de totais.csv), nunca no estado sem definição", not ruins, ruins)
+        # 14/10/2026: a tira contava "na urna" pelos cartões do mural com resultado, e ficava um abaixo das
+        # barras do TSE em cinco disputas (Guto Schiavetto em SP e o Sargento Laudicério em MT vinham sem
+        # slug no CSV e saíam como "fora da apuração"). A regra: o número da tira é o de linhas da apuração.
+        rotulo3 = {"governador": "candidatos ao governo", "senador": "candidatos ao Senado"}
+        ruins = {f"{k}-{c}": (x["tira"].get(rotulo3[c]), x["nA"]) for k, v in U3.items() for c, x in v.items()
+                 if x["nA"] and x["tira"].get(rotulo3[c]) != str(x["nA"])}
+        check("N3: a tira conta os candidatos na urna pelas linhas da apuração do TSE, nos 27 estados", not ruins, ruins)
+        # e quem tem linha na apuração com o mesmo nome de urna não sai como "fora da apuração"
+        sem_slug3 = {}
+        for x in cand3:
+            if x["turno"] == "1" and x["cargo"] in ("governador", "senador") and not x["mural"].strip():
+                sem_slug3.setdefault((x["abrangencia"].upper(), x["cargo"]), set()).add(sa(x["nome_urna"]).strip())
+        page.goto(URL + "#uf-sp-senado")
+        page.wait_for_timeout(500)
+        foras3 = page.evaluate("() => UFLIST.flatMap(k => [['gov', 'governador'], ['sen', 'senador']].flatMap(([l, c]) => UF[k][l].filter(x => x.fora).map(x => [k, c, x.nome])))")
+        ruins = [f for f in foras3 if sa(f[2]).strip() in sem_slug3.get((f[0], f[1]), set())]
+        check("N3: nenhuma candidatura com o nome de uma linha da apuração marcada como fora dela", not ruins, ruins)
         check("N3 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
         b.close()
 

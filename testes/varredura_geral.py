@@ -5,7 +5,8 @@ nada sobre bugs específicos (isso é o papel de regressao_bugs_conhecidos.py) -
 rede de segurança ampla para pegar efeito colateral inesperado depois de qualquer edição
 em _template.html ou _gerar_mural.py.
 
-Roda contra o mural.html já gerado (não regenera nada). Uso:
+Roda contra o mural já gerado (não regenera nada) e para com aviso se ele estiver mais antigo que as
+fontes (testes/_frescor.py). Uso:
     python3 testes/varredura_geral.py
 """
 from pathlib import Path
@@ -17,6 +18,13 @@ from playwright.sync_api import sync_playwright
 # sendo gerado para conferência e é contra ele que estes testes rodam, senão eles testariam a
 # tela de cadastro em vez do mural. A trava em si tem bloco próprio na regressão.
 URL = (Path(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").as_uri()
+# mural-inteiro.html é ignorado pelo git e pode estar velho: o teste para antes de abrir o navegador
+# se ele for mais antigo que o template, o gerador ou os CSVs, ou se o DATA.meta divergir do de
+# mural.html (T0.2; ver testes/_frescor.py)
+import sys as _sys_fr
+_sys_fr.path.insert(0, str(Path(__file__).resolve().parent))
+import _frescor
+_frescor.exigir()
 ok, fail = [], []
 
 # As disputas de cada estado. Deputado estadual e federal saíram do site em 17/9/2026 (a pedido do
