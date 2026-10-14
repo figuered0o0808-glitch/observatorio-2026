@@ -731,6 +731,10 @@ for u in ufs.values():
         c["ext"] = {"bens": _num(d["total_bens"]) if d["total_bens"] != "" else None, "nbens": int(d["n_bens"] or 0), "instr": d["instrucao"], "ocup": d["ocupacao"],
                     "nasc": d["data_nascimento"], "vice": d["vice"], "comp": d["composicao_coligacao"], "nascUF": d["uf_nascimento"], "nascMun": d["municipio_nascimento"],
                     "ig": d["instagram"], "tt": d["tiktok"], "fb": d["facebook"], "yt": d["youtube"], "x": d["x"], "site": d["site"], "foto": d["foto_url"], "ant": d["eleicoes_anteriores"]}
+        # o sexo declarado ao TSE só serve para a concordância: desde 13/10/2026 o mural escreve
+        # "eleita" e "eleito" ao lado do resultado, e 104 das 510 candidaturas são de mulheres
+        sx = (d.get("sexo") or "").upper()
+        if sx.startswith("FEM") or sx.startswith("MASC"): c["ext"]["sx"] = sx[0]
         if d["composicao_coligacao"] and c["colig"]:
             u["colig"][c["colig"]] = parse_composicao(d["composicao_coligacao"])
 import datetime as _dt

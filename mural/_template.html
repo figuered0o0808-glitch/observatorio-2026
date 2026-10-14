@@ -761,8 +761,8 @@ body.estreia svg.tempo .banda,body.estreia svg.tempo .ser circle{animation:surge
 .brow .lab b{font-weight:600;flex:none}
 .brow .lab>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brow-cands{margin:-2px 0 6px 132px}
-#e-tb-rodadas .fonte-c{display:none}
-@media (max-width:760px){#e-tb-rodadas .fonte-c{display:inline}}
+#e-tb-rodadas .fonte-c,#e-tb-2t .fonte-c{display:none}
+@media (max-width:760px){#e-tb-rodadas .fonte-c,#e-tb-2t .fonte-c{display:inline}#e-tb-2t .fonte-l{display:none}}
 .brow .lab .k{display:inline-block;min-width:22px;padding:2px 4px;border-radius:2px;background:var(--ink);color:var(--paper);font-family:Archivo,sans-serif;font-variation-settings:"wdth" 80,"wght" 800;font-stretch:80%;font-weight:800;font-size:10.5px;text-align:center;line-height:1}
 .brow .bar{height:14px;background:var(--line-2);border-radius:2px;overflow:hidden}
 .brow .bar i{display:block;height:100%;background:var(--bc,var(--neutro))}
@@ -957,8 +957,12 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
   .panel>div[id^="ch-"] svg,.panel>div[id^="e-ch-"] svg,.dz .box .chart svg{min-width:0}
   #e-ch-2t .panel{border:0;padding:0;box-shadow:none}
   #e-ch-2t .grid2{grid-template-columns:1fr}
-  #e-ch-2t th{white-space:nowrap}
-  #e-ch-2t .tablewrap td,#e-ch-2t .tablewrap th{padding:6px 5px}
+  /* os nomes dos pares quebram linha no cabeçalho: com "Professora Maria" e "Roberto Cidade" lado a lado
+     (AM, 13/10/2026), o cabeçalho sem quebra empurrava a tabela para fora da tela */
+  #e-ch-2t th,#e-tb-2t th{white-space:normal;letter-spacing:.04em}
+  #e-ch-2t .tablewrap td,#e-ch-2t .tablewrap th,#e-tb-2t td,#e-tb-2t th{padding:6px 5px}
+  #e-tb-2t td.dt{white-space:normal}
+  #e-tb-2t th{font-size:10px;letter-spacing:.02em}
   /* filtros: uma fileira rolável por grupo */
   .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:6px -14px 8px;padding:0 14px 4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
   .chips::-webkit-scrollbar{display:none}
@@ -1069,7 +1073,23 @@ details.mapa>.cap{margin-top:8px;max-width:78ch}
 @media (max-width:1100px){.hero2.hero-uf .duelo .dl-num{font-size:clamp(40px,5.4vw,78px)}.hero2.hero-uf .duelo .dl-meio{min-width:0}.duelo .dl-num{font-size:clamp(48px,7.6vw,104px)}}
 .hero2.hero-uf .duelo .dl-nome{font-size:15px;letter-spacing:.08em}
 .hero-uf .duelo:empty{display:none}
-.hero-uf .duelo:empty+h1.manchete{font-size:34px;color:var(--band-ink);letter-spacing:.005em;margin-top:8px}
+.hero-uf .duelo:empty~h1.manchete{font-size:34px;color:var(--band-ink);letter-spacing:.005em;margin-top:8px}
+/* estados com o resultado do TSE (13/10/2026): a linha sob o duelo (o 1º turno, ou as rodadas do 2º que
+   ainda não fazem média), a linha de corte das vagas do Senado, o item listrado da legenda do mapa e a
+   tabela do confronto do 2º turno, que no celular fica com instituto, campo, os dois nomes e a fonte */
+.hero2 .e-nota{margin:8px 0 0;color:var(--ink-2);font-size:14px;line-height:1.45;max-width:90ch}
+.pill.res-el{color:var(--good);background:var(--good-soft)}
+.pill.res-2t{color:var(--m2);background:color-mix(in oklab,var(--m2) 16%,transparent)}
+.pill.res-nao{color:var(--ink-2);background:var(--paper-2)}
+.pill.res-fora{color:var(--warn);background:var(--warn-soft)}
+.hb-corte{border-top:2px dashed var(--ink-3);margin:2px 0 0;padding-top:3px;font-size:11px;letter-spacing:.04em;color:var(--ink-3)}
+.mapa-legend button.lg{appearance:none;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.mapa-legend button.lg b{text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:3px}
+.mapa-legend button.lg:hover b{text-decoration-color:var(--ink)}
+#e-tb-2t tr.antes td{color:var(--ink-3)}
+#e-tb-2t tr.sep td{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);background:none;padding-top:10px}
+@media (max-width:760px){#e-tb-2t th:nth-child(3),#e-tb-2t td:nth-child(3),#e-tb-2t th:nth-child(4),#e-tb-2t td:nth-child(4),#e-tb-2t th:nth-child(5),#e-tb-2t td:nth-child(5){display:none}}
+@media (pointer:coarse){.mapa-legend button.lg{min-height:40px}}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap}
 .hero-top .eyebrow{padding-top:6px}
 .hero2 .count{background:var(--band-2);border-top:0;border-left:3px solid var(--red);border-radius:2px;padding:10px 14px;min-width:280px}
@@ -1431,7 +1451,7 @@ table th{background:#000;color:#fff;border-bottom:0}
   <span class="eyebrow">Estado</span>
   <label class="sel"><select id="uf-sel" aria-label="Estado"></select></label>
   <div class="seg" id="ufb-cargos" role="group" aria-label="Disputa"></div>
-  <span class="cap" id="ufb-cap">27 disputas de governo e 54 vagas no Senado, duas por estado</span>
+  <span class="cap" id="ufb-cap"></span>
   <a class="ufb-mapa" href="#e-geral" id="ufb-mapa">Mapa do Brasil ↓</a>
 </div></div>
 <div class="wrap">
@@ -1678,39 +1698,46 @@ table th{background:#000;color:#fff;border-bottom:0}
     <div class="hero2 hero-uf">
       <div class="hero-top"><span class="eyebrow" id="e-eyebrow"></span></div>
       <div class="duelo" id="e-duelo"></div>
+      <p class="e-nota" id="e-nota" hidden></p>
       <h1 class="manchete tagline display" id="e-tag"></h1>
       <p class="lede" id="e-lede"></p>
       <div class="vv" id="e-validos" hidden></div>
     </div>
-<details class="mapa panel" id="mapa" open><summary><div class="ph"><h3>O mapa da disputa</h3><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span><span class="tg" aria-hidden="true"></span></div></summary>
+<details class="mapa panel" id="mapa" open><summary><div class="ph"><h3 id="mapa-tit">O mapa da disputa</h3><span class="cap" style="margin:0" id="mapa-cap">quem lidera a disputa escolhida em cada estado, pela cor do partido</span><span class="tg" aria-hidden="true"></span></div></summary>
   <div class="mapa-grid">
     <div class="mapa-svg" id="mapa-svg" role="group" aria-label="Mapa do Brasil com o líder de cada estado"></div>
     <div class="mapa-side">
       <div class="mapa-legend" id="mapa-legend"></div>
     </div>
   </div>
-  <div class="cap">A cor de cada estado é a do partido do candidato que lidera a média das pesquisas daquele estado. A hachura indica empate técnico, quando a diferença entre os dois primeiros é menor que a incerteza da média. Cinza claro indica que ainda não há pesquisa do estado para essa disputa. <span id="mapa-como">Passe o cursor para ver os números e clique para abrir o estado.</span></div></details>
+  <div class="cap"><span id="mapa-nota">A cor de cada estado é a do partido do candidato que lidera a média das pesquisas daquele estado. A hachura indica empate técnico, quando a diferença entre os dois primeiros é menor que a incerteza da média. Cinza claro indica que ainda não há pesquisa do estado para essa disputa.</span> <span id="mapa-como">Passe o cursor para ver os números e clique para abrir o estado.</span></div></details>
     <div class="alerts" id="e-alerts"></div>
     <div class="mapa-sel" id="mapa-sel"></div>
   </div>
   <div class="placar" id="e-strip" role="list"></div>
+  <div class="panel" id="e-panel-2t" hidden><div class="ph"><h3 id="e-h-2tg">2º turno: média das pesquisas</h3><span class="cap" style="margin:0" id="e-cap-2tg"></span></div><div id="e-ch-2tg"></div></div>
   <div class="grid2" style="margin-top:var(--gap)">
-    <div class="panel" id="e-panel-gov"><div class="ph"><h3>Quem lidera o governo</h3><span class="cap" style="margin:0" id="e-cap-gov"></span></div><div id="e-ch-gov"></div></div>
-    <div class="panel" id="e-panel-sen"><div class="ph"><h3>Quem lidera o Senado</h3><span class="cap" style="margin:0" id="e-cap-sen"></span></div><div id="e-ch-sen"></div></div>
+    <div class="panel" id="e-panel-gov"><div class="ph"><h3 id="e-h-gov">Quem lidera o governo</h3><span class="cap" style="margin:0" id="e-cap-gov"></span></div><div id="e-ch-gov"></div></div>
+    <div class="panel" id="e-panel-sen"><div class="ph"><h3 id="e-h-sen">Quem lidera o Senado</h3><span class="cap" style="margin:0" id="e-cap-sen"></span></div><div id="e-ch-sen"></div></div>
   </div>
 </section>
 
 <section class="view" id="v-e-pesquisas" role="tabpanel" data-title="Pesquisas do estado">
   <div class="blkhead"><span class="eyebrow">Pesquisas</span><h2 class="t display" id="e-t-pesq">A corrida</h2></div>
   <p class="sub" id="e-sub-pesq"></p>
-  <details class="howto"><summary>Como ler</summary><p>Cada ponto é uma rodada de pesquisa. A linha é a média das pesquisas, calculada como a da Presidência, com janela de 14 dias, e aparece quando o candidato tem três rodadas ou mais. Para ver a corrida medida por um instituto só, use os filtros. Quando uma rodada testa vários cenários, o gráfico usa o cenário mais parecido com as candidaturas registradas no TSE, e os outros ficam no seletor da rodada em destaque. No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas estão em jogo. Os dois primeiros aparecem sublinhados, e o sublinhado pontilhado indica empate na disputa pela segunda vaga.</p></details>
-  <div class="panel main"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
+  <details class="howto"><summary>Como ler</summary><p id="e-como-ler">Cada ponto é uma rodada de pesquisa. A linha é a média das pesquisas, calculada como a da Presidência, com janela de 14 dias, e aparece quando o candidato tem três rodadas ou mais. Para ver a corrida medida por um instituto só, use os filtros. Quando uma rodada testa vários cenários, o gráfico usa o cenário mais parecido com as candidaturas registradas no TSE, e os outros ficam no seletor da rodada em destaque. No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas estão em jogo. Os dois primeiros aparecem sublinhados, e o sublinhado pontilhado indica empate na disputa pela segunda vaga.</p></details>
+  <div class="panel main" id="e-p2t" hidden><div class="ph"><h3 id="e-h-2t">2º turno</h3><span class="cap" style="margin:0" id="e-cap-2tm"></span></div>
+    <div id="e-ch-2tm"></div>
+    <p class="cap" id="e-txt-2t"></p>
+    <div class="tablewrap"><table id="e-tb-2t"><thead><tr><th>Instituto</th><th>Campo</th><th class="num">Amostra</th><th class="num">Margem</th><th>Registro</th><th class="num" id="e-th-2a"></th><th class="num" id="e-th-2b"></th><th>Fonte</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="panel main" id="e-panel-corrida"><div class="ph"><h3 id="e-h-corrida">A corrida ao longo de 2026</h3><span class="cap" style="margin:0" id="e-cap-corrida"></span></div>
     <div id="e-ch-corrida"></div>
     <div class="chips legenda" id="e-f-cands"></div>
     <details class="filtros"><summary>Filtrar institutos (<span id="e-f-n"></span>)</summary><div class="chips" id="e-f-inst"></div></details></div>
   <div class="panel"><div class="ph"><h3 id="e-h-rod"></h3><div class="controls" style="margin:0"><label class="sel">Rodada <select id="e-sel-rod"></select></label><label class="sel" id="e-sel-cen-w" hidden>Cenário <select id="e-sel-cen"></select></label></div></div><div class="cap" id="e-cap-rod"></div><div id="e-ch-rodada"></div></div>
-  <details class="fold" id="e-fold-2t" open><summary><span class="btn">Simulações de segundo turno</span><span class="cap" style="margin:0" id="e-cap-2t"></span></summary><div class="panel"><h3>Segundo turno, par a par</h3><div class="cap">Cada tabela é um confronto direto testado pelos institutos; rodadas em ordem cronológica inversa.</div><div id="e-ch-2t"></div></div></details>
-  <details class="fold" id="e-fold-tb"><summary><span class="btn">Ver as rodadas registradas no estado</span><span class="cap" style="margin:0" id="e-cap-tb"></span></summary><div class="panel"><h3>Rodadas registradas no estado</h3><div class="tablewrap"><table id="e-tb-rodadas"><thead><tr><th>Campo</th><th>Instituto</th><th>Contratante</th><th class="num">Amostra</th><th class="num">Margem</th><th>Coleta</th><th>Registro</th><th class="num">Cenários</th><th>Fonte</th></tr></thead><tbody></tbody></table></div></div></details>
+  <details class="fold" id="e-fold-2t" open><summary><span class="btn" id="e-fold-2t-t">Simulações de segundo turno</span><span class="cap" style="margin:0" id="e-cap-2t"></span></summary><div class="panel"><h3 id="e-h-2tpar">Segundo turno, par a par</h3><div class="cap">Cada tabela é um confronto direto testado pelos institutos; rodadas em ordem cronológica inversa.</div><div id="e-ch-2t"></div></div></details>
+  <details class="fold" id="e-fold-1t" hidden><summary><span class="btn">Ver as pesquisas do 1º turno</span><span class="cap" style="margin:0" id="e-cap-1t"></span></summary></details>
+  <details class="fold" id="e-fold-tb"><summary><span class="btn">Ver as rodadas registradas no estado</span><span class="cap" style="margin:0" id="e-cap-tb"></span></summary><div class="panel"><h3>Rodadas registradas no estado</h3><div class="tablewrap"><table id="e-tb-rodadas"><thead><tr><th>Campo</th><th>Instituto</th><th>Contratante</th><th class="num">Amostra</th><th class="num">Margem</th><th>Coleta</th><th>Registro</th><th class="num">Cenários</th><th>Fonte</th><th>Turno</th></tr></thead><tbody></tbody></table></div></div></details>
   <details class="fold"><summary><span class="btn">Ver o efeito da metodologia neste estado</span><span class="cap" style="margin:0">como presencial, telefônica e digital medem os mesmos nomes</span></summary><div class="panel"><h3>Cada candidato testado em diferentes ambientes</h3><div class="cap" id="e-cap-modo"></div><div id="e-ch-modo"></div></div></details>
 </section>
 
@@ -1732,7 +1759,7 @@ table th{background:#000;color:#fff;border-bottom:0}
   <div class="controls">
     <div class="seg" id="e-cargos" role="group" aria-label="Cargo"></div>
     <div class="seg" id="e-cat" role="group" aria-label="Perfil da candidatura" hidden></div>
-    <label class="sel">Ordenar por <select id="e-sort"><option value="pesquisa">Intenção de voto</option><option value="numero">Número de urna</option><option value="nome">Nome</option><option value="partido">Partido</option></select></label>
+    <label class="sel">Ordenar por <select id="e-sort"><option value="votos">Votos no 1º turno</option><option value="pesquisa">Intenção de voto</option><option value="numero">Número de urna</option><option value="nome">Nome</option><option value="partido">Partido</option></select></label>
   </div>
   <div class="wall" id="e-wall"></div>
 </section>
@@ -1763,7 +1790,7 @@ table th{background:#000;color:#fff;border-bottom:0}
 <section class="view" id="v-e-metodo" role="tabpanel" data-title="Método dos estados">
   <div class="blkhead"><span class="eyebrow">Método</span><h2 class="t display">Método e cobertura</h2></div>
   <p class="sub">O que o observatório já tem de cada disputa estadual e o que ainda falta.</p>
-  <div class="panel main"><h3>Cobertura por estado</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele estado nesta edição: registro dos candidatos ao governo, ao Senado, coligações, pesquisa de governo, pesquisa de Senado, ao menos uma rodada com número de registro no TSE, simulações de segundo turno, perfil detalhado no TSE (bens, vice, redes), série de busca no Google dentro do estado, verbetes na Wikipédia e seguidores lidos no Instagram.</div><div id="e-ch-cobertura"></div></div>
+  <div class="panel main"><h3>Cobertura por estado</h3><div class="cap">Cada quadrado cheio é uma fonte disponível para aquele estado nesta edição: registro dos candidatos ao governo, ao Senado, coligações, pesquisa de governo, pesquisa de Senado, ao menos uma rodada com número de registro no TSE, o resultado oficial do TSE quando ele já existe, rodadas de segundo turno (com o resultado, só nos estados com 2º turno de governador), perfil detalhado no TSE (bens, vice, redes), série de busca no Google dentro do estado, verbetes na Wikipédia e seguidores lidos no Instagram.</div><div id="e-ch-cobertura"></div></div>
   <div class="panel"><h3>De onde vem cada número</h3><div class="notes" id="e-notes"></div></div>
 </section>
 
@@ -4626,7 +4653,8 @@ for(const k in UF){const u=UF[k];const chapa=["gov","sen","depfed","depest"].red
   const nm=i=>{const n=u.nomes[i]||["?","","",""];return (n[1]&&por[n[1]])?[por[n[1]].nome,n[1],n[2],n[3]]:n;};const corDe=n=>(n[1]&&por[n[1]])?por[n[1]].cor0:(n[3]||"var(--ink-3)");
   u.polls=(u.polls||[]).map(([ri,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,n[0],v,n[1],corDe(n),n[2]||""];});
   u.cenarios=(u.cenarios||[]).map(([ri,cen,ni,v])=>{const r=u.rodadas[ri],n=nm(ni);return [r.cargo,r.inst,r.data,String(cen),n[0],v,n[1],n[2]||"",corDe(n)];});
-  u.polls2=(u.polls2||[]).map(([ri,ni,v])=>{const r=u.rodadas2[ri],n=nm(ni);return [r.inst,r.data,r.par,n[0],v,n[1],n[2]||"",corDe(n)];});
+  // o índice da rodada (ri) fica no fim: o 2º turno estadual junta os dois nomes de cada rodada por ele
+  u.polls2=(u.polls2||[]).map(([ri,ni,v])=>{const r=u.rodadas2[ri],n=nm(ni);return [r.inst,r.data,r.par,n[0],v,n[1],n[2]||"",corDe(n),ri];});
   u.rodadas.forEach((r,i)=>{r.i=i;if(!r.url&&u.wiki_url)r.url=u.wiki_url;});
 }
 const FONTE_R={W:"compilação da Wikipédia",WG:"números pela Wikipédia; ficha pela Gazeta do Povo",G:"Gazeta do Povo, ficha registrada no TSE"};
@@ -4667,6 +4695,8 @@ let ufCargoCards = ufCargo, ufRodada = null, ufLado = [], ufCen = null, ufInstOf
 const VAGAS = c => (CARGOS[c]||CARGOS.governador).vagas;
 const cargoLabel = c => (CARGOS[c]||CARGOS.governador).label;
 const cargoArt = c => (CARGOS[c]||CARGOS.governador).art;
+// "ao governo", "ao Senado", "à Assembleia Legislativa": a preposição contraída com o artigo do cargo
+const aoCargo = c => {const a=cargoArt(c);return a.startsWith("o ")?"a"+a:a.startsWith("a ")?"à "+a.slice(2):"a "+a;};
 const cargoPor = c => (CARGOS[c]||CARGOS.governador).por;
 const cargoDisputa = c => c==="senador"?"Senado (2 vagas)":c==="governador"?"Governo do estado":cargoLabel(c);
 const temPesquisa = c => (CARGOS[c]||CARGOS.governador).pesq;
@@ -4738,6 +4768,119 @@ const semPesq=c=>temPesquisa(c)
 const focoUF = () => {const p=(ufAtual||"").toLowerCase()+"-";return new Set((prefs.focoUF||[]).filter(s=>s.startsWith(p)));};
 function toggleFocoUF(slug){const f=[...(prefs.focoUF||[])];const i=f.indexOf(slug);if(i>=0)f.splice(i,1);else f.push(slug);prefs.focoUF=f;salvar();desenharUF();}
 
+// ---- o resultado do TSE nos estados (13/10/2026)
+// Desde a apuração do 1º turno o estado fala pelo resultado oficial (RES), e a média das pesquisas
+// fica só para o que continua em aberto: o 2º turno de governador nas UFs de UF2T, em 25/10. Sem os
+// CSVs de resultado, RES é null, todo estado fica "sem" e o mural volta ao comportamento de pesquisa.
+// estadoGov: "decidido" (eleito no 1º turno, ou 2º turno com apuração final), "t2" (2º turno em
+// 25/10), "pend" (o TSE marcou 2º turno no 1º e não configurou o 2º: Tocantins em 13/10/2026),
+// "apur" (1º turno ainda em apuração) ou "sem" (sem resultado).
+function estadoGov(k){
+  const a1=resGov("1",k);if(!a1)return "sem";
+  const a2=resGov("2",k);
+  if((a2&&a2.est==="final")||a1.c.some(c=>c[6]==="eleito"))return "decidido";
+  if(UF2T.includes(k))return "t2";
+  return a1.est==="final"?"pend":"apur";
+}
+const estadoSen=k=>{const a=resSen(k);return !a?"sem":a.est==="final"?"decidido":"apur";};
+const estadoUF=(k,cargo)=>cargo==="senador"?estadoSen(k):cargo==="governador"?estadoGov(k):"sem";
+// a apuração que vale para o governo: a do 2º turno quando ela existe (parcial ou final), senão a do 1º
+const apGov=k=>resGov("2",k)||resGov("1",k);
+const turnoGov=k=>resGov("2",k)?"2":"1";
+// os dois do 2º turno de governador, na ordem dos votos do 1º: [slug, nome, número, partido, votos, pct, sit]
+const finalUF=k=>{const a=resGov("1",k);return a?a.c.filter(c=>c[6]==="2t"):[];};
+const candUF=(k,s)=>s&&UF[k]?todosUF(UF[k]).find(c=>c.slug===s)||null:null;
+const nomeSl=(k,s)=>{const c=candUF(k,s);if(c)return c.nome;const a=resGov("1",k),r=a&&a.c.find(x=>x[0]===s);return r?r[1]:s;};
+const corSl=(k,s)=>{const c=candUF(k,s);return c?c.cor:"var(--neutro)";};
+const corLinha=(k,row)=>corSl(k,row[0]);
+// a concordância vem do sexo declarado ao TSE (ext.sx); sem ele, o masculino
+const eleitoDe=(k,row)=>{const c=candUF(k,row[0]);return c&&c.ext&&c.ext.sx==="F"?"eleita":"eleito";};
+const eleitosDe=(k,rows)=>rows.length&&rows.every(r=>eleitoDe(k,r)==="eleita")?"eleitas":"eleitos";
+// quem esteve na urna: com resultado, quem não aparece na apuração (fora = 1) não conta
+const naUrna=c=>!c.fora;
+// a hora da totalização ("05/10/2026 11:44:31") em ISO, para dBR
+const isoTSE=at=>{const m=/^(\d\d)\/(\d\d)\/(\d{4})/.exec(at||"");return m?`${m[3]}-${m[2]}-${m[1]}`:"";};
+const secoesTSE=A=>`${fPct2(A.tot.pst)}% das seções`;
+const linkTSE=txt=>RES&&RES.fonte?`<a href="${esc(RES.fonte)}" target="_blank" rel="noopener">${txt}</a>`:txt;
+// "8 a 11/10", a partir do campo "2026-10-08 a 2026-10-11"
+const campoCurto=c=>{const d=String(c||"").match(/\d{4}-\d\d-\d\d/g)||[];if(!d.length)return "";const f=x=>`${+x.slice(8,10)}/${+x.slice(5,7)}`;
+  if(d.length<2||d[0]===d[1])return f(d[d.length-1]);return d[0].slice(5,7)===d[1].slice(5,7)?`${+d[0].slice(8,10)} a ${f(d[1])}`:`${f(d[0])} a ${f(d[1])}`;};
+// Tocantins em 13/10/2026: o TSE marcou "2º turno" no 1º turno, mas a configuração do 2º turno que ele
+// publica não inclui o estado (o arquivo do estado dá 404). A data é a da conferência, a mesma da capa.
+const UFPEND_CONFERIDO=CONFERIDO_UFPEND;
+function textoPend(k){
+  const p=UFPEND.find(x=>x.uf===k),rows=p&&p.c&&p.c.length>=2?p.c:(resGov("1",k)||{c:[]}).c;
+  if(rows.length<2)return "";
+  const [A,B]=rows;
+  return `O TSE não declarou governador eleito ${emUF(k)} no 1º turno: ${esc(A[1])} teve ${fPct2(A[5])}% e ${esc(B[1])}, ${fPct2(B[5])}% dos válidos. A configuração do 2º turno publicada pelo TSE, conferida em ${dBR(UFPEND_CONFERIDO)}, não inclui o estado.`;
+}
+const comparecimentoTxt=A=>A&&A.tot.el?`Votaram ${fPct2(100*A.tot.comp/A.tot.el)}% dos ${fInt(A.tot.el)} eleitores; ${fInt(A.tot.vv)} votos foram válidos, ${fInt(A.tot.vb)} em branco e ${fInt(A.tot.vn)} nulos.`:"";
+
+// ---- o 2º turno de governador no estado. Só entra o confronto que vai à urna (rodadas2 com real = 1,
+// casado pelo slug no gerador), em votos válidos: a parte de cada um na soma dos dois. As rodadas com
+// campo terminado depois de 4/10 (cf) são a campanha; as anteriores são simulações, que aparecem
+// apagadas. A média segue a regra do país (MIN_POS1T: 3 rodadas de 2 institutos), com a janela do
+// estado (SIG_UF), e o efeito casa é medido em todas as rodadas do confronto. Com menos que isso, o
+// estado mostra o 1º turno do TSE e cada rodada como rodada, nunca como média.
+const _r2uf=new Map(),_m2uf=new Map();
+function rodadasUF2T(k){
+  if(_r2uf.has(k))return _r2uf.get(k);
+  const u=UF[k],out=[];
+  ((u&&u.rodadas2)||[]).forEach((r,i)=>{
+    if(!r.real)return;
+    const pub={};for(const p of u.polls2||[])if(p[8]===i&&p[5])pub[p[5]]=p[4];
+    const sl=Object.keys(pub);if(sl.length!==2)return;
+    const S=pub[sl[0]]+pub[sl[1]];if(!(S>0))return;
+    const v={};for(const s of sl)v[s]=100*pub[s]/S;
+    const cf=r.cf||r.data;
+    out.push({inst:r.inst,t:Date.parse(r.data),dt:r.data,cf,pos:cf>TURNOS.t1,v,pub,soma:S,r});
+  });
+  out.sort((a,b)=>a.t-b.t);
+  _r2uf.set(k,out);return out;
+}
+const campUF2T=k=>rodadasUF2T(k).filter(r=>r.pos);
+function mediaUF2T(k){
+  if(_m2uf.has(k))return _m2uf.get(k);
+  const base=rodadasUF2T(k),camp=base.filter(r=>r.pos),sl=finalUF(k).map(c=>c[0]);
+  let out=null;
+  if(sl.length===2&&temPos1T(camp)){
+    const t=camp[camp.length-1].t,o={base},m=agregarEm(camp,sl,SIG_UF,t,o);
+    if(m[sl[0]]!=null&&m[sl[1]]!=null){
+      const inc=incertezaEm(camp,sl,SIG_UF,t,sl[0],sl[1],o);
+      const [a,b]=m[sl[0]]>=m[sl[1]]?sl:[sl[1],sl[0]];
+      const va=100*m[a]/(m[a]+m[b]),vb=100-va,dif=va-vb,erro=inc?inc.erro:null;
+      out={fase:"campanha",n:camp.length,nInst:new Set(camp.map(r=>r.inst)).size,a,b,va,vb,dif,erro,
+        empate:erro!=null&&Math.abs(dif)<erro,ultima:dISO(t),t,sigma:SIG_UF,m,inc};
+    }
+  }
+  _m2uf.set(k,out);return out;
+}
+// o texto da média do 2º turno no estado, com a mesma forma do texto nacional (texto2T)
+function textoUF2T(k,m){
+  if(!m)return "";
+  const A=esc(curtoNome(nomeSl(k,m.a))),B=esc(curtoNome(nomeSl(k,m.b))),d=Math.abs(m.dif),e=m.erro;
+  if(m.empate)return `<b>Empate técnico</b> em votos válidos: ${A} tem ${fPct(m.va)}% e ${B}, ${fPct(m.vb)}%. A diferença, de ${fPct(d)} ${pts(d)}, é menor que a incerteza da média (${fPct(e)} ${pts(e)}). Nenhum dos dois está à frente.`;
+  return `Em votos válidos, <b>${A}</b> aparece ${fPct(d)} ${pts(d)} à frente de ${B}, com ${fPct(m.va)}% contra ${fPct(m.vb)}%. `
+    +(e==null?`Com menos de três rodadas na janela, a média ainda não tem incerteza calculada.`:`A diferença é maior que a incerteza da média (${fPct(e)} ${pts(e)}).`);
+}
+// as rodadas da campanha quando ainda não há média: cada uma como rodada, com o aviso
+function linhaRodadasUF2T(k){
+  const camp=campUF2T(k).slice().reverse(),fin=finalUF(k).map(c=>c[0]);
+  if(!camp.length)return `Nenhuma pesquisa de 2º turno feita depois de ${dBR(TURNOS.t1)} entrou no mural ainda.`;
+  const um=r=>`${esc(r.inst)}, ${campoCurto(r.r.campo||r.dt)}, ${fin.map(s=>`${esc(nomeSl(k,s))} ${fPct(r.pub[s])}%`).join(", ")}`;
+  return `${camp.length===1?"Pesquisa":"Pesquisas"} de 2º turno até agora: ${camp.map(um).join("; ")} (${camp.length===1?"uma rodada":pl(camp.length,"rodada")}, não é média).`;
+}
+// a média publicada até a véspera (3/10) ao lado da urna, para o governo decidido no 1º turno. As
+// rodadas são cortadas antes de chamar validosEm porque a janela de pesosEm é simétrica: sem o corte,
+// uma rodada posterior entraria na conta de 3/10.
+function vesperaUF(k){
+  const a=agregUF(k,"governador"),A=resGov("1",k);if(!a||!A)return null;
+  const tc=Date.parse(TURNOS.t1)-864e5,rods=a.rods.filter(r=>r.t<=tc);if(rods.length<3)return null;
+  const V=validosEm(rods,a.nomes,SIG_UF,Math.max(...rods.map(r=>r.t)),somaUF);if(!V)return null;
+  const x=A.c[0],n=a.nomes.find(n=>a.meta[n]&&a.meta[n].slug===x[0]);
+  return n&&V.m[n]!=null?{nome:x[1],media:V.m[n],urna:x[5],dif:x[5]-V.m[n],t:Math.max(...rods.map(r=>r.t))}:null;
+}
+
 // barras horizontais de uma rodada
 function barrasRodada(u, cargo, o={}){
   const r = o.rodada || ultimaRodadaUF(u,cargo);
@@ -4756,6 +4899,25 @@ function barrasRodada(u, cargo, o={}){
     return `<div class="hb${dim?" dim":""}${elege?" lead":""}${naLinha?" tie":""}"><span class="nm">${c?`<span class="k" style="background:${corViva(p[6])}">${esc(c.num)}</span>`:""}${c?`<button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(p[3])}</b></button>`:`<b>${esc(p[3])}</b>`}<span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,p[4]/max*100)}%;background:${corViva(p[6])}"></i></span><span class="val display tnum">${fPct(p[4])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
   }).join("")+`</div>`+(corte!=null?`<div class="cap">Duas vagas em disputa. Nesta rodada, a linha de corte está em ${fPct(corte)}%.${emp!=null?` ${nEmp} nomes estão empatados nesse patamar, e a segunda vaga segue indefinida.`:""}</div>`:"");
 }
+// barras do resultado oficial: todos por votos, percentual com duas casas e votos, sublinhado no eleito
+// ou nos dois do 2º turno, a linha de corte das vagas do Senado e o carimbo do TSE com o link
+function barrasResultado(k,cargo,turno="1"){
+  const A=cargo==="senador"?resSen(k):resGov(turno,k);
+  if(!A||!A.c.length)return `<div class="empty"><b>Sem resultado</b>O TSE ainda não publicou a apuração desta disputa.</div>`;
+  const vagas=cargo==="senador"?(A.tot.vagas||VAGAS("senador")):1,max=Math.max(...A.c.map(c=>c[5]),10),fin=A.est==="final";
+  const linhas=A.c.map((x,i)=>{
+    const c=candUF(k,x[0]),lead=x[6]==="eleito"||x[6]==="2t";
+    const corte=cargo==="senador"&&i===vagas&&A.c.length>vagas?`<div class="hb-corte" role="presentation"><span>${fin?`linha de corte: ${pl(vagas,"vaga")}, preenchidas por quem está acima`:`linha de corte das ${pl(vagas,"vaga")}, na apuração parcial`}</span></div>`:"";
+    return corte+`<div class="hb${lead?" lead":""}"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(c.slug)}" title="Abrir dossiê"><b>${esc(x[1])}</b></button>`:`<b>${esc(x[1])}</b>`}<span class="pt">${esc(x[3])} · ${fInt(x[4])} votos${x[6]==="eleito"?` · ${eleitoDe(k,x)}`:x[6]==="2t"?" · 2º turno":""}</span></span><span class="bar"><i style="width:${Math.max(1.5,x[5]/max*100)}%;background:${c?c.cor:"var(--neutro)"}"></i></span><span class="val display tnum">${fPct2(x[5])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(c.slug)}" title="Abrir dossiê">ficha</button>`:""}</div>`;
+  }).join("");
+  return `<div class="hbars">${linhas}</div><div class="cap">${linkTSE(`TSE, ${fin?"resultado oficial":"apuração parcial"} do ${turno}º turno, ${secoesTSE(A)} totalizadas${A.tot.at?", "+horaTSE(A.tot.at):""}`)}. Percentual sobre os votos válidos${cargo==="senador"?"; cada eleitor votou em dois nomes":""}.</div>`;
+}
+// barras de uma rodada do 2º turno estadual, com os números publicados pelo instituto
+function barras2TUF(k,R){
+  const fin=finalUF(k).map(c=>c[0]),max=Math.max(...fin.map(s=>R.pub[s]||0),10);
+  return `<div class="hbars">`+fin.map(s=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button>`:`<b>${esc(nomeSl(k,s))}</b>`}<span class="pt">${c?esc(c.partido):""}</span></span><span class="bar"><i style="width:${Math.max(1.5,(R.pub[s]||0)/max*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(R.pub[s])}<small>%</small></span>${c?`<button type="button" class="mini" data-edossie="${esc(s)}" title="Abrir dossiê">ficha</button>`:""}</div>`;}).join("")
+    +`</div><div class="cap">Números publicados pelo instituto. Em votos válidos, a parte de cada um na soma dos dois: ${fin.map(s=>`${esc(curtoNome(nomeSl(k,s)))} ${fPct(R.v[s])}%`).join(", ")}.</div>`;
+}
 // evolução entre rodadas (quando há 2+)
 function evolucaoUF(u,cargo){
   const rs = rodadasDe(u,cargo); if(rs.length<2) return null;
@@ -4773,66 +4935,272 @@ function evolucaoUF(u,cargo){
 function liderPartido(k,cargo){const M=temPesquisa(cargo)?mediaUF(k,cargo):null;if(!M)return null;
   const p=M.lista[0];const c=todosUF(UF[k]).find(x=>x.slug===p.slug);
   return {M,p,c,partido:c?c.partido:(p.partido||"")};}
+// a cor do estado sem definição no TSE: mais escura que a de estado sem dado (--line), com 3:1 no escuro
+const corPend=()=>ESCURO?"#6B7380":"#B4BAC2";
+// O que o mapa mostra em cada estado. Com resultado, no governo, a cor do partido do eleito; nas UFs de
+// 2º turno, listras nas cores dos partidos dos dois finalistas (um <pattern> por estado); sem definição
+// no TSE, a cor neutra. No Senado, o partido do mais votado, com listras finas no partido do segundo
+// eleito quando ele é de outro. Sem resultado, quem lidera a média das pesquisas, como até 4/10.
+function mapaUF(k,cargo){
+  const nome=esc(UF[k].nome),est=estadoUF(k,cargo);
+  if(est==="sem"){
+    const L=liderPartido(k,cargo);
+    const seg=L&&L.M.lista[1]?L.M.lista[1]:null, marg=L&&seg?L.p.valor-seg.valor:null;
+    const tec=!!(L&&seg&&empateUF(L.M,L.p.nome,seg.nome));
+    return {tipo:L?"media":"sem",fill:L?corPartido(L.partido):"var(--line)",partidos:L?[L.partido]:[],tec,
+      tip:L?`<b>${nome}</b> · ${cargoLabel(cargo)}<br>${esc(L.p.nome)} (${esc(L.partido)}) ${fPct(L.p.valor)}%${seg?` · ${esc(seg.nome)} ${fPct(seg.valor)}%`:""}<br>média de ${pl(L.M.rs.length,"rodada")} de ${pl(L.M.insts,"instituto")}, até ${dBR(dISO(L.M.t))}${tec?`<br>diferença de ${fPct(marg)} ${pts(marg)}, menos que a incerteza da média: empate técnico`:""}`:`<b>${nome}</b><br>sem pesquisa de ${cargoLabel(cargo)} no observatório`};
+  }
+  if(cargo==="senador"){
+    const A=resSen(k),fin=est==="decidido",el=A.c.filter(c=>c[6]==="eleito"),dois=(el.length>=2?el:A.c).slice(0,2),[x,y]=dois;
+    const dif=fin&&y&&y[3]!==x[3];
+    const pat=dif?`<pattern id="sen-${k}" patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(45)"><rect width="14" height="14" fill="${corPartido(x[3])}"/><rect width="4" height="14" fill="${corPartido(y[3])}"/></pattern>`:"";
+    return {tipo:fin?"eleito":"apur",fill:dif?`url(#sen-${k})`:corPartido(x[3]),pat,partidos:fin?el.map(c=>c[3]):[],
+      tip:`<b>${nome}</b> · Senado<br>${fin?cap(eleitosDe(k,el)):"Na frente na apuração"}: ${dois.map(c=>`${esc(c[1])} (${esc(c[3])}) ${fPct2(c[5])}%`).join(", ")}<br>TSE, ${secoesTSE(A)}`};
+  }
+  const ap=apGov(k),tA=turnoGov(k);
+  if(est==="t2"){
+    const f=finalUF(k);
+    if(f.length===2){
+      const [x,y]=f,m=mediaUF2T(k),a2=resGov("2",k),id=`t2-${k}`;
+      const pat=`<pattern id="${id}" patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(45)"><rect width="14" height="14" fill="${corPartido(x[3])}"/><rect width="7" height="14" fill="${corPartido(y[3])}"/></pattern>`;
+      const med=m?`média do 2º turno: ${esc(curtoNome(nomeSl(k,m.a)))} ${fPct(m.va)}% x ${esc(curtoNome(nomeSl(k,m.b)))} ${fPct(m.vb)}% dos válidos`
+        :`pesquisas do 2º turno: ${campUF2T(k).length?pl(campUF2T(k).length,"rodada")+" depois de "+dBR(TURNOS.t1)+", ainda sem média":"nenhuma rodada depois de "+dBR(TURNOS.t1)}`;
+      return {tipo:"t2",fill:`url(#${id})`,pat,partidos:[x[3],y[3]],
+        tip:`<b>${nome}</b> · governo<br>2º turno em ${dBR(TURNOS.t2)}: ${esc(x[1])} (${esc(x[3])}) x ${esc(y[1])} (${esc(y[3])})<br>no 1º turno, ${fPct2(x[5])}% e ${fPct2(y[5])}% dos válidos<br>${a2?`apuração do 2º turno, ${secoesTSE(a2)}: ${a2.c.slice(0,2).map(c=>`${esc(curtoNome(c[1]))} ${fPct2(c[5])}%`).join(", ")}`:med}`};
+    }
+  }
+  if(est==="decidido"||est==="apur"){
+    const [x,y]=ap.c,fin=est==="decidido";
+    const como=!fin?"à frente na apuração com":x[6]==="eleito"?`${eleitoDe(k,x)} no ${tA}º turno com`:`o mais votado no ${tA}º turno, com`;
+    return {tipo:fin?"eleito":"apur",fill:corPartido(x[3]),partidos:fin?[x[3]]:[],
+      tip:`<b>${nome}</b> · governo<br>${esc(x[1])} (${esc(x[3])}) ${como} ${fPct2(x[5])}% dos válidos${y?`<br>2º: ${esc(y[1])} (${esc(y[3])}) ${fPct2(y[5])}%`:""}<br>TSE, ${secoesTSE(ap)}`};
+  }
+  return {tipo:"pend",fill:corPend(),partidos:[],tip:`<b>${nome}</b> · governo<br>${textoPend(k)}`};
+}
+// os estados com 2º turno de governador ainda por votar (o item listrado da legenda leva a eles)
+const ufs2TAbertas=()=>UFLIST.filter(k=>estadoGov(k)==="t2");
 function drawMapa(){
   const G=DATA.geo; if(!G){$("#mapa-svg").innerHTML="";return;}
   const [vx,vy,vw,vh]=G.viewBox.split(" ").map(Number);
-  let paths="",labels="",hatch="";
-  const lideres={};
+  const cargo=ufCargo,comRes=UFLIST.some(k=>estadoUF(k,cargo)!=="sem");
+  let paths="",labels="",hatch="",pats="";
+  const conta={},tipos={};
   for(const k of UFLIST){
     const g=G.ufs[k]; if(!g)continue;
-    const L=liderPartido(k,ufCargo);
-    const seg=L&&L.M.lista[1]?L.M.lista[1]:null, marg=L&&seg?L.p.valor-seg.valor:null;
-    const tec=!!(L&&seg&&empateUF(L.M,L.p.nome,seg.nome));
-    const cor=L?corPartido(L.partido):"var(--line)";
-    if(L){lideres[L.partido]=(lideres[L.partido]||0)+1;}
-    const tip=L?`<b>${UF[k].nome}</b> · ${cargoLabel(ufCargo)}<br>${esc(L.p.nome)} (${esc(L.partido)}) ${fPct(L.p.valor)}%${seg?` · ${esc(seg.nome)} ${fPct(seg.valor)}%`:""}<br>média de ${pl(L.M.rs.length,"rodada")} de ${pl(L.M.insts,"instituto")}, até ${dBR(dISO(L.M.t))}${tec?`<br>diferença de ${fPct(marg)} ${pts(marg)}, menos que a incerteza da média: empate técnico`:""}`:`<b>${UF[k].nome}</b><br>sem pesquisa de ${cargoLabel(ufCargo)} no observatório`;
-    paths+=`<path class="uf${k===ufAtual?" on":""}" d="${g.d}" fill="${cor}" data-uf="${k}" data-tip="${esc(tip)}" role="button" aria-label="${esc(UF[k].nome)}" tabindex="0"><title>${esc(UF[k].nome)}</title></path>`;
-    if(tec)hatch+=`<path class="hatch" d="${g.d}" fill="url(#hatchp)"/>`;
+    const M=mapaUF(k,cargo);
+    tipos[M.tipo]=(tipos[M.tipo]||0)+1;
+    // no governo conta um partido por estado; no Senado, as duas vagas
+    if(M.tipo==="media"||M.tipo==="eleito")for(const p of (cargo==="senador"?M.partidos:M.partidos.slice(0,1)))conta[p]=(conta[p]||0)+1;
+    if(M.pat)pats+=M.pat;
+    paths+=`<path class="uf${k===ufAtual?" on":""}" d="${g.d}" fill="${M.fill}" data-uf="${k}" data-tipo="${M.tipo}" data-tip="${esc(M.tip)}" role="button" aria-label="${esc(UF[k].nome)}" tabindex="0"><title>${esc(UF[k].nome)}</title></path>`;
+    if(M.tec)hatch+=`<path class="hatch" d="${g.d}" fill="url(#hatchp)"/>`;
     const o=LBL[k];
     if(o){labels+=`<line class="ld" x1="${g.cx}" y1="${g.cy}" x2="${o[0]-(o[0]>g.cx?26:-26)}" y2="${o[1]-6}"/><circle class="dot" cx="${g.cx}" cy="${g.cy}" r="3.5"/>${(k!=="DF"||TOQUE)?`<rect class="hit" data-uf="${k}" x="${o[0]-70}" y="${o[1]-60}" width="140" height="90" role="button" aria-label="${esc(UF[k].nome)}"/>`:""}${(k==="DF"&&TOQUE)?`<rect class="hit" data-uf="DF" x="${g.cx-70}" y="${g.cy-45}" width="140" height="90" role="button" aria-label="Distrito Federal"/>`:""}<text class="sg out" x="${o[0]}" y="${o[1]}">${k}</text>`;}
     else labels+=`<text class="sg" x="${g.cx}" y="${g.cy+9}">${k}</text>`;
   }
-  $("#mapa-svg").innerHTML=`<svg viewBox="${vx-6} ${vy-6} ${vw+140} ${vh+12}" role="img" aria-label="Mapa do Brasil, ${cargoLabel(ufCargo)}"><defs><pattern id="hatchp" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="var(--paper)" stroke-width="4" opacity=".7"/></pattern></defs><g class="ufs">${paths}</g><g>${hatch}</g><g class="lbls">${labels}</g></svg>`;
+  const aria=comRes?`Mapa do Brasil, ${cargoLabel(cargo)}, resultado oficial do TSE`:`Mapa do Brasil, ${cargoLabel(cargo)}`;
+  $("#mapa-svg").innerHTML=`<svg viewBox="${vx-6} ${vy-6} ${vw+140} ${vh+12}" role="img" aria-label="${aria}"><defs><pattern id="hatchp" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="var(--paper)" stroke-width="4" opacity=".7"/></pattern>${pats}</defs><g class="ufs">${paths}</g><g>${hatch}</g><g class="lbls">${labels}</g></svg>`;
+  $("#mapa-svg").setAttribute("aria-label",comRes?"Mapa do Brasil com o resultado de cada estado":"Mapa do Brasil com o líder de cada estado");
   bindTips($("#mapa-svg"));
-  // legenda: partidos que lideram em algum estado
-  const lg=Object.entries(lideres).sort((a,b)=>b[1]-a[1]);
-  const semP=UFLIST.filter(k=>!liderDe(k,ufCargo)).length;
-  $("#mapa-legend").innerHTML=`<span class="eyebrow" style="flex-basis:100%">Quem lidera ${ufCargo==="senador"?"o Senado":"o governo"} em cada estado</span>`+lg.map(([p,n])=>`<span class="lg"><i style="background:${corPartido(p)}"></i><b>${esc(p)}</b><span class="n">${pl(n,"estado")}</span></span>`).join("")+(semP?`<span class="lg"><i style="background:var(--line)"></i><span class="n">sem pesquisa em ${pl(semP,"estado")}</span></span>`:"")+`<span class="lg"><i style="background:repeating-linear-gradient(45deg,var(--ink-3) 0 2px,transparent 2px 5px)"></i><span class="n">empate técnico</span></span>`;
+  const lg=Object.entries(conta).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  const itens=lg.map(([p,n])=>`<span class="lg"><i style="background:${corPartido(p)}"></i><b>${esc(p)}</b><span class="n">${cargo==="senador"&&comRes?pl(n,"vaga"):pl(n,"estado")}</span></span>`).join("");
+  let leg,capt,nota;
+  if(!comRes){
+    const semP=UFLIST.filter(k=>!liderDe(k,cargo)).length;
+    leg=`<span class="eyebrow" style="flex-basis:100%">Quem lidera ${cargo==="senador"?"o Senado":"o governo"} em cada estado</span>`+itens+(semP?`<span class="lg"><i style="background:var(--line)"></i><span class="n">sem pesquisa em ${pl(semP,"estado")}</span></span>`:"")+`<span class="lg"><i style="background:repeating-linear-gradient(45deg,var(--ink-3) 0 2px,transparent 2px 5px)"></i><span class="n">empate técnico</span></span>`;
+    capt=`quem lidera ${cargo==="senador"?"a corrida ao Senado":"a corrida ao governo"} em cada estado, pela cor do partido`;
+    nota="A cor de cada estado é a do partido do candidato que lidera a média das pesquisas daquele estado. A hachura indica empate técnico, quando a diferença entre os dois primeiros é menor que a incerteza da média. Cinza claro indica que ainda não há pesquisa do estado para essa disputa.";
+  }else if(cargo==="senador"){
+    const nV=lg.reduce((s,x)=>s+x[1],0);
+    leg=`<span class="eyebrow" style="flex-basis:100%">Vagas no Senado por partido, ${pl(nV,"vaga")}</span>`+itens
+      +(pats?`<span class="lg"><i style="background:repeating-linear-gradient(45deg,var(--ink-3) 0 3px,var(--paper-2) 3px 10px)"></i><span class="n">listras finas: o 2º eleito é de outro partido</span></span>`:"")
+      +(tipos.apur?`<span class="lg"><span class="n">${pl(tipos.apur,"estado")} em apuração</span></span>`:"");
+    capt="o partido do senador mais votado em cada estado, pelo resultado do TSE";
+    nota=`A cor de cada estado é a do partido do senador mais votado em ${dBR(TURNOS.t1)}, pelo resultado oficial do TSE. Quando o segundo eleito é de outro partido, o estado ganha listras finas na cor dele. A legenda conta as vagas, duas por estado.`;
+  }else{
+    const n2=tipos.t2||0,nP=tipos.pend||0;
+    leg=`<span class="eyebrow" style="flex-basis:100%">Governadores eleitos por partido</span>`+itens
+      +(n2?`<button type="button" class="lg lg-t2" data-t2="1" title="Abrir um dos estados com 2º turno"><i style="background:repeating-linear-gradient(45deg,var(--ink-2) 0 3px,var(--paper-2) 3px 6px)"></i><b>2º turno em ${dBR(TURNOS.t2)}</b><span class="n">${pl(n2,"estado")}</span></button>`:"")
+      +(nP?`<span class="lg"><i style="background:${corPend()}"></i><b>sem definição no TSE</b><span class="n">${pl(nP,"estado")}</span></span>`:"")
+      +(tipos.apur?`<span class="lg"><span class="n">${pl(tipos.apur,"estado")} em apuração</span></span>`:"");
+    capt=`o partido do governador eleito em cada estado${n2?`, e listras onde há 2º turno em ${dBR(TURNOS.t2)}`:""}`;
+    nota=`A cor de cada estado é a do partido do governador eleito, pelo resultado oficial do TSE.${n2?` Nos estados com 2º turno em ${dBR(TURNOS.t2)}, listras nas cores dos partidos dos dois finalistas.`:""}${nP?` Cinza indica estado sem definição no TSE.`:""}`;
+  }
+  $("#mapa-legend").innerHTML=leg;
+  $("#mapa-cap").textContent=capt;
+  $("#mapa-nota").textContent=nota;
+  $("#mapa-tit").textContent=comRes?"O mapa do resultado":"O mapa da disputa";
   drawMapaSel();
-  $("#mapa-cap").textContent=`quem lidera ${ufCargo==="senador"?"a corrida ao Senado":"a corrida ao governo"} em cada estado, pela cor do partido`;
 }
 function drawMapaSel(){
   const k=ufAtual,u=UF[k]; if(!u)return;
-  const M=temPesquisa(ufCargo)?mediaUF(k,ufCargo):null, vagas=VAGAS(ufCargo);
-  const outro=ufCargo==="senador"?"governador":"senador", lo=liderPartido(k,outro);
-  let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${M?` · média de ${pl(M.rs.length,"rodada")} até ${dBR(dISO(M.t))}`:""}</div>`;
-  if(M){
-    h+=M.lista.slice(0,4).map((p,i)=>{const c=todosUF(u).find(x=>x.slug===p.slug);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p.cor)}">${c?esc(c.num):""}</span><span><b>${esc(p.nome)}</b><span class="pt">${c?esc(c.partido):esc(p.partido||"")}</span></span><span class="v">${fPct(p.valor)}%</span></div>`;}).join("");
-    if(M.lista.length>4)h+=`<div class="src">mais ${M.lista.length-4} nomes medidos na janela</div>`;
-  } else h+=`<div class="empty" style="margin:0"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;
-  h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p.nome)} (${esc(lo.partido)}) com ${fPct(lo.p.valor)}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
-  h+=`<a class="go" href="#uf-${k.toLowerCase()}${ufCargo==="senador"?"-senado":"-governo"}-pesquisas" data-goto-aba="e-pesquisas">Abrir ${esc(u.nome)} →</a>`;
+  const est=estadoUF(k,ufCargo),urlUF=`#uf-${k.toLowerCase()}${ufCargo==="senador"?"-senado":"-governo"}`;
+  if(est==="sem"){
+    const M=temPesquisa(ufCargo)?mediaUF(k,ufCargo):null, vagas=VAGAS(ufCargo);
+    const outro=ufCargo==="senador"?"governador":"senador", lo=liderPartido(k,outro);
+    let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${ufCargo==="senador"?"Senado: duas vagas em disputa":"Governo do estado"}${M?` · média de ${pl(M.rs.length,"rodada")} até ${dBR(dISO(M.t))}`:""}</div>`;
+    if(M){
+      h+=M.lista.slice(0,4).map((p,i)=>{const c=todosUF(u).find(x=>x.slug===p.slug);return `<div class="row${i<vagas?" lead":""}"><span class="k" style="background:${corViva(p.cor)}">${c?esc(c.num):""}</span><span><b>${esc(p.nome)}</b><span class="pt">${c?esc(c.partido):esc(p.partido||"")}</span></span><span class="v">${fPct(p.valor)}%</span></div>`;}).join("");
+      if(M.lista.length>4)h+=`<div class="src">mais ${M.lista.length-4} nomes medidos na janela</div>`;
+    } else h+=`<div class="empty" style="margin:0"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;
+    h+=`<div class="src">${lo?`${outro==="senador"?"No Senado":"No governo"}, lidera ${esc(lo.p.nome)} (${esc(lo.partido)}) com ${fPct(lo.p.valor)}%.`:`Sem pesquisa de ${cargoLabel(outro)} ainda.`}</div>`;
+    h+=`<a class="go" href="${urlUF}-pesquisas" data-goto-aba="e-pesquisas">Abrir ${esc(u.nome)} →</a>`;
+    $("#mapa-sel").innerHTML=h;return;
+  }
+  // com resultado: as quatro primeiras linhas da apuração, a média do 2º turno onde ele existe e uma
+  // linha sobre a outra disputa do estado
+  const A=ufCargo==="senador"?resSen(k):apGov(k),tA=ufCargo==="senador"?"1":turnoGov(k);
+  const disp=ufCargo==="senador"?`Senado · ${pl(A.tot.vagas||VAGAS("senador"),"vaga")} · TSE, ${secoesTSE(A)}`
+    :est==="t2"?`Governo · 2º turno em ${dBR(TURNOS.t2)} · TSE, ${tA}º turno`:est==="pend"?"Governo · sem definição no TSE":`Governo · TSE, ${tA}º turno, ${secoesTSE(A)}`;
+  let h=`<div class="nm">${esc(u.nome)}</div><div class="disp">${disp}</div>`;
+  h+=A.c.slice(0,4).map(x=>{const c=candUF(k,x[0]);return `<div class="row${x[6]==="eleito"||x[6]==="2t"?" lead":""}"><span class="k" style="background:${c?c.cor:"var(--neutro)"}">${c?esc(c.num):esc(x[2])}</span><span><b>${esc(x[1])}</b><span class="pt">${esc(x[3])}</span></span><span class="v">${fPct2(x[5])}%</span></div>`;}).join("");
+  if(A.c.length>4)h+=`<div class="src">mais ${pl(A.c.length-4,"nome")} na apuração</div>`;
+  if(ufCargo==="governador"&&est==="t2"){const m=mediaUF2T(k);h+=`<div class="src">${m?`Média do 2º turno: ${esc(curtoNome(nomeSl(k,m.a)))} ${fPct(m.va)}% x ${esc(curtoNome(nomeSl(k,m.b)))} ${fPct(m.vb)}% dos válidos, ${pl(m.n,"rodada")}.`:linhaRodadasUF2T(k)}</div>`;}
+  if(ufCargo==="governador"&&est==="pend")h+=`<div class="src">${textoPend(k)}</div>`;
+  // a outra disputa do estado, numa linha
+  let outra="";
+  if(ufCargo==="senador"){const eg=estadoGov(k),ag=apGov(k),f=finalUF(k);
+    outra=eg==="decidido"&&ag.c[0][6]==="eleito"?`No governo, ${eleitoDe(k,ag.c[0])} ${esc(ag.c[0][1])} (${esc(ag.c[0][3])}), com ${fPct2(ag.c[0][5])}%.`
+      :eg==="t2"&&f.length===2?`No governo, 2º turno em ${dBR(TURNOS.t2)} entre ${esc(f[0][1])} (${esc(f[0][3])}) e ${esc(f[1][1])} (${esc(f[1][3])}).`
+      :eg==="pend"?"No governo, sem definição no TSE.":"";}
+  else{const S=resSen(k),el=S?S.c.filter(c=>c[6]==="eleito"):[];
+    outra=el.length?`No Senado, ${eleitosDe(k,el)} ${el.map(c=>`${esc(c[1])} (${esc(c[3])})`).join(" e ")}.`:"";}
+  if(outra)h+=`<div class="src">${outra}</div>`;
+  h+=est==="t2"&&ufCargo==="governador"?`<a class="go" href="${urlUF}-pesquisas" data-goto-aba="e-pesquisas">2º turno ${deUF(k)} →</a>`
+    :`<a class="go" href="${urlUF}" data-goto-aba="e-geral">Abrir ${esc(u.nome)} →</a>`;
   $("#mapa-sel").innerHTML=h;
 }
 const curtoNome = n => {const w=String(n).split(" ");if(w.length<=2)return n;const part=/^(de|da|do|dos|das|e|di|del|von)$/i;let out=[w[0]];let i=1;while(i<w.length&&part.test(w[i])){out.push(w[i]);i++;}if(i<w.length)out.push(w[i]);return out.join(" ");};
 // margem de erro declarada na ficha técnica, em pontos
 const margemDe = r => {const v=parseFloat(String(r&&r.margem||"").replace(",","."));return isFinite(v)&&v>0?v:null;};
 
+// as UFs com 2º turno de governador vêm primeiro no seletor, num grupo próprio, e saem do grupo da região
 function drawUFSel(){
-  const porReg={};for(const k of UFLIST){(porReg[UF[k].regiao]=porReg[UF[k].regiao]||[]).push(k);}
-  $("#uf-sel").innerHTML = Object.keys(porReg).map(r=>`<optgroup label="${esc(r)}">${porReg[r].map(k=>`<option value="${k}" ${k===ufAtual?"selected":""}>${esc(UF[k].nome)}</option>`).join("")}</optgroup>`).join("");
+  const t2=ufs2TAbertas(),porReg={};
+  for(const k of UFLIST){if(t2.includes(k))continue;(porReg[UF[k].regiao]=porReg[UF[k].regiao]||[]).push(k);}
+  const op=k=>`<option value="${k}" ${k===ufAtual?"selected":""}>${esc(UF[k].nome)}</option>`;
+  $("#uf-sel").innerHTML=(t2.length?`<optgroup label="2º turno para governador em ${dBR(TURNOS.t2)}">${t2.map(op).join("")}</optgroup>`:"")
+    +Object.keys(porReg).map(r=>`<optgroup label="${esc(r)}">${porReg[r].map(op).join("")}</optgroup>`).join("");
+}
+// A abertura do estado com o resultado do TSE, um caso por estado (U1 do plano de 13/10/2026):
+// governo decidido, governo em 2º turno (com a média do confronto quando ela existe, senão o 1º turno e
+// as rodadas como rodadas), governo sem definição no TSE, Senado, e apuração em andamento. "eleito"
+// só aparece quando a situação do TSE diz eleito.
+function heroResultadoUF(k,est){
+  const u=UF[k],ed=$("#e-duelo"),nota=$("#e-nota"),vv=$("#e-validos");
+  const lado=(row,num,v,dir)=>`<div class="dl${dir?" dir":""}" style="--cc:${corLinha(k,row)}"><span class="dl-nome"><i></i>${esc(row[1])}</span><span class="dl-num display tnum">${num}<small>%</small></span><span class="dl-var">${v}</span></div>`;
+  const meio=(gap,un,tag,emp,v)=>`<div class="dl-meio"><span class="dl-gap display tnum">${gap}<small>${un}</small></span><span class="dl-tag${emp?" emp":""}">${tag}</span>${v?`<span class="dl-var">${v}</span>`:""}</div>`;
+  const pv=row=>`${esc(row[3])}${row[2]?" · "+esc(row[2]):""}`;
+  const dif2=(x,y)=>{const d=x[5]-y[5];return [fPct2(Math.abs(d)),pts(d)];};
+  let eyebrow="",tag="",lede="",notaH="",duelo="";
+  if(ufCargo==="senador"){
+    const A=resSen(k),fin=A.est==="final",vagas=A.tot.vagas||VAGAS("senador");
+    const el=A.c.filter(c=>c[6]==="eleito"),top=(el.length>=2?el:A.c).slice(0,2),ter=A.c[vagas];
+    const d=ter&&top.length===2?top[1][5]-ter[5]:null;
+    eyebrow=`${u.nome} · Senado · ${pl(vagas,"vaga")} · ${fin?`resultado oficial do TSE de ${dBR(TURNOS.t1)}`:`apuração em andamento, ${secoesTSE(A)}, parcial de ${horaTSE(A.tot.at)} (TSE)`}`;
+    if(top.length===2)duelo=lado(top[0],fPct2(top[0][5]),pv(top[0]),false)+meio(String(vagas),"vagas",el.length?eleitosDe(k,el):"apuração parcial",false,d!=null?`o 3º ficou a ${fPct2(d)} ${pts(d)}`:"")+lado(top[1],fPct2(top[1][5]),pv(top[1]),true);
+    tag=el.length?`${cap(eleitosDe(k,el))}: ${el.map(c=>`${c[1]} ${fPct2(c[5])}%`).join(" e ")}`:`Apuração do Senado: ${top.map(c=>`${c[1]} ${fPct2(c[5])}%`).join(" · ")}`;
+    lede=(el.length?`${el.map(c=>`${esc(c[1])} (${esc(c[3])})`).join(" e ")} ${el.length===1?"foi":"foram"} ${el.length===1?eleitoDe(k,el[0]):eleitosDe(k,el)} para ${vagas===1?"a vaga":`as ${pl(vagas,"vaga")}`} do Senado ${emUF(k)}.`:`O TSE ainda apura o Senado ${emUF(k)}.`)
+      +(ter?` ${esc(ter[1])} (${esc(ter[3])}) ficou em ${vagas+1}º, com ${fPct2(ter[5])}%.`:"")+` Cada eleitor votou em dois nomes, e o percentual é sobre o total de votos válidos dados ao Senado.`;
+    desenharResultado(vv,null);
+  }else{
+    const a1=resGov("1",k),a2=resGov("2",k),f=finalUF(k).length===2?finalUF(k):a1.c.slice(0,2),[x,y]=f;
+    if(est==="t2"&&a2){
+      // 2º turno em apuração: percentuais parciais, e "eleito" só se o TSE já disser
+      const [p,q]=a2.c,ok=p&&q;
+      eyebrow=`${u.nome} · Governo · 2º turno · apuração em andamento, ${secoesTSE(a2)}, parcial de ${horaTSE(a2.tot.at)} (TSE)`;
+      if(ok){const [g,un]=dif2(p,q);duelo=lado(p,fPct2(p[5]),pv(p),false)+meio(g,un,p[6]==="eleito"?`${eleitoDe(k,p)} no 2º turno`:"apuração parcial",false,secoesTSE(a2))+lado(q,fPct2(q[5]),pv(q),true);}
+      tag=ok?`Apuração do 2º turno: ${p[1]} ${fPct2(p[5])}% · ${q[1]} ${fPct2(q[5])}%, com ${secoesTSE(a2)}`:"Apuração do 2º turno";
+      notaH=`1º turno, TSE: ${esc(x[1])} ${fPct2(x[5])}% · ${esc(y[1])} ${fPct2(y[5])}%`;
+      lede=`${esc(x[1])} (${esc(x[3])}) e ${esc(y[1])} (${esc(y[3])}) disputaram o governo no 2º turno, em ${dExtenso(TURNOS.t2)}. A apuração do TSE está em ${secoesTSE(a2)}, parcial de ${horaTSE(a2.tot.at)}.`;
+      desenharResultado(vv,a2,{nome:c=>c[1],cor:c=>corLinha(k,c)});
+    }else if(est==="t2"){
+      const m=mediaUF2T(k),z=a1.c.find(c=>c[6]!=="2t"&&c[6]!=="eleito");
+      lede=`${esc(x[1])} (${esc(x[3])}) e ${esc(y[1])} (${esc(y[3])}) disputam o governo em ${dExtenso(TURNOS.t2)}. No 1º turno, ${esc(x[1])} teve ${fPct2(x[5])}% dos votos válidos, e ${esc(y[1])}, ${fPct2(y[5])}%${z?`; ${esc(z[1])} ficou em 3º, com ${fPct2(z[5])}%`:""}.`;
+      if(m){
+        // com a média do confronto: os números do duelo são dela, em votos válidos
+        const ra=f.find(c=>c[0]===m.a),rb=f.find(c=>c[0]===m.b),inc=m.erro!=null;
+        eyebrow=`${u.nome} · Governo · 2º turno em ${dBR(TURNOS.t2)} · média de ${pl(m.n,"rodada")} de 2º turno depois de ${dBR(TURNOS.t1)}`;
+        duelo=lado(ra,fPct(m.va),`votos válidos · ${esc(ra[3])}`,false)+meio(fPct(Math.abs(m.dif)),pts(m.dif),!inc?"sem incerteza calculada":m.empate?"empate técnico":`${esc(curtoNome(ra[1]))} à frente`,inc&&m.empate,`média de ${pl(m.n,"rodada")}, ${pl(m.nInst,"instituto")}`)+lado(rb,fPct(m.vb),`votos válidos · ${esc(rb[3])}`,true);
+        notaH=`1º turno, TSE: ${esc(x[1])} ${fPct2(x[5])}% · ${esc(y[1])} ${fPct2(y[5])}%`;
+        tag=`2º turno: ${ra[1]} ${fPct(m.va)}% x ${rb[1]} ${fPct(m.vb)}% nos válidos`;
+        lede+=` A média do 2º turno junta ${pl(m.n,"rodada")} de ${pl(m.nInst,"instituto")} feitas depois de ${dBR(TURNOS.t1)}, a última até ${dBR(m.ultima)}.`;
+        desenharVV2(vv,m,{nome:s=>curtoNome(nomeSl(k,s)),cor:s=>corSl(k,s)});
+      }else{
+        // sem média ainda: o duelo é o do 1º turno, e as rodadas do 2º aparecem como rodadas
+        const [g,un]=dif2(x,y);
+        eyebrow=`${u.nome} · Governo · 2º turno em ${dBR(TURNOS.t2)} · resultado do 1º turno pelo TSE`;
+        duelo=lado(x,fPct2(x[5]),`1º turno · ${pv(x)}`,false)+meio(g,un,`2º turno em ${dBR(TURNOS.t2)}`,false,"no 1º turno")+lado(y,fPct2(y[5]),`1º turno · ${pv(y)}`,true);
+        notaH=linhaRodadasUF2T(k);
+        tag=`2º turno: ${x[1]} x ${y[1]} · no 1º turno, ${fPct2(x[5])}% e ${fPct2(y[5])}%`;
+        desenharResultado(vv,a1,{nome:c=>c[1],cor:c=>corLinha(k,c)});
+      }
+    }else if(est==="pend"){
+      const [g,un]=dif2(x,y);
+      eyebrow=`${u.nome} · Governo · sem definição no TSE · 1º turno, ${secoesTSE(a1)}`;
+      duelo=lado(x,fPct2(x[5]),`1º turno · ${pv(x)}`,false)+meio(g,un,"sem definição no TSE",false,"")+lado(y,fPct2(y[5]),`1º turno · ${pv(y)}`,true);
+      tag=`Governo sem definição no TSE: ${x[1]} ${fPct2(x[5])}% · ${y[1]} ${fPct2(y[5])}%`;
+      lede=textoPend(k);
+      desenharResultado(vv,a1,{nome:c=>c[1],cor:c=>corLinha(k,c)});
+    }else{
+      // decidido (1º turno, ou 2º turno com apuração final) ou 1º turno ainda em apuração
+      const A=apGov(k),tA=turnoGov(k),fin=est==="decidido",[p,q]=A.c,el=p[6]==="eleito";
+      eyebrow=`${u.nome} · Governo · ${fin?`resultado oficial do TSE, ${tA}º turno de ${dBR(tA==="2"?TURNOS.t2:TURNOS.t1)}`:"apuração em andamento"} · ${secoesTSE(A)}${fin?"":`, parcial de ${horaTSE(A.tot.at)} (TSE)`}`;
+      if(q){const [g,un]=dif2(p,q);duelo=lado(p,fPct2(p[5]),pv(p),false)+meio(g,un,el?`${eleitoDe(k,p)} no ${tA}º turno`:fin?"resultado final":"apuração parcial",false,"")+lado(q,fPct2(q[5]),pv(q),true);}
+      tag=el?`${p[1]} ${eleitoDe(k,p)} com ${fPct2(p[5])}% dos votos válidos`:`${fin?"Governo":"Apuração do governo"}: ${A.c.slice(0,3).map(c=>`${c[1]} ${fPct2(c[5])}%`).join(" · ")}`;
+      lede=`${esc(p[1])} (${esc(p[3])}) teve ${fInt(p[4])} votos no ${tA}º turno${q?`; ${esc(q[1])} (${esc(q[3])}), em 2º, teve ${fInt(q[4])}, ${fPct2(q[5])}% dos válidos`:""}. ${comparecimentoTxt(A)}`;
+      desenharResultado(vv,A,{nome:c=>c[1],cor:c=>corLinha(k,c)});
+    }
+  }
+  $("#e-eyebrow").textContent=eyebrow;
+  ed.innerHTML=duelo;
+  nota.innerHTML=notaH;nota.hidden=!notaH;
+  $("#e-tag").textContent=tag;
+  $("#e-lede").innerHTML=`${lede} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;
+}
+// o painel do 2º turno na Visão geral das UFs com 2º turno: a média em válidos, ou a última rodada da
+// campanha com o aviso de que ainda não é média, e o caminho para todas as rodadas em Pesquisas
+function drawPainel2TUF(k){
+  const p=$("#e-panel-2t");
+  if(ufCargo!=="governador"||estadoGov(k)!=="t2"||finalUF(k).length!==2){p.hidden=true;return;}
+  p.hidden=false;
+  const m=mediaUF2T(k),camp=campUF2T(k),fin=finalUF(k),ir=`<a href="${hashDe("e-pesquisas")}">Todas as rodadas do 2º turno, em Pesquisas →</a>`;
+  if(m){
+    $("#e-h-2tg").textContent="2º turno: média das pesquisas";
+    $("#e-cap-2tg").textContent=`votos válidos · ${pl(m.n,"rodada")} depois de ${dBR(TURNOS.t1)} · até ${dBR(m.ultima)}`;
+    const mx=Math.max(m.va,m.vb);
+    $("#e-ch-2tg").innerHTML=`<div class="hbars">${[[m.a,m.va],[m.b,m.vb]].map(([s,v])=>{const c=candUF(k,s);return `<div class="hb"><span class="nm">${c?`<span class="k" style="background:${c.cor}">${esc(c.num)}</span><button type="button" class="nmbtn" data-edossie="${esc(s)}" title="Abrir dossiê"><b>${esc(c.nome)}</b></button><span class="pt">${esc(c.partido)}</span>`:`<b>${esc(nomeSl(k,s))}</b>`}</span><span class="bar"><i style="width:${Math.max(1.5,v/mx*100)}%;background:${corSl(k,s)}"></i></span><span class="val display tnum">${fPct(v)}<small>%</small></span></div>`;}).join("")}</div><div class="cap">${textoUF2T(k,m)} ${ir}</div>`;
+  }else if(camp.length){
+    const R=camp[camp.length-1];
+    $("#e-h-2tg").textContent="2º turno: as pesquisas até agora";
+    $("#e-cap-2tg").textContent=`${esc(R.inst)}, campo de ${campoCurto(R.r.campo||R.dt)}`;
+    $("#e-ch-2tg").innerHTML=barras2TUF(k,R)+`<div class="cap">${pl(camp.length,"rodada")} de 2º turno depois de ${dBR(TURNOS.t1)}, ${camp.length===1?"e uma rodada não é média":"ainda sem média"}: a média começa com ${MIN_POS1T.rodadas} rodadas de ${MIN_POS1T.inst} institutos. ${ir}</div>`;
+  }else{
+    $("#e-h-2tg").textContent=`2º turno: ${fin.map(c=>c[1]).join(" x ")}`;
+    $("#e-cap-2tg").textContent=`em ${dBR(TURNOS.t2)}`;
+    $("#e-ch-2tg").innerHTML=`<div class="empty"><b>Sem pesquisa do 2º turno</b>${linhaRodadasUF2T(k)} ${ir}</div>`;
+  }
 }
 function drawGeralUF(){
   const u=UF[ufAtual]; if(!u) return;
-  const nGov=u.gov.length, nSen=u.sen.length, nPart=new Set([...u.gov,...u.sen].map(c=>c.partido)).size;
+  const k=ufAtual,est=estadoUF(k,ufCargo),comRes=!!(resGov("1",k)||resSen(k));
+  // com resultado, lede, tira e partidos contam só quem esteve na urna
+  const gov=comRes?u.gov.filter(naUrna):u.gov,sen=comRes?u.sen.filter(naUrna):u.sen;
+  const nGov=gov.length, nSen=sen.length, nPart=new Set([...gov,...sen].map(c=>c.partido)).size;
   const nRod=u.rodadas.length, insts=new Set(u.rodadas.map(r=>r.inst)).size;
+  // depois da votação de 4/10, a média de 1º turno não projeta mais nada: sem resultado no estado, a
+  // régua de válidos e os alertas de "Primeiro turno" e "Segunda vaga" ficam de fora
+  const antesVoto=HOJE<=TURNOS.t1;
+  if(est!=="sem")heroResultadoUF(k,est);
   // manchete numérica do estado: os três primeiros da última rodada da disputa escolhida, sem verbo
-  {const M=temPesquisa(ufCargo)?mediaUF(ufAtual,ufCargo):null,disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
+  else{const M=temPesquisa(ufCargo)?mediaUF(ufAtual,ufCargo):null,disp=CARGOS[ufCargo]?CARGOS[ufCargo].bt:"Governo",nDep=listaDe(u,ufCargo).length;
     $("#e-eyebrow").textContent=`${u.nome} · ${disp} · ${M?`média de ${pl(M.rs.length,"rodada")} de ${pl(M.insts,"instituto")} até ${dBR(dISO(M.t))}`:(temPesquisa(ufCargo)?"sem pesquisa registrada":"sem pesquisa nominal")}`;
-    const ed=$("#e-duelo");
+    const ed=$("#e-duelo");$("#e-nota").hidden=true;
     if(ed){if(M&&M.lista.length>=2){const [A,B]=M.lista,gap=A.valor-B.valor,emp=empateUF(M,A.nome,B.nome);
+        // o selo "à frente" só com a incerteza calculada (3 rodadas ou mais na janela)
+        let inc=null;try{inc=incertezaEm(M.rods,M.nomes,SIG_UF,M.t,A.nome,B.nome);}catch(e){}
         const lado=(q,dir)=>{const c=candPorSlug(q.slug);return `<div class="dl${dir?" dir":""}" style="--cc:${corViva(q.cor)}"><span class="dl-nome"><i></i>${esc(q.nome)}</span><span class="dl-num display tnum">${fPct(q.valor)}<small>%</small></span><span class="dl-var">${c?esc(c.partido):esc(q.partido||"")}${c&&c.num?" · "+esc(c.num):""}</span></div>`;};
-        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":esc(A.nome.split(" ")[0])+" à frente"}</span><span class="dl-var">média móvel de ${SIG_UF} dias</span></div>`+lado(B,true);}
+        ed.innerHTML=lado(A,false)+`<div class="dl-meio"><span class="dl-gap display tnum">${fPct(Math.abs(gap))}<small>${pts(gap)}</small></span><span class="dl-tag${emp?" emp":""}">${emp?"empate técnico":inc?esc(A.nome.split(" ")[0])+" à frente":"sem incerteza calculada"}</span><span class="dl-var">média móvel de ${SIG_UF} dias</span></div>`+lado(B,true);}
       else ed.innerHTML="";}
     $("#e-tag").textContent=M?M.lista.slice(0,3).map(p=>`${p.nome} ${fPct(p.valor)}%`).join(" · ")
       :(temPesquisa(ufCargo)?`Sem pesquisa registrada para ${cargoArt(ufCargo)} ${emUF(ufAtual)}`
@@ -4841,20 +5209,24 @@ function drawGeralUF(){
     const abre=temPesquisa(ufCargo)
       ? `${pl(nGov,"candidatura")} ao governo e ${nSen} ao Senado, de ${pl(nPart,"partido")}, registradas no TSE.`
       : `${pl(nDep,"candidatura acompanhada","candidaturas acompanhadas")} na disputa ${cargoPor(ufCargo)}, de ${pl(new Set(listaDe(u,ufCargo).map(c=>c.partido)).size,"partido")}: parlamentares em busca de reeleição e nomes novos de repercussão, não o registro inteiro.`;
-    desenharVV($("#e-validos"),ufCargo==="governador"?validosUF(M):null,n=>n,n=>corViva(M.meta[n].cor),"");
+    desenharVV($("#e-validos"),ufCargo==="governador"&&antesVoto?validosUF(M):null,n=>n,n=>corViva(M.meta[n].cor),"");
     $("#e-lede").innerHTML=`${abre} ${rc.length?`${pl(rc.length,"rodada")} de ${pl(ic,"instituto")} para ${cargoArt(ufCargo)} no observatório${nRod>rc.length?`, ${nRod} no estado`:""}.`:(temPesquisa(ufCargo)?`Nenhuma rodada de ${cargoLabel(ufCargo)} no observatório ainda${nRod?`; ${pl(nRod,"rodada")} da outra disputa`:""}.`:semPesq(ufCargo))} <a href="${hashDe("e-metodo")}">De onde vem cada número →</a>`;}
   $("#e-panel-gov").style.order=ufCargo==="governador"?0:1; $("#e-panel-sen").style.order=ufCargo==="senador"?0:1;
   $("#e-panel-gov").classList.toggle("pick",ufCargo==="governador"); $("#e-panel-sen").classList.toggle("pick",ufCargo==="senador");
   // alertas do estado
   const A=[];
-  // os alertas do estado saem da média, como os nacionais, e o empate vem da incerteza dela
+  const eg=estadoGov(k),es=estadoSen(k);
+  // os alertas que saem da média de 1º turno rodam só para a disputa sem resultado, como os nacionais
+  // e com o empate pela incerteza dela
   for(const cargo of ["governador","senador"]){
+    if(estadoUF(k,cargo)!=="sem")continue;
     const M=temPesquisa(cargo)?mediaUF(ufAtual,cargo):null; if(!M)continue;
     const vagas=VAGAS(cargo), p=M.lista[0], seg=M.lista[1]||null, q=M.lista[vagas]||null, ant=M.lista[vagas-1];
     const fonte=`média de ${pl(M.rs.length,"rodada")} de ${pl(M.insts,"instituto")}, ${SIG_UF} dias até ${dBR(dISO(M.t))}`;
     const dif=seg?Math.abs(p.valor-seg.valor):null;
     if(cargo==="governador"&&seg&&empateUF(M,p.nome,seg.nome))A.push({s:"warn",k:"Empate técnico",t:`<b>${esc(p.nome)}</b> e <b>${esc(seg.nome)}</b> separados por ${fPct(dif)} ${pts(dif)} na disputa pelo governo, menos que a incerteza da média`,src:fonte});
     else if(cargo==="governador"&&seg&&p.valor-seg.valor>=10)A.push({s:"info",k:"Vantagem",t:`<b>${esc(p.nome)}</b> abre ${fPct(p.valor-seg.valor)} pontos sobre <b>${esc(seg.nome)}</b> na disputa pelo governo (${fPct(p.valor)}% a ${fPct(seg.valor)}%)`,src:fonte});
+    if(!antesVoto)continue;
     // a regra do turno único é mais de 50% dos VÁLIDOS; até 23/9/2026 este alerta olhava a
     // intenção total, que tem brancos e indecisos dentro, e só disparava bem depois da hora
     const V=cargo==="governador"?validosUF(M):null;
@@ -4862,25 +5234,65 @@ function drawGeralUF(){
     else if(V&&V.status==="perto")A.push({s:"warn",k:"Primeiro turno",t:`<b>${esc(V.lider)}</b> tem ${fPct(V.v)}% dos votos válidos na média, a ${fPct(Math.abs(V.v-50))} ${pts(V.v-50)} dos 50%. A distância é menor que a incerteza, e a média não diz se haverá segundo turno`,src:fonte});
     if(cargo==="senador"&&ant&&q&&empateUF(M,ant.nome,q.nome))A.push({s:"warn",k:"Segunda vaga",t:`<b>${esc(ant.nome)}</b> e <b>${esc(q.nome)}</b> disputam a segunda vaga do Senado dentro da incerteza da média (${fPct(ant.valor)}% e ${fPct(q.valor)}%)`,src:fonte});
   }
-  const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
-  for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${esc(cargoLabel(c.cargo))}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
-  if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});
+  // com resultado: quem foi eleito, quem vai ao 2º turno e, só com a média do 2º turno, empate ou vantagem
+  const srcTSE=X=>`TSE, ${secoesTSE(X)}${X.tot.at?`, ${horaTSE(X.tot.at)}`:""}`;
+  if(eg==="decidido"){const G=apGov(k),x=G.c[0];
+    if(x[6]==="eleito")A.push({s:"info",k:cap(eleitoDe(k,x)),t:`<b>${esc(x[1])}</b> (${esc(x[3])}) ${eleitoDe(k,x)} para o governo no ${turnoGov(k)}º turno, com ${fPct2(x[5])}% dos votos válidos`,src:srcTSE(G)});
+    const V=vesperaUF(k);
+    if(V&&turnoGov(k)==="1")A.push({s:"info",k:"Pesquisas e urna",t:`A média das pesquisas até ${dBR(dISO(V.t))} dava a <b>${esc(V.nome)}</b> ${fPct(V.media)}% dos válidos; a urna deu ${fPct2(V.urna)}%, ${fPct(Math.abs(V.dif))} ${pts(V.dif)} ${V.dif>=0?"a mais":"a menos"}`,src:`média do estado, janela de ${SIG_UF} dias, e TSE`});}
+  if(eg==="t2"){const f=finalUF(k),m=mediaUF2T(k),camp=campUF2T(k);
+    if(f.length===2)A.push({s:"warn",k:"2º turno",t:`<b>${esc(f[0][1])}</b> e <b>${esc(f[1][1])}</b> disputam o governo em ${dExtenso(TURNOS.t2)}; no 1º turno, ${fPct2(f[0][5])}% e ${fPct2(f[1][5])}% dos votos válidos`,src:srcTSE(resGov("1",k))});
+    if(m&&m.erro!=null){const fonte=`média de ${pl(m.n,"rodada")} de ${pl(m.nInst,"instituto")} depois de ${dBR(TURNOS.t1)}, até ${dBR(m.ultima)}`,A1=esc(nomeSl(k,m.a)),B1=esc(nomeSl(k,m.b)),d=Math.abs(m.dif);
+      if(m.empate)A.push({s:"warn",k:"Empate técnico",t:`<b>${A1}</b> e <b>${B1}</b> separados por ${fPct(d)} ${pts(d)} nos votos válidos do 2º turno, menos que a incerteza da média (${fPct(m.erro)} ${pts(m.erro)})`,src:fonte});
+      else A.push({s:"info",k:"Vantagem",t:`<b>${A1}</b> tem ${fPct(m.va)}% dos votos válidos na média do 2º turno, ${fPct(d)} ${pts(d)} à frente de <b>${B1}</b>, mais que a incerteza da média (${fPct(m.erro)} ${pts(m.erro)})`,src:fonte});}
+    A.push({s:"info",k:"Rodadas",t:camp.length?`${pl(camp.length,"rodada")} de 2º turno depois de ${dBR(TURNOS.t1)}, de ${pl(new Set(camp.map(r=>r.inst)).size,"instituto")}`:`Nenhuma rodada de 2º turno feita depois de ${dBR(TURNOS.t1)} entrou no mural ainda`,src:camp.length?`a mais recente é ${esc(camp[camp.length-1].inst)}, ${dBR(camp[camp.length-1].dt)}`:"compilação da Wikipédia e fichas registradas"});}
+  if(eg==="pend")A.push({s:"warn",k:"Sem definição",t:textoPend(k),src:`TSE, conferido em ${dBR(UFPEND_CONFERIDO)}`});
+  if(es==="decidido"){const S=resSen(k),el=S.c.filter(c=>c[6]==="eleito");
+    if(el.length)A.push({s:"info",k:cap(eleitosDe(k,el)),t:`${el.map(c=>`<b>${esc(c[1])}</b> (${esc(c[3])})`).join(" e ")} ${el.length===1?eleitoDe(k,el[0]):eleitosDe(k,el)} para o Senado, com ${el.map(c=>fPct2(c[5])+"%").join(" e ")} dos votos válidos`,src:srcTSE(S)});}
+  // registro só faz sentido antes da urna: depois dela, quem ficou de fora aparece pelo resultado
+  if(!comRes){const naoDef=[...u.gov,...u.sen].filter(c=>/Indeferido|Renúncia|Cassa/i.test(c.sit));
+    for(const c of naoDef.slice(0,2))A.push({s:"crit",k:"Registro",t:`<b>${esc(c.nome)}</b> (${esc(c.partido)}, ${esc(cargoLabel(c.cargo))}): ${esc(c.sit).toLowerCase()}`,src:"TSE DivulgaCandContas"});
+    if(u.rodadas.length>1)A.push({s:"info",k:"Rodadas",t:`${pl(u.rodadas.length,"rodada")} registradas neste estado, de ${pl(new Set(u.rodadas.map(r=>r.inst)).size,"instituto")}`,src:`a mais recente é ${esc(u.rodadas[0].inst)}, ${dBR(u.rodadas[0].data)}`});}
   renderAlertas($("#e-alerts"),A,`Alertas ${deUF(ufAtual)}`,hashDe("e-tempo"));
   const lg=mediaUF(ufAtual,"governador"), ls=mediaUF(ufAtual,"senador");
-  $("#e-strip").innerHTML=[
+  // a tira: com resultado, o governo (eleito, 2º turno ou pendente), os senadores eleitos, o
+  // comparecimento e as candidaturas que estiveram na urna; sem resultado, os líderes da média
+  const G1=resGov("1",k),S1=resSen(k),cp=G1||S1;
+  const tiraRes=comRes?[
+    eg==="decidido"?(()=>{const G=apGov(k),x=G.c[0];return [fPct2(x[5])+"<small>%</small>",x[6]==="eleito"?(eleitoDe(k,x)==="eleita"?"governadora eleita":"governador eleito"):"mais votado ao governo",`${esc(x[1])} (${esc(x[3])}) · TSE, ${turnoGov(k)}º turno`];})()
+    :eg==="t2"?(()=>{const f=finalUF(k);return [dBR(TURNOS.t2),"2º turno para governador",f.length===2?`${esc(f[0][1])} x ${esc(f[1][1])}`:""];})()
+    :eg==="pend"?["pendente","governo",G1&&G1.c.length>=2?`sem definição no TSE; no 1º turno, ${esc(G1.c[0][1])} ${fPct2(G1.c[0][5])}% e ${esc(G1.c[1][1])} ${fPct2(G1.c[1][5])}%`:"sem definição no TSE"]
+    :eg==="apur"?[secoesTSE(G1).replace("% das seções","<small>%</small>"),"governo em apuração","seções totalizadas pelo TSE"]:null,
+    S1?(()=>{const el=S1.c.filter(c=>c[6]==="eleito");return el.length?[String(el.length),el.every(c=>eleitoDe(k,c)==="eleita")?"senadoras eleitas":"senadores eleitos",el.map(c=>`${esc(c[1])} (${esc(c[3])})`).join(" e ")]:[secoesTSE(S1).replace("% das seções","<small>%</small>"),"Senado em apuração","seções totalizadas pelo TSE"];})():null,
+    cp&&cp.tot.el?[fPct2(100*cp.tot.comp/cp.tot.el)+"<small>%</small>","comparecimento",`${fInt(cp.tot.comp)} de ${fInt(cp.tot.el)} eleitores · TSE`]:null,
+    [String(nGov),"candidatos ao governo",`na urna em ${dBR(TURNOS.t1)}${u.gov.length>nGov?`; ${pl(u.gov.length-nGov,"candidatura registrada","candidaturas registradas")} fora da apuração`:""}`],
+    [String(nSen),"candidatos ao Senado",`${pl(VAGAS("senador"),"vaga")}, preenchidas em ${dBR(TURNOS.t1)}`],
+    [String(nPart),"partidos na urna",`${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`],
+    eg==="t2"?(()=>{const camp=campUF2T(k);return [String(camp.length),camp.length===1?"rodada de 2º turno":"rodadas de 2º turno",camp.length?`depois de ${dBR(TURNOS.t1)}, de ${pl(new Set(camp.map(r=>r.inst)).size,"instituto")}`:`nenhuma depois de ${dBR(TURNOS.t1)} ainda`];})()
+      :[String(nRod),nRod===1?"rodada de pesquisa":"rodadas de pesquisa",nRod?`1º turno, ${pl(insts,"instituto")}; a última em ${dBR(u.rodadas[0].data)}`:"nenhuma no observatório"],
+  ].filter(Boolean):null;
+  $("#e-strip").innerHTML=(tiraRes||[
     [String(nGov),"candidatos ao governo",`${u.gov.filter(c=>c.sit==="Deferido").length} com registro deferido`],
-    [String(nSen),"candidatos ao Senado","duas vagas em disputa neste estado"],
+    [String(nSen),"candidatos ao Senado",`${pl(VAGAS("senador"),"vaga")} em disputa neste estado`],
     [String(nPart),"partidos na disputa",`${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`],
     [String(nRod),nRod===1?"rodada de pesquisa":"rodadas de pesquisa",nRod?`${pl(insts,"instituto")}; a última em ${dBR(u.rodadas[0].data)}`:"nenhuma no observatório ainda"],
     ...cargosDe(ufAtual).filter(c=>!temPesquisa(c)).map(c=>[String(listaDe(u,c).length),`nomes na ${CARGOS[c].bt}`,"grupo acompanhado, sem pesquisa nominal"]),
     [lg?fPct(lg.lista[0].valor)+"<small>%</small>":"n/d","líder no governo",lg?`${esc(lg.lista[0].nome)} · média de ${pl(lg.rs.length,"rodada")} até ${dBR(dISO(lg.t))}`:"sem pesquisa"],
     [ls?fPct(ls.lista[0].valor)+"<small>%</small>":"n/d","líder no Senado",ls?`${esc(ls.lista[0].nome)} · média de ${pl(ls.rs.length,"rodada")} até ${dBR(dISO(ls.t))}`:"sem pesquisa"],
-  ].map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
-  // os dois painéis de barras mostram a rodada mais recente, e por isso o carimbo deles é dela
+  ]).map(([v,l,d])=>`<div class="pi" role="listitem"><span class="pl">${l}</span><span class="pv display tnum">${v}</span><span class="pd">${d}</span></div>`).join("");
+  // os dois painéis de barras: o resultado do TSE quando existe; sem ele, a rodada mais recente, e o
+  // carimbo é dela
+  drawPainel2TUF(k);
   const capR=c=>{const l=liderDe(ufAtual,c);return l?`${esc(l.r.inst)}, ${dBR(l.r.data)} · ${esc(l.r.modo)} · registro ${esc(l.r.reg)}`:"";};
-  $("#e-cap-gov").textContent=capR("governador"); $("#e-cap-sen").textContent=capR("senador");
-  pinta("#e-ch-gov",barrasRodada(ufAtual,"governador"),{zoom:false});
-  pinta("#e-ch-sen",barrasRodada(ufAtual,"senador"),{zoom:false});
+  if(G1){const tA=turnoGov(k),G=apGov(k);
+    $("#e-h-gov").textContent=tA==="2"?(G.est==="final"?"Governo: resultado do 2º turno":"Governo: apuração do 2º turno"):G.est==="final"?"Governo: resultado do 1º turno":"Governo: apuração do 1º turno";
+    $("#e-cap-gov").textContent=`TSE, ${tA}º turno, ${secoesTSE(G)}`;
+    pinta("#e-ch-gov",barrasResultado(k,"governador",tA),{zoom:false});}
+  else{$("#e-h-gov").textContent="Quem lidera o governo";$("#e-cap-gov").textContent=capR("governador");pinta("#e-ch-gov",barrasRodada(ufAtual,"governador"),{zoom:false});}
+  if(S1){$("#e-h-sen").textContent=S1.est==="final"?"Senado: os eleitos":"Senado: apuração";
+    $("#e-cap-sen").textContent=`TSE, ${secoesTSE(S1)}`;
+    pinta("#e-ch-sen",barrasResultado(k,"senador","1"),{zoom:false});}
+  else{$("#e-h-sen").textContent="Quem lidera o Senado";$("#e-cap-sen").textContent=capR("senador");pinta("#e-ch-sen",barrasRodada(ufAtual,"senador"),{zoom:false});}
 }
 function nomeChave(p){return p[5]||("~"+p[3]);}
 function drawCorridaUF(){
@@ -4904,19 +5316,43 @@ function drawCorridaUF(){
     const muitos=pts.length>=3;
     return {nome:c.nome,cor:c.cor,dim,r:3.4,lw:muitos?2:1.4,sigma:muitos?14:0,linha:muitos?(linhasUF[c.nome]||null):pts,pts,op:.9,rotulo:`${esc(curtoNome(c.nome))} ${fPct(c.ult.v)}%${c.recente?"":" (até "+MESES_L[new Date(c.ult.t).getUTCMonth()].slice(0,3).toLowerCase()+")"}`};
   });
+  // o resultado oficial do 1º turno entra como um quadrado em 4/10 para cada nome visível. Ele é em
+  // votos válidos, e as pesquisas são intenção total (com brancos, nulos e indecisos): a dica diz isso
+  const A1=cargo==="senador"?resSen(ufAtual):cargo==="governador"?resGov("1",ufAtual):null,tVoto=Date.parse(TURNOS.t1);
+  if(A1)for(const [k,c] of visiveis){const x=c.slug&&A1.c.find(r=>r[0]===c.slug);if(!x)continue;
+    series.push({nome:c.nome,cor:c.cor,dim:foc.size&&!foc.has(c.slug),r:4.6,sq:true,rotulo:false,fmtV:v=>fPct2(v)+"% na urna",
+      pts:[{t:tVoto,v:x[5],big:true,tip:`<b>${esc(c.nome)}</b> · resultado oficial: ${fPct2(x[5])}% dos válidos${x[6]==="eleito"?` · ${eleitoDe(ufAtual,x)}`:x[6]==="2t"?" · 2º turno":""}<br>as pesquisas são intenção total · TSE, 1º turno`}]});}
   const el=$("#e-f-cands");
   el.innerHTML=cands.slice(0,18).map(([k,c])=>`<button type="button" class="chipbtn" data-k="${esc(k)}" aria-pressed="${ufCandVis.has(k)}" style="--chipc:${c.cor}" title="${esc(c.nome)}${c.slug?"":" (não registrado no TSE)"}${c.recente?"":" · fora das rodadas recentes"}"><i></i>${esc(curtoNome(c.nome))}${c.recente?"":" (até "+MESES_L[new Date(c.ult.t).getUTCMonth()].slice(0,3)+")"}</button>`).join("")+(cands.length>18?`<span class="cap" style="margin:0;align-self:center">+${cands.length-18} nomes com menos menções</span>`:"");
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufCandVis.has(k)?ufCandVis.delete(k):ufCandVis.add(k);b.setAttribute("aria-pressed",ufCandVis.has(k));drawCorridaUF();}));
   if(!series.length){$("#e-ch-corrida").innerHTML=`<div class="empty"><b>${temPesquisa(cargo)?"Sem pontos":"Sem pesquisa nominal"}</b>${temPesquisa(cargo)?`Nenhuma rodada de ${cargoLabel(cargo)} com os filtros atuais.`:semPesq(cargo)}</div>`;return;}
-  const j=janelaDe(tUlt||Date.parse(ULT)),[ymax,ticks]=escalaY(series,52,ZOOM["#e-ch-corrida"]?ZOOM["#e-ch-corrida"][0]:j.tIni);
-  pinta("#e-ch-corrida",chartTempo({id:"#e-ch-corrida",H:320,ml:44,mr:130,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,marcos:[],aria:`Intenção de voto para ${cargoLabel(cargo)} ${emUF(ufAtual)} ao longo de 2026`}));
+  const j=janelaDe(tUlt||Date.parse(ULT));
+  if(A1)j.tFim=Math.max(j.tFim,Math.min(tVoto+864e5,Date.parse(HOJE)+864e5));
+  const [ymax,ticks]=escalaY(series,52,ZOOM["#e-ch-corrida"]?ZOOM["#e-ch-corrida"][0]:j.tIni);
+  pinta("#e-ch-corrida",chartTempo({id:"#e-ch-corrida",H:320,ml:44,mr:130,ymax,ticks,...j,fmtY:v=>fPct(v)+"%",series,marcos:[MARCO1T],aria:`Intenção de voto para ${cargoLabel(cargo)} ${emUF(ufAtual)} ao longo de 2026${A1?", com o resultado oficial do 1º turno":""}`}));
 }
 DRAW["#e-ch-corrida"]=drawCorridaUF;
+// o estado tem 2º turno de governador aberto, com os dois finalistas conhecidos
+const t2UF=k=>ufCargo==="governador"&&estadoGov(k)==="t2"&&finalUF(k).length===2;
+const fonteRod=(u,r)=>{const url=r.url||u.wiki_url;return url?`<a href="${esc(url)}" target="_blank" rel="noopener">${fonteTxt(r.fonte||"W")}</a>`:fonteTxt(r.fonte||"W");};
 function drawRodadaUF(){
   const u=UF[ufAtual]; if(!u)return;
+  const sel=$("#e-sel-rod");
+  // nas UFs com 2º turno, a rodada em destaque é a do confronto que vai à urna
+  if(t2UF(ufAtual)){
+    const R=rodadasUF2T(ufAtual).slice().reverse(),chave=x=>"2|"+x.inst+"|"+x.dt+"|"+(x.r.par||"");
+    const x=R.find(r=>chave(r)===ufRodada)||R[0];
+    $("#e-sel-cen-w").hidden=true;ufCen="principal";
+    sel.innerHTML=R.map(r=>`<option value="${esc(chave(r))}" ${r===x?"selected":""}>${esc(r.inst)} · campo até ${dBR(r.cf)}${r.pos?"":" · antes do 1º turno"}</option>`).join("");
+    if(!x){$("#e-h-rod").textContent="2º turno: rodada em destaque";$("#e-cap-rod").textContent="";$("#e-ch-rodada").innerHTML=`<div class="empty"><b>Sem rodada</b>${linhaRodadasUF2T(ufAtual)}</div>`;return;}
+    $("#e-h-rod").textContent=`2º turno: ${x.inst}, ${dBR(x.dt)}`;
+    const r=x.r;
+    $("#e-cap-rod").innerHTML=[`Campo ${esc(campoCurto(r.campo||x.dt))}`,r.amostra?`amostra de ${esc(r.amostra)}`:"",margemDe(r)?`margem de ${fPct(margemDe(r))} pontos`:"",r.modo&&r.modo!=="não informada"?`coleta ${esc(r.modo)}`:"",r.contratante?`contratante ${esc(r.contratante)}`:"",r.reg?`registro <b>${esc(r.reg)}</b>`:"sem número de registro na fonte",x.pos?"":"simulação feita antes do 1º turno",(r.url||u.wiki_url)?`<a href="${esc(r.url||u.wiki_url)}" target="_blank" rel="noopener">${r.fonte==="W"||!r.fonte?"Wikipédia":"fonte"}</a>`:""].filter(Boolean).join(" · ");
+    pinta("#e-ch-rodada",barras2TUF(ufAtual,x),{zoom:false});
+    return;
+  }
   const rs=rodadasDe(ufAtual,ufCargo);
   const r=rs.find(x=>rodadaKey(x)===ufRodada)||rs[0];
-  const sel=$("#e-sel-rod");
   sel.innerHTML=rs.map(x=>`<option value="${esc(rodadaKey(x))}" ${x===r?"selected":""}>${esc(x.inst)} · campo até ${dBR(x.data)}${x.ncen>1?` · ${x.ncen} cenários`:""}</option>`).join("");
   if(!r){$("#e-h-rod").textContent="Rodada em destaque";$("#e-cap-rod").textContent="";$("#e-ch-rodada").innerHTML=`<div class="empty"><b>${temPesquisa(ufCargo)?"Sem pesquisa":"Sem pesquisa nominal"}</b>${semPesq(ufCargo)}</div>`;$("#e-sel-cen-w").hidden=true;return;}
   const cens=[...new Set((u.cenarios||[]).filter(p=>p[0]===r.cargo&&p[1]===r.inst&&p[2]===r.data).map(p=>p[3]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
@@ -4928,41 +5364,100 @@ function drawRodadaUF(){
   $("#e-cap-rod").innerHTML=[`Campo ${esc(String(r.campo).replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"))}`,r.amostra?`amostra de ${esc(r.amostra)}`:"",r.margem?`margem de ${esc(r.margem)} pontos`:"",r.modo&&r.modo!=="não informada"?`coleta ${esc(r.modo)}`:"",r.contratante?`contratante ${esc(r.contratante)}`:"",r.reg?`registro <b>${esc(r.reg)}</b>`:"sem número de registro na fonte",r.ncen>1?`${r.ncen} cenários testados`:"",fonte].filter(Boolean).join(" · ");
   pinta("#e-ch-rodada",barrasRodada(ufAtual,r.cargo,{rodada:r,cen:ufCen}),{zoom:false});
 }
+// O painel principal do 2º turno estadual, no topo de Pesquisas nas UFs com 2º turno: o confronto que
+// vai à urna em votos válidos, com a linha da média só da campanha e só com MIN_POS1T, as simulações
+// anteriores a 4/10 apagadas, o marco do 1º turno, e a tabela do par rodada a rodada.
+function drawConfronto2TUF(){
+  const k=ufAtual,u=UF[k],R=rodadasUF2T(k),f=finalUF(k),m=mediaUF2T(k),camp=R.filter(r=>r.pos),antes=R.filter(r=>!r.pos);
+  if(f.length!==2)return;
+  const [sa,sb]=f.map(c=>c[0]),nm=s=>nomeSl(k,s);
+  $("#e-h-2t").textContent=`2º turno: ${nm(sa)} x ${nm(sb)}`;
+  $("#e-cap-2tm").textContent=camp.length?`votos válidos · ${pl(camp.length,"rodada")} depois de ${dBR(TURNOS.t1)} · até ${dBR(camp[camp.length-1].dt)}`:`votos válidos · nenhuma rodada depois de ${dBR(TURNOS.t1)}`;
+  const ponto=(s,r)=>({t:r.t,v:r.v[s],d:r.dt,inst:r.inst,tip:`<b>${esc(nm(s))}</b> · ${fPct(r.v[s])}% dos válidos (${fPct(r.pub[s])}% publicado)<br>${esc(r.inst)}, campo até ${dBR(r.cf)}${r.pos?"":" · antes do 1º turno"}`});
+  const lc=m?linhaAgregada(camp,[sa,sb],SIG_UF,{base:R}):{};
+  const series=[];
+  for(const s of [sa,sb]){
+    if(antes.length)series.push({nome:nm(s),cor:corSl(k,s),sombra:true,linha:[],r:2.6,pts:antes.map(r=>ponto(s,r)),rotulo:false});
+    if(camp.length)series.push({nome:nm(s),cor:corSl(k,s),linha:m?(lc[s]||[]):[],r:3.8,lw:2.4,pts:camp.map(r=>ponto(s,r)),rotulo:m?`${esc(curtoNome(nm(s)))} ${fPct(s===m.a?m.va:m.vb)}%`:false});
+  }
+  if(!R.length)$("#e-ch-2tm").innerHTML=`<div class="empty"><b>Sem pesquisa do confronto</b>Nenhuma rodada testou ${esc(nm(sa))} contra ${esc(nm(sb))} até agora.</div>`;
+  else{
+    const tUlt=R[R.length-1].t,j=janelaDe(tUlt),z=ZOOM["#e-ch-2tm"],ex=eixoVV(series,z?z[0]:j.tIni);
+    pinta("#e-ch-2tm",chartTempo({id:"#e-ch-2tm",H:300,ml:44,mr:150,...ex,ref:50,fmtY:v=>fPct(v)+"%",series,marcos:[MARCO1T],fase:FAIXA2T,...j,aria:`${nm(sa)} e ${nm(sb)} no 2º turno do governo ${deUF(k)}, em votos válidos`}));
+  }
+  const apag=antes.length?` Os pontos apagados são as ${pl(antes.length,"simulação","simulações")} do mesmo confronto feitas antes do 1º turno.`:"";
+  $("#e-txt-2t").innerHTML=m?`${textoUF2T(k,m)} A linha é a média das rodadas feitas depois de ${dBR(TURNOS.t1)}, com janela de ${SIG_UF} dias.${apag}`
+    :`${linhaRodadasUF2T(k)} A média começa com ${MIN_POS1T.rodadas} rodadas de ${MIN_POS1T.inst} institutos feitas depois de ${dBR(TURNOS.t1)}.${apag}`;
+  $("#e-th-2a").textContent=curtoNome(nm(sa));$("#e-th-2a").title=nm(sa);
+  $("#e-th-2b").textContent=curtoNome(nm(sb));$("#e-th-2b").title=nm(sb);
+  const linha=r=>`<tr${r.pos?"":' class="antes"'}><td>${esc(r.inst)}</td><td class="dt">${campoCurto(r.r.campo||r.dt)}</td><td class="num">${esc(r.r.amostra||"")}</td><td class="num">${margemDe(r.r)?fPct(margemDe(r.r)):""}</td><td>${esc(r.r.reg||"")}</td><td class="num">${fPct(r.pub[sa])}%</td><td class="num">${fPct(r.pub[sb])}%</td><td>${fonteRod(u,r.r)}</td></tr>`;
+  $("#e-tb-2t tbody").innerHTML=(camp.length?camp.slice().reverse().map(linha).join(""):`<tr><td colspan="8" style="color:var(--ink-3)">Nenhuma rodada feita depois de ${dBR(TURNOS.t1)}.</td></tr>`)
+    +(antes.length?`<tr class="sep"><td colspan="8">antes do 1º turno</td></tr>`+antes.slice().reverse().map(linha).join(""):"");
+}
+DRAW["#e-ch-2tm"]=drawConfronto2TUF;
 function draw2TUF(){
-  const u=UF[ufAtual]; const el=$("#e-fold-2t");
-  const rows=(u.polls2||[]);
-  if(ufCargo!=="governador"||!rows.length){el.hidden=true;return;}
-  el.hidden=false; if(!el._manual)el.open=true;
-  const pares={};for(const p of rows){(pares[p[2]]=pares[p[2]]||[]).push(p);}
-  const lista=Object.entries(pares).sort((a,b)=>b[1].length-a[1].length);
+  const u=UF[ufAtual],k=ufAtual,el=$("#e-fold-2t"),P=$("#e-p2t");
+  const t2=t2UF(k),est=ufCargo==="governador"?estadoGov(k):"";
+  P.hidden=!t2;if(t2)drawConfronto2TUF();
+  // com resultado, as simulações só ficam nas UFs com 2º turno, numa dobra fechada e sem o confronto
+  // que já está no painel principal; sem resultado, é a dobra de sempre, com todos os pares
+  let rows=u.polls2||[];
+  if(ufCargo!=="governador"||(est!=="sem"&&!t2)){el.hidden=true;return;}
+  if(t2)rows=rows.filter(p=>!(u.rodadas2[p[8]]||{}).real);
+  if(!rows.length){el.hidden=true;return;}
+  el.hidden=false;
+  $("#e-fold-2t-t").textContent=t2?"Outros confrontos testados antes do 1º turno":"Simulações de segundo turno";
+  $("#e-h-2tpar").textContent=t2?"Outros confrontos, par a par":"Segundo turno, par a par";
+  if(!el._manual)el.open=!t2;
+  // os pares saem dos nomes registrados de cada rodada (nm), e não do texto do par na Wikipédia
+  const porRod={};for(const p of rows)(porRod[p[8]]=porRod[p[8]]||[]).push(p);
+  const pares={};
+  for(const ps of Object.values(porRod)){const nomes=[...new Set(ps.map(p=>p[3]))];const ch=nomes.slice().sort().join("|");(pares[ch]=pares[ch]||{nomes,ps:[]}).ps.push(...ps);}
+  const lista=Object.values(pares).sort((a,b)=>b.ps.length-a.ps.length);
   $("#e-cap-2t").textContent=`${pl(lista.length,"confronto")} testado${lista.length===1?"":"s"} pelos institutos em 2026`;
-  $("#e-ch-2t").innerHTML=`<div class="grid2">`+lista.map(([par,ps])=>{
+  $("#e-ch-2t").innerHTML=`<div class="grid2">`+lista.map(({nomes,ps})=>{
     const rod={};for(const p of ps){(rod[p[0]+"|"+p[1]]=rod[p[0]+"|"+p[1]]||{inst:p[0],data:p[1],pts:[]}).pts.push(p);}
     const rs=Object.values(rod).sort((a,b)=>b.data.localeCompare(a.data));
-    const nomes=[...new Set(ps.map(p=>p[3]))];
-    const partes=String(par).split(/\s+[×x]\s+/i);
-    const cab=n=>{const ws=String(n).toLowerCase().split(" ");return partes.find(q=>ws.includes(q.toLowerCase()))||curtoNome(n);};
-    return `<div class="panel" style="margin:0"><div class="ph"><h3 style="font-size:15px">${esc(par)}</h3><span class="cap" style="margin:0">${pl(rs.length,"rodada")}</span></div><div class="tablewrap" style="border:0"><table><thead><tr><th>Instituto</th><th>Campo até</th>${nomes.map(n=>`<th class="num" title="${esc(n)}">${esc(cab(n))}</th>`).join("")}</tr></thead><tbody>${rs.map(r=>`<tr><td>${esc(r.inst)}</td><td class="dt">${dBR(r.data)}</td>${nomes.map(n=>{const p=r.pts.find(x=>x[3]===n);const mx=Math.max(...r.pts.map(x=>x[4]));const top=p&&p[4]===mx&&r.pts.filter(x=>x[4]===mx).length===1;return `<td class="num" style="${top?"font-weight:700":""}">${p?fPct(p[4])+"%":"n/d"}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+    return `<div class="panel" style="margin:0"><div class="ph"><h3 style="font-size:15px">${esc(nomes.join(" x "))}</h3><span class="cap" style="margin:0">${pl(rs.length,"rodada")}</span></div><div class="tablewrap" style="border:0"><table><thead><tr><th>Instituto</th><th>Campo até</th>${nomes.map(n=>`<th class="num" title="${esc(n)}">${esc(curtoNome(n))}</th>`).join("")}</tr></thead><tbody>${rs.map(r=>`<tr><td>${esc(r.inst)}</td><td class="dt">${dBR(r.data)}</td>${nomes.map(n=>{const p=r.pts.find(x=>x[3]===n);const mx=Math.max(...r.pts.map(x=>x[4]));const top=p&&p[4]===mx&&r.pts.filter(x=>x[4]===mx).length===1;return `<td class="num" style="${top?"font-weight:700":""}">${p?fPct(p[4])+"%":"n/d"}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div></div>`;
   }).join("")+`</div>`;
 }
 $("#e-fold-2t summary").addEventListener("click",()=>{$("#e-fold-2t")._manual=true;});
+// a dobra do 1º turno guarda o gráfico desenhado com ela fechada: ao abrir, ele é refeito na largura real
+$("#e-fold-1t").addEventListener("toggle",()=>{if($("#e-fold-1t").open)drawCorridaUF();});
+const COMO_LER_UF=$("#e-como-ler").textContent;
 function drawPesquisasUF(){
   const u=UF[ufAtual]; if(!u)return;
-  const cargo=ufCargo;
-  $("#e-t-pesq").textContent=cargo==="senador"?`Senado: a corrida ${emUF(ufAtual)}`:`Governo: a corrida ${emUF(ufAtual)}`;
-  const rs=rodadasDe(ufAtual,cargo);
+  const k=ufAtual,cargo=ufCargo,est=estadoUF(k,cargo),t2=t2UF(k),comRes=est!=="sem";
+  $("#e-t-pesq").textContent=!comRes?(cargo==="senador"?`Senado: a corrida ${emUF(k)}`:`Governo: a corrida ${emUF(k)}`)
+    :t2?`Governo: o 2º turno ${emUF(k)}`:cargo==="senador"?"Senado: as pesquisas e os eleitos":"Governo: as pesquisas do 1º turno e o resultado";
+  const rs=rodadasDe(k,cargo);
   const insts=[...new Set(rs.map(r=>r.inst))];
   const comReg=rs.filter(r=>r.reg).length, prim=rs.length?rs[rs.length-1].data:null;
-  $("#e-sub-pesq").innerHTML=rs.length?`${pl(rs.length,"rodada")} de ${pl(insts.length,"instituto")} desde ${dBR(prim)}, ${comReg?`${comReg} com número de registro no TSE na ficha`:"nenhuma ainda com número de registro na ficha"}. As séries vêm da compilação pública da Wikipédia, rodada a rodada, com a página e a versão citadas. Quando existe, a ficha técnica registrada vem da Gazeta do Povo.`:"Nenhuma rodada deste estado entrou no observatório ainda.";
+  const base=`As séries vêm da compilação pública da Wikipédia, rodada a rodada, com a página e a versão citadas. Quando existe, a ficha técnica registrada vem da Gazeta do Povo.`;
+  const r1=rs.length?`${pl(rs.length,"rodada")} de ${comRes?"1º turno, ":""}de ${pl(insts.length,"instituto")} desde ${dBR(prim)}, ${comReg?`${comReg} com número de registro no TSE na ficha`:"nenhuma ainda com número de registro na ficha"}.`:"";
+  if(t2){const R=rodadasUF2T(k),camp=R.filter(r=>r.pos),f=finalUF(k);
+    $("#e-sub-pesq").innerHTML=`${camp.length?`${pl(camp.length,"rodada")} de 2º turno do confronto ${esc(f[0][1])} x ${esc(f[1][1])} ${camp.length===1?"feita":"feitas"} depois de ${dBR(TURNOS.t1)}, de ${pl(new Set(camp.map(r=>r.inst)).size,"instituto")}`:`Nenhuma rodada de 2º turno do confronto ${esc(f[0][1])} x ${esc(f[1][1])} feita depois de ${dBR(TURNOS.t1)} entrou ainda`}, e ${pl(R.length-camp.length,"simulação","simulações")} do mesmo confronto antes do 1º turno. ${r1?`Na dobra das pesquisas do 1º turno, ${r1.charAt(0).toLowerCase()+r1.slice(1)}`:""} ${base}`;}
+  else $("#e-sub-pesq").innerHTML=rs.length?`${r1}${comRes?` O resultado oficial do TSE aparece no gráfico em ${dBR(TURNOS.t1)}, como um quadrado.`:""} ${base}`:"Nenhuma rodada deste estado entrou no observatório ainda.";
   $("#e-cap-corrida").textContent=rs.length?`${pl(rs.length,"rodada")} · primeiro turno · cenário principal de cada rodada`:"";
+  $("#e-h-corrida").textContent=comRes?"As pesquisas do 1º turno e o resultado":"A corrida ao longo de 2026";
+  // nas UFs com 2º turno, o gráfico do 1º turno desce para uma dobra; nas outras, fica onde sempre esteve
+  const pc=$("#e-panel-corrida"),f1=$("#e-fold-1t");
+  if(t2){if(pc.parentElement!==f1){f1.appendChild(pc);f1.open=false;}f1.hidden=false;$("#e-cap-1t").textContent=rs.length?`${pl(rs.length,"rodada")} até ${dBR(rs[0].data)} e o resultado`:"";}
+  else{if(pc.parentElement===f1)$("#e-p2t").after(pc);f1.hidden=true;}
+  $("#e-como-ler").textContent=!comRes?COMO_LER_UF
+    :`Cada ponto é uma rodada de pesquisa. A linha é a média das pesquisas, calculada como a da Presidência, com janela de ${SIG_UF} dias, e aparece quando o candidato tem três rodadas ou mais. O quadrado em ${dBR(TURNOS.t1)} é o resultado oficial do TSE, em votos válidos; as pesquisas são intenção total, com brancos, nulos e indecisos dentro, e por isso costumam ficar abaixo dele. Para ver a corrida medida por um instituto só, use os filtros. Quando uma rodada testou vários cenários, o gráfico usa o cenário mais parecido com as candidaturas registradas no TSE, e os outros ficam no seletor da rodada em destaque. No Senado, cada eleitor votou em dois nomes, as porcentagens das pesquisas somavam mais de 100 e duas vagas foram preenchidas em ${dBR(TURNOS.t1)}.${t2?` No 2º turno, cada ponto é uma rodada convertida em votos válidos, a parte de cada um na soma dos dois. Os pontos apagados são as simulações feitas antes do 1º turno, e a linha da média aparece com ${MIN_POS1T.rodadas} rodadas de ${MIN_POS1T.inst} institutos feitas depois de ${dBR(TURNOS.t1)}.`:""}`;
   const el=$("#e-f-inst");$("#e-f-n").textContent=insts.length;
   el.innerHTML=insts.map(i=>`<button type="button" class="chipbtn" data-k="${esc(i)}" aria-pressed="${!ufInstOff.has(i)}" title="Instituto">${esc(i)}</button>`).join("");
   el.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k;ufInstOff.has(k)?ufInstOff.delete(k):ufInstOff.add(k);b.setAttribute("aria-pressed",!ufInstOff.has(k));drawCorridaUF();}));
   drawCorridaUF(); drawRodadaUF(); draw2TUF();
-  $("#e-cap-tb").textContent=`${pl(rs.length,"rodada")} de primeiro turno; a coluna fonte diz de onde vêm os números e a ficha`;
+  // a tabela de rodadas ganha a coluna Turno no fim (o CSS do celular esconde colunas pela posição);
+  // nas UFs com 2º turno ela traz também as rodadas do confronto
+  const r2=t2?rodadasUF2T(k).map(x=>({...x.r,campo:x.r.campo||x.dt,data:x.dt,turno:2})):[];
+  const todas=[...rs.map(x=>({...x,turno:1})),...r2].sort((a,b)=>b.data.localeCompare(a.data)||a.turno-b.turno);
+  $("#e-cap-tb").textContent=`${pl(rs.length,"rodada")}${comRes||r2.length?" de 1º turno":""}${r2.length?` e ${r2.length} de 2º turno`:""}; a coluna fonte diz de onde vêm os números e a ficha`;
   const fmtCampo=c=>esc(String(c||"").replace(/2026-/g,"").replace(/(\d\d)-(\d\d)/g,"$2/$1"));
-  $("#e-tb-rodadas tbody").innerHTML=rs.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${esc(x.margem||"")}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${fonteTxt(x.fonte)}</a>`:fonteTxt(x.fonte)}</td></tr>`).join("")||`<tr><td colspan="9" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
-  {const tb=$("#e-tb-rodadas");tb.classList.toggle("sem-contratante",!rs.some(x=>x.contratante));tb.classList.toggle("sem-cenarios",!rs.some(x=>(x.ncen||1)>1));}
+  $("#e-tb-rodadas tbody").innerHTML=todas.map(x=>`<tr><td class="dt">${fmtCampo(x.campo)}</td><td>${esc(x.inst)}</td><td>${esc(x.contratante||"")}</td><td class="num">${esc(x.amostra||"")}</td><td class="num">${esc(x.margem||"")}</td><td>${x.modo&&x.modo!=="não informada"?`<span class="tag">${esc(x.modo)}</span>`:""}</td><td>${esc(x.reg||"")}</td><td class="num">${x.ncen||1}</td><td>${fonteRod(u,x)}</td><td>${x.turno}º</td></tr>`).join("")||`<tr><td colspan="10" style="color:var(--ink-3)">Nenhuma rodada registrada.</td></tr>`;
+  {const tb=$("#e-tb-rodadas");tb.classList.toggle("sem-contratante",!todas.some(x=>x.contratante));tb.classList.toggle("sem-cenarios",!todas.some(x=>(x.ncen||1)>1));}
   const rm=rs.filter(r=>r.modo&&r.modo!=="não informada");
   const porModo={};for(const x of rm){(porModo[x.modo]=porModo[x.modo]||[]).push(x);}
   const modos=Object.keys(porModo);
@@ -5030,21 +5525,36 @@ function citFicha(k){
        + ` · margem de ${String(k.margem).replace(".",",")} pontos · pergunta ${k.tipo==="espontanea"?"espontânea":"estimulada"}`
        + ` · sem percentual publicado`;
 }
+// o resultado de uma candidatura estadual no TSE, para o cartão, o dossiê e o comparador: {k, txt, cls}.
+// k: "eleito", "2t" (vai ao 2º turno em 25/10), "pend" (o TSE não definiu: Tocantins), "nao" ou "fora"
+// (candidatura do mural que não aparece na apuração). Sem resultado do cargo, null.
+function resCandUF(c,k=ufAtual){
+  if(c.fora)return {k:"fora",txt:"Fora da apuração do TSE",cls:"res-fora"};
+  if(!c.r1)return null;
+  const A2=c.cargo==="governador"?resGov("2",k):null,r=c.r2&&A2&&A2.est==="final"?c.r2:c.r1,t=r===c.r1?"1":"2";
+  const A=c.cargo==="senador"?resSen(k):resGov(t,k),F=c.ext&&c.ext.sx==="F";
+  if(r[3]==="eleito")return {k:"eleito",txt:F?"Eleita":"Eleito",cls:"res-el",t};
+  if(r[3]==="2t")return c.cargo==="governador"&&estadoGov(k)==="pend"?{k:"pend",txt:"Sem definição no TSE",cls:"res-fora",t}:{k:"2t",txt:"2º turno",cls:"res-2t",t};
+  return {k:"nao",txt:`${F?"Não eleita":"Não eleito"}, ${r[2]}º de ${A?A.c.length:"?"}`,cls:"res-nao",t};
+}
 function cardUF(c){
   const l=liderDe(ufAtual,c.cargo), pt=l?l.pts.find(p=>p[5]===c.slug):null, pos=l?l.pts.findIndex(p=>p[5]===c.slug)+1:0;
   const foc=(prefs.focoUF||[]).includes(c.slug);
+  const R=temPesquisa(c.cargo)?resCandUF(c):null;
   const sit=/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn";
   const nAnt=(c.ext&&c.ext.ant?c.ext.ant.split("; ").filter(Boolean).length:0);
   const cit=c.cit;
   return `<article class="card${foc?" vigiado":""}" id="ecard-${c.slug}">
-    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · ${esc((CARGOS[c.cargo]||CARGOS.governador).bt)}${c.cat?" · "+(c.cat==="A"?"reeleição":c.cat==="C"?"lembrado em pesquisa":"estreia"):""}</div><div class="pills"><span class="pill ${sit}">${esc(c.sit)}</span>${cit?`<span class="pill cit" title="${esc(citFicha(cit))}">Lembrado em pesquisa</span>`:""}</div></div></div>
-    <div class="stats">${temPesquisa(c.cargo)?`
+    <div class="head"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div><div><h3 class="nm display">${esc(c.nome)}</h3><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · ${esc((CARGOS[c.cargo]||CARGOS.governador).bt)}${c.cat?" · "+(c.cat==="A"?"reeleição":c.cat==="C"?"lembrado em pesquisa":"estreia"):""}</div><div class="pills">${R?`<span class="pill ${R.cls}">${esc(R.txt)}</span>`:`<span class="pill ${sit}">${esc(c.sit)}</span>`}${cit?`<span class="pill cit" title="${esc(citFicha(cit))}">Lembrado em pesquisa</span>`:""}</div></div></div>
+    <div class="stats">${R?`
+      <div class="st"><span>Votos válidos</span><b class="display tnum">${c.r1?fPct2(c.r1[1])+"<small>%</small>":"<small>sem votos</small>"}</b><span class="d">${c.r1?`${fInt(c.r1[0])} votos no 1º turno`:"fora da apuração"}</span></div>
+      <div class="st"><span>Resultado</span><b class="display" style="font-size:14px;line-height:1.2">${esc(R.txt)}</b><span class="d">TSE, ${R.t||"1"}º turno</span></div>`:temPesquisa(c.cargo)?`
       <div class="st"><span>Intenção</span><b class="display tnum">${pt?fPct(pt[4])+"<small>%</small>":"<small>não medido</small>"}</b><span class="d">${pt?`${esc(l.r.inst)} · ${dBR(l.r.data)}`:"nesta rodada"}</span></div>
       <div class="st"><span>Posição</span><b class="display tnum">${pos?pos+"º":"n/d"}</b><span class="d">${pos?`entre ${l.pts.length} testados`:"fora da rodada"}</span></div>`:`
       ${cit?`<div class="st"><span>Pesquisa</span><b class="display" style="font-size:14px;line-height:1.2">Lembrado</b><span class="d">entre os 30 mais citados · ${esc(cit.inst)}</span></div>`:`
       <div class="st"><span>Perfil</span><b class="display" style="font-size:14px;line-height:1.2">${c.cat==="A"?"Reeleição":c.cat==="B"?"Estreia":"n/d"}</b><span class="d">${c.cat==="A"?"está no cargo":c.cat==="B"?"nome novo na disputa":"sem classificação"}</span></div>`}
       <div class="st"><span>Eleições</span><b class="display tnum">${nAnt}</b><span class="d">${nAnt?"disputas anteriores no TSE":"primeira no DivulgaCandContas"}</span></div>`}
-      <div class="st"><span>Situação</span><b class="display" style="font-size:14px;line-height:1.2">${esc(c.sit.split(" ")[0])}</b><span class="d">registro no TSE</span></div>
+      <div class="st"><span>${R?"Registro":"Situação"}</span><b class="display" style="font-size:14px;line-height:1.2">${esc(c.sit.split(" ")[0])}</b><span class="d">${R?"situação em 2/9":"registro no TSE"}</span></div>
     </div>
     <div class="foot"><button type="button" class="btn primary" data-edossie="${esc(c.slug)}">Abrir dossiê</button><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${foc}"><span class="glyph" aria-hidden="true">${foc?"★":"☆"}</span>${foc?"Em foco":"Pôr em foco"}</button><span class="spacer"></span><a href="${esc(c.url)}" target="_blank" rel="noopener">TSE</a></div>
   </article>`;
@@ -5057,10 +5567,13 @@ function subCand(u){
     const props=cargosDe(ufAtual).filter(c=>!temPesquisa(c));
     return `${u.gov.length} candidaturas ao governo e ${u.sen.length} ao Senado, todas as registradas no TSE ${emUf}`
       +(props.length?`, mais ${props.map(c=>`${listaDe(u,c).length} nomes acompanhados na ${CARGOS[c].bt}`).join(" e ")}`:"")
-      +`. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;
+      +`. "Abrir dossiê" traz a ficha completa, ${RES?"o resultado no TSE e as pesquisas":"e a posição nas pesquisas"}.`;
   }
-  if(temPesquisa(ufCargoCards))
-    return `Todas as ${listaDe(u,ufCargoCards).length} candidaturas a ${cargoArt(ufCargoCards)} registradas no TSE ${emUf}. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;
+  if(temPesquisa(ufCargoCards)){
+    // com resultado: quantas estiveram na urna e o que a apuração diz, contado do dado
+    const l=listaDe(u,ufCargoCards),urna=l.filter(c=>c.r1).length,fora=l.filter(c=>c.fora).length;
+    if(urna)return `Todas as ${l.length} candidaturas ${aoCargo(ufCargoCards)} registradas no TSE ${emUf}: ${urna} na urna em ${dBR(TURNOS.t1)}${fora?` e ${fora} fora da apuração`:""}. Por padrão, os cartões vão na ordem dos votos; "Abrir dossiê" traz o resultado no TSE, a ficha completa e as pesquisas.`;
+    return `Todas as ${l.length} candidaturas ${aoCargo(ufCargoCards)} registradas no TSE ${emUf}. "Abrir dossiê" traz a ficha completa e a posição nas pesquisas.`;}
   const l=listaDe(u,ufCargoCards),a=l.filter(c=>c.cat==="A").length,b=l.filter(c=>c.cat==="B").length;
   return `${pl(l.length,"nome acompanhado","nomes acompanhados")} na disputa ${cargoPor(ufCargoCards)} ${emUf}: `
     +(a||b?`${a} em busca de reeleição e ${b} de estreia com repercussão. `:"")
@@ -5071,16 +5584,22 @@ function drawCandidatosUF(){
   const u=UF[ufAtual];if(!u)return;
   $("#e-sub-cand").innerHTML=subCand(u);
   let lista = ufCargoCards==="todos"?todosUF(u):candsDe(ufAtual,ufCargoCards);
-  // o filtro de perfil só existe onde a lista é curada e traz categoria
-  const temCat=ufCargoCards!=="todos"&&lista.some(c=>c.cat);
+  // o filtro de perfil só existe onde a lista é curada e traz categoria; com resultado, o filtro é
+  // pelo resultado (eleitos e quem vai ao 2º turno)
+  const comRes=lista.some(c=>c.r1),temCat=ufCargoCards!=="todos"&&lista.some(c=>c.cat);
+  const cats=temCat?[["todas","Todos"],["A","Reeleição"],["B","Estreia"]]
+    :comRes?[["todas","Todos"],["eleito","Eleitos"],...(lista.some(c=>(resCandUF(c)||{}).k==="2t")?[["2t","No 2º turno"]]:[])]:null;
   const elc=$("#e-cat");
+  if(cats&&!cats.some(x=>x[0]===ufCatVis))ufCatVis="todas";
   if(elc){
-    elc.hidden=!temCat;
-    if(temCat)elc.innerHTML=[["todas","Todos"],["A","Reeleição"],["B","Estreia"]]
-      .map(([v,t])=>`<button type="button" data-cat="${v}" aria-pressed="${ufCatVis===v}">${t}</button>`).join("");
+    elc.hidden=!cats;
+    if(cats)elc.innerHTML=cats.map(([v,t])=>`<button type="button" data-cat="${v}" aria-pressed="${ufCatVis===v}">${t}</button>`).join("");
     else ufCatVis="todas";
   }
-  if(temCat&&ufCatVis!=="todas")lista=lista.filter(c=>c.cat===ufCatVis);
+  if(cats&&ufCatVis!=="todas")lista=temCat?lista.filter(c=>c.cat===ufCatVis):lista.filter(c=>(resCandUF(c)||{}).k===ufCatVis);
+  // "Votos no 1º turno" só existe com resultado; sem ele, a ordem volta a ser a das pesquisas
+  const sOp=$('#e-sort option[value="votos"]');if(sOp){sOp.hidden=!comRes;sOp.disabled=!comRes;}
+  if(!comRes&&$("#e-sort").value==="votos")$("#e-sort").value="pesquisa";
   const ord=$("#e-sort").value, foc=prefs.focoUF||[];
   const pctDe=c=>{const l=liderDe(ufAtual,c.cargo);const p=l?l.pts.find(x=>x[5]===c.slug):null;return p?p[4]:-1;};
   lista=lista.slice().sort((a,b)=>{
@@ -5088,6 +5607,7 @@ function drawCandidatosUF(){
     if(ord==="numero")return (+a.num)-(+b.num);
     if(ord==="nome")return a.nome.localeCompare(b.nome);
     if(ord==="partido")return a.partido.localeCompare(b.partido)||a.nome.localeCompare(b.nome);
+    if(ord==="votos")return (b.r1?b.r1[0]:-1)-(a.r1?a.r1[0]:-1)||a.nome.localeCompare(b.nome);
     return pctDe(b)-pctDe(a)||a.nome.localeCompare(b.nome);
   });
   $("#e-wall").innerHTML=lista.map(cardUF).join("");
@@ -5099,11 +5619,22 @@ function renderDossieUF(c,cwMed=0){
   const rodada=r=>u.rodadas.find(x=>x.cargo===r[0]&&x.inst===r[1]&&x.data===r[2]);
   const coligPart=c.colig&&u.colig[c.colig]?u.colig[c.colig]:[];
   const Bz=(u.busca||{});
-  const cob=[["Registro no TSE",true],["Partido e número",true],["Coligação",!!c.colig],["Perfil e bens",!!c.ext],["Redes informadas",!!(c.ext&&(c.ext.ig||c.ext.tt||c.ext.yt||c.ext.x))],["Pesquisa nominal",linhas.length>0],["Mais de uma rodada",linhas.length>1],["Busca no Google",!!(Bz.tr&&Bz.tr[c.slug])],["Verbete na Wikipédia",!!(Bz.wk&&Bz.wk[c.slug])],["Seguidores lidos",!!(Bz.ig&&Bz.ig[c.slug]&&Bz.ig[c.slug].n!=null)]];
+  // o resultado no TSE abre o dossiê quando existe (13/10/2026)
+  const R=temPesquisa(c.cargo)?resCandUF(c):null,A=R&&R.k!=="fora"?(c.cargo==="senador"?resSen(ufAtual):resGov(R.t||"1",ufAtual)):null;
+  const caixaRes=!R?"":(()=>{
+    if(R.k==="fora")return `<div class="box"><h4>Resultado no TSE</h4><p class="sit">A candidatura não aparece na totalização do TSE de ${dBR(TURNOS.t1)} para ${cargoArt(c.cargo)} ${emUF(ufAtual)}: o nome registrado em 2/9 não teve votos apurados. A situação do registro naquela data era: ${esc(c.sit.toLowerCase())}.</p></div>`;
+    const r=R.t==="2"?c.r2:c.r1,pos=r[2],F=c.ext&&c.ext.sx==="F";
+    const fr=`No ${R.t}º turno ficou em ${pos}º lugar, com ${fPct2(r[1])}% dos votos válidos (${fInt(r[0])} votos).`;
+    const t2=R.k==="2t"&&estadoGov(ufAtual)==="t2"?(()=>{const m=mediaUF2T(ufAtual),camp=campUF2T(ufAtual).slice().reverse();
+      return ` Disputa o 2º turno em ${dExtenso(TURNOS.t2)}.`+(m?` Na média de ${pl(m.n,"rodada")} feitas depois de ${dBR(TURNOS.t1)}, tem ${fPct(c.slug===m.a?m.va:m.vb)}% dos votos válidos.`:"")
+        +(camp.length?` Pesquisas do 2º turno: ${camp.map(x=>`${esc(x.inst)}, ${campoCurto(x.r.campo||x.dt)}, ${fPct(x.pub[c.slug])}% (${fPct(x.v[c.slug])}% dos válidos)`).join("; ")}.`:` Nenhuma pesquisa de 2º turno feita depois de ${dBR(TURNOS.t1)} entrou no mural ainda.`);})()
+      :R.k==="pend"?` ${textoPend(ufAtual)}`:R.k==="eleito"?` ${F?"Eleita":"Eleito"} ${c.cargo==="senador"?"para o Senado":"para o governo"}.`:"";
+    return `<div class="box"><h4>Resultado no TSE</h4><div class="pm"><div class="pct display tnum">${fPct2(r[1])}<small>%</small></div><div class="inst">${pos}º de ${A?A.c.length:"?"} · ${fInt(r[0])} votos · ${esc(R.txt)}</div></div><p class="sit">${fr}${t2}</p><div class="cap">${linkTSE(`TSE, ${A&&A.est==="final"?"resultado oficial":"apuração parcial"} do ${R.t}º turno${A?`, ${secoesTSE(A)} totalizadas${A.tot.at?", "+horaTSE(A.tot.at):""}`:""}`)}</div></div>`;})();
+  const cob=[["Registro no TSE",true],["Partido e número",true],...(R?[["Resultado oficial",R.k!=="fora"]]:[]),["Coligação",!!c.colig],["Perfil e bens",!!c.ext],["Redes informadas",!!(c.ext&&(c.ext.ig||c.ext.tt||c.ext.yt||c.ext.x))],["Pesquisa nominal",linhas.length>0],["Mais de uma rodada",linhas.length>1],["Busca no Google",!!(Bz.tr&&Bz.tr[c.slug])],["Verbete na Wikipédia",!!(Bz.wk&&Bz.wk[c.slug])],["Seguidores lidos",!!(Bz.ig&&Bz.ig[c.slug]&&Bz.ig[c.slug].n!=null)]];
   return `<div class="dz">
     <div class="top"><div class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</div>
       <div><span class="kick">Dossiê · ${esc(u.nome)} · ${esc(DATA.atualizado)}</span><h2 id="dz-title" class="display">${esc(c.nome)}</h2><div class="party">${esc(c.partido)}${c.colig&&c.colig!==c.partido?" · "+esc(c.colig):""} · candidatura a ${esc((CARGOS[c.cargo]||CARGOS.governador).cand)}</div></div>
-      <div class="acts"><span class="stamp ${/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn"}">${esc(c.sit)}</span><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
+      <div class="acts">${R?`<span class="stamp${R.k==="eleito"?" good":R.k==="fora"||R.k==="pend"?" warn":""}">${esc(R.txt)}</span>`:`<span class="stamp ${/Indeferido|Renúncia|Cassa/i.test(c.sit)?"crit":/Deferido/i.test(c.sit)?"good":"warn"}">${esc(c.sit)}</span>`}<button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button><button type="button" class="btn" data-close="1">Fechar ✕</button></div>
     </div>
     ${c.cit?`<div class="citbox">
       <b>Citado entre os 30 mais lembrados espontaneamente</b>
@@ -5112,6 +5643,7 @@ function renderDossieUF(c,cwMed=0){
       <a href="${esc(c.cit.url)}" target="_blank" rel="noopener">Ver a divulgação da pesquisa</a>
     </div>`:""}
     <div class="body">
+      ${caixaRes}
       <div class="cover"><span class="blocks" aria-hidden="true">${cob.map(x=>`<i class="${x[1]?"on":""}" title="${esc(x[0])}"></i>`).join("")}</span><span>Cobertura do dossiê: <b>${cob.filter(x=>x[1]).length} de ${cob.length}</b> fontes disponíveis para esta candidatura</span></div>
       <div class="row2">
         <div class="box"><h4>Ficha do TSE</h4><div class="kv">
@@ -5120,7 +5652,7 @@ function renderDossieUF(c,cwMed=0){
           <div><span>Número</span><b>${esc(c.num)}</b></div>
           <div><span>Partido</span><b>${esc(c.partido)}</b></div>
           <div><span>Coligação</span><b>${esc(c.colig||"partido isolado")}</b></div>
-          <div><span>Situação</span><b>${esc(c.sit)}</b></div>
+          <div><span>${R?"Registro em 2/9":"Situação"}</span><b>${esc(c.sit)}</b></div>
           <div><span>Disputa</span><b>${esc(cargoDisputa(c.cargo))}</b></div>
           <div><span>Estado</span><b>${esc(u.nome)}</b></div>
         </div><div class="foot"><a href="${esc(c.url)}" target="_blank" rel="noopener">Ficha no DivulgaCandContas</a>${coligPart.length?`<span>${c.ext&&c.ext.comp?"Coligação registrada no TSE":"Na coligação, com candidatura própria"}: ${coligPart.map(esc).join(", ")}</span>`:""}</div></div>
@@ -5143,13 +5675,15 @@ function renderDossieUF(c,cwMed=0){
           const pts=linhas.slice().sort((a,b)=>a[2].localeCompare(b[2])).map(p=>{const r=rodada(p);return {t:Date.parse(p[2]),v:p[4],tip:`<b>${esc(c.nome)}</b> · ${fPct(p[4])}%<br>${esc(p[1])}, campo até ${dBR(p[2])}${r&&r.modo&&r.modo!=="não informada"?" · "+esc(r.modo):""}`};});
           const ult=linhas[0], prim=linhas[linhas.length-1];
           const mm=pts.length>=3?mediaMovel(pts,14):null; const tend=mm&&mm.length>1?mm[mm.length-1].v-smoothAt(pts,14,mm[mm.length-1].t-30*864e5):null;
-          const ymax=Math.max(10,Math.ceil(Math.max(...pts.map(p=>p.v))/10)*10+5);
-          const svg=pts.length>1?chartTempo({W:1000,H:230,ml:44,mr:80,ymax,ticks:[0,Math.round(ymax/2),ymax].filter((v,i,a)=>a.indexOf(v)===i),fmtY:v=>fPct(v)+"%",series:[{nome:c.nome,cor:c.cor,r:3.4,lw:2,sigma:pts.length>=3?14:0,linha:pts.length>=3?null:pts,pts,op:.9,rotulo:`${fPct(ult[4])}%`}],t0:Math.min(...pts.map(p=>p.t))-6*864e5,t1:T1,aria:`Série de ${c.nome} nas pesquisas`,cross:false,cw:cwMed||(MOBILE?Math.max(240,innerWidth-62):0),Hm:200}):"";
+          // com resultado, o quadrado em 4/10 é a urna (votos válidos), ao lado das pesquisas (intenção total)
+          const urna=c.r1?[{nome:c.nome,cor:c.cor,r:4.6,sq:true,rotulo:false,fmtV:v=>fPct2(v)+"% na urna",pts:[{t:Date.parse(TURNOS.t1),v:c.r1[1],tip:`<b>${esc(c.nome)}</b> · resultado oficial: ${fPct2(c.r1[1])}% dos válidos<br>as pesquisas são intenção total · TSE, 1º turno`}]}]:[];
+          const ymax=Math.max(10,Math.ceil(Math.max(...pts.map(p=>p.v),...urna.map(s=>s.pts[0].v))/10)*10+5);
+          const svg=pts.length>1?chartTempo({W:1000,H:230,ml:44,mr:80,ymax,ticks:[0,Math.round(ymax/2),ymax].filter((v,i,a)=>a.indexOf(v)===i),fmtY:v=>fPct(v)+"%",series:[{nome:c.nome,cor:c.cor,r:3.4,lw:2,sigma:pts.length>=3?14:0,linha:pts.length>=3?null:pts,pts,op:.9,rotulo:`${fPct(ult[4])}%`},...urna],marcos:urna.length?[MARCO1T]:[],t0:Math.min(...pts.map(p=>p.t))-6*864e5,t1:urna.length?Math.max(T1,Date.parse(TURNOS.t1)+864e5):T1,aria:`Série de ${c.nome} nas pesquisas`,cross:false,cw:cwMed||(MOBILE?Math.max(240,innerWidth-62):0),Hm:200}):"";
           return `<div class="cap">${pl(linhas.length,"rodada")} de ${pl(new Set(linhas.map(p=>p[1])).size,"instituto")} entre ${dBR(prim[2])} e ${dBR(ult[2])}${tend!=null?`; tendência de 30 dias ${tend>=1?"▲ +"+fPct(tend):tend<=-1?"▼ "+fPct(tend):"estável"} na média móvel`:""}.</div><div class="chart">${svg}</div><div class="polls3">${linhas.slice(0,6).map(p=>{const r=rodada(p);return `<div class="pm"><div class="inst">${esc(p[1])} · ${dBR(p[2])}</div><div class="pct display tnum">${fPct(p[4])}<small>%</small></div>${r?`<div class="rej">${r.modo&&r.modo!=="não informada"?esc(r.modo)+" · ":""}${r.amostra?esc(r.amostra)+" entrev.":""}</div>`:""}</div>`;}).join("")}</div>${l&&l.pts.some(p=>p[5]===c.slug)?`<div class="cap" style="margin-top:8px">Na rodada mais recente aparece em ${l.pts.findIndex(p=>p[5]===c.slug)+1}º lugar entre ${l.pts.length} nomes testados${c.cargo==="senador"?", com duas vagas em disputa":""}.</div>`:""}`;})():`<p class="sit">Nenhuma rodada do observatório testou este nome até agora. Isso é comum em candidaturas de partidos pequenos e não diz nada sobre a candidatura em si: diz que o instituto não a incluiu no questionário.</p>`}</div>
       </div>
-      <div class="box"><h4>A disputa ${emUF(ufAtual)}</h4><div class="cap">${temPesquisa(c.cargo)?`Rodada mais recente de ${cargoLabel(c.cargo)}${l?`: ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}.`:`${cargoDisputa(c.cargo)}: sem rodada nominal registrada.`}</div>${barrasRodada(ufAtual,c.cargo)}</div>
+      <div class="box"><h4>A disputa ${emUF(ufAtual)}</h4>${A?`<div class="cap">Resultado do ${R.t}º turno, por votos.</div>${barrasResultado(ufAtual,c.cargo,R.t||"1")}`:`<div class="cap">${temPesquisa(c.cargo)?`Rodada mais recente de ${cargoLabel(c.cargo)}${l?`: ${esc(l.r.inst)}, ${dBR(l.r.data)}`:""}.`:`${cargoDisputa(c.cargo)}: sem rodada nominal registrada.`}</div>${barrasRodada(ufAtual,c.cargo)}`}</div>
       <div class="foot-acts"><button type="button" class="btn star" data-efoco="${esc(c.slug)}" aria-pressed="${(prefs.focoUF||[]).includes(c.slug)}"><span class="glyph" aria-hidden="true">${(prefs.focoUF||[]).includes(c.slug)?"★":"☆"}</span>${(prefs.focoUF||[]).includes(c.slug)?"Em foco":"Pôr em foco"}</button></div>
-      <div class="foot"><span>Fontes: TSE DivulgaCandContas (registro, partido, coligação e situação, consulta de ${temPesquisa(c.cargo)?"2/9/2026":"7/9/2026"})${temPesquisa(c.cargo)?"":"; grupo acompanhado definido por curadoria de imprensa, em notas/curadoria-deputados-rjsp-2026-09-07.md"}${linhas.length?`; pesquisas pela compilação pública da Wikipédia conferida com as divulgações, ficha técnica registrada pela Gazeta do Povo quando existe`:""}.</span><span>Nenhum número entra sem data e fonte.</span></div>
+      <div class="foot"><span>Fontes: TSE DivulgaCandContas (registro, partido, coligação e situação, consulta de ${temPesquisa(c.cargo)?"2/9/2026":"7/9/2026"})${A?`; resultado oficial do TSE (resultados.tse.jus.br), totalizado em ${horaTSE(A.tot.at)}`:""}${temPesquisa(c.cargo)?"":"; grupo acompanhado definido por curadoria de imprensa, em notas/curadoria-deputados-rjsp-2026-09-07.md"}${linhas.length?`; pesquisas pela compilação pública da Wikipédia conferida com as divulgações, ficha técnica registrada pela Gazeta do Povo quando existe`:""}.</span><span>Nenhum número entra sem data e fonte.</span></div>
     </div></div>`;
 }
 function openDossieUF(slug,opener){
@@ -5158,12 +5692,24 @@ function openDossieUF(slug,opener){
   if(!dz.open)dz.showModal(); dz.scrollTop=0;encaixarDossie(cw=>renderDossieUF(c,cw));ajustarRotulos(dz);
 }
 // lado a lado estadual
-const CRIT_UF=[
- ["Pesquisas","Intenção de voto",c=>{const l=liderDe(ufAtual,c.cargo);const p=l?l.pts.find(x=>x[5]===c.slug):null;return p?{v:p[4],txt:fPct(p[4])+"%",src:`${l.r.inst}, ${dBR(l.r.data)}`,better:"max",bar:true}:{txt:"não medido"};}],
+// com o resultado do TSE, o comparador abre pelo grupo Resultado; nas pesquisas, a rodada passa a ser
+// "a última do 1º turno". Critério que não vale para nenhum dos nomes na mesa (a média do 2º turno fora
+// das UFs com 2º turno) devolve null e a linha não aparece.
+const CRIT_RES_UF=[
+ ["Resultado","Votos válidos",c=>c.r1?{v:c.r1[1],txt:fPct2(c.r1[1])+"%",src:"TSE, 1º turno",better:"max",bar:true}:{txt:c.fora?"fora da apuração":"sem resultado"}],
+ ["Resultado","Votos",c=>c.r1?{v:c.r1[0],txt:fInt(c.r1[0]),src:"1º turno",better:"max",bar:true}:{txt:"n/d"}],
+ ["Resultado","Posição",c=>{if(!c.r1)return {txt:"n/d"};const A=c.cargo==="senador"?resSen(ufAtual):resGov("1",ufAtual);return {v:-c.r1[2],txt:c.r1[2]+"º",src:`entre ${A?A.c.length:"?"} na apuração`,better:"max"};}],
+ ["Resultado","Situação no TSE",c=>{const R=resCandUF(c);return {txt:R?R.txt:"sem resultado",plain:true};}],
+ ["Resultado","Média do 2º turno",c=>{if(c.cargo!=="governador"||estadoGov(ufAtual)!=="t2")return null;const m=mediaUF2T(ufAtual);
+   if(!finalUF(ufAtual).some(x=>x[0]===c.slug))return {txt:"não disputa"};
+   return m?{v:c.slug===m.a?m.va:m.vb,txt:fPct(c.slug===m.a?m.va:m.vb)+"%",src:`votos válidos, ${pl(m.n,"rodada")}`,better:"max",bar:true}:{txt:"sem média ainda",src:pl(campUF2T(ufAtual).length,"rodada")+" depois de "+dBR(TURNOS.t1)};}],
+];
+const CRIT_UF=[...(RES?CRIT_RES_UF:[]),
+ ["Pesquisas",RES?"Última rodada do 1º turno":"Intenção de voto",c=>{const l=liderDe(ufAtual,c.cargo);const p=l?l.pts.find(x=>x[5]===c.slug):null;return p?{v:p[4],txt:fPct(p[4])+"%",src:`${l.r.inst}, ${dBR(l.r.data)}`,better:"max",bar:true}:{txt:"não medido"};}],
  ["Pesquisas","Posição na rodada",c=>{const l=liderDe(ufAtual,c.cargo);const i=l?l.pts.findIndex(x=>x[5]===c.slug):-1;return i>=0?{v:-(i+1),txt:(i+1)+"º",src:`entre ${l.pts.length} testados`,better:"max"}:{txt:"fora da rodada"};}],
  ["Pesquisas","Média das 3 últimas rodadas",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).sort((a,b)=>b[2].localeCompare(a[2])).slice(0,3);if(!ps.length)return {txt:"não medido"};const m=ps.reduce((s,p)=>s+p[4],0)/ps.length;return {v:m,txt:fPct(m)+"%",src:ps.length<3?`só ${pl(ps.length,"rodada")}`:`${dBR(ps[2][2])} a ${dBR(ps[0][2])}`,better:"max",bar:true};}],
  ["Pesquisas","Tendência de 30 dias",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).map(p=>({t:Date.parse(p[2]),v:p[4]})).sort((a,b)=>a.t-b.t);if(ps.length<3)return {txt:"poucas rodadas"};const tf=ps[ps.length-1].t,a=smoothAt(ps,14,tf),b=smoothAt(ps,14,tf-30*864e5);const d=a-b;return {v:d,txt:(d>=0?"+":"")+fPct(d)+" pts",src:"média móvel, últimos 30 dias",better:"max",bar:true};}],
- ["Pesquisas","Melhor resultado",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug);if(!ps.length)return {txt:"não medido"};const m=ps.reduce((a,b)=>b[4]>a[4]?b:a);return {v:m[4],txt:fPct(m[4])+"%",src:`${m[1]}, ${dBR(m[2])}`,better:"max"};}],
+ ["Pesquisas",RES?"Melhor rodada":"Melhor resultado",c=>{const ps=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug);if(!ps.length)return {txt:"não medido"};const m=ps.reduce((a,b)=>b[4]>a[4]?b:a);return {v:m[4],txt:fPct(m[4])+"%",src:`${m[1]}, ${dBR(m[2])}`,better:"max"};}],
  ["Pesquisas","Rodadas em que aparece",c=>{const n=(UF[ufAtual].polls||[]).filter(p=>p[5]===c.slug).length;return {v:n,txt:String(n),src:"no observatório",better:"max",bar:true};}],
  ["Redes e perfil","Seguidores no Instagram",c=>{const B=UF[ufAtual].busca||{};const i=B.ig&&B.ig[c.slug];return i&&i.n!=null?{v:i.n,txt:(i.a?"≈":"")+fM(i.n),src:`@${i.h}, ${dBR(i.d)}${i.a?", aproximado":""}`,better:"max",bar:true}:{txt:c.ext&&c.ext.ig?"não lido ainda":"sem perfil informado"};}],
  ["Redes e perfil","Pico de busca no Google",c=>{const B=UF[ufAtual].busca||{};const t=B.tr&&B.tr[c.slug]?sStr(B.tr[c.slug]):null;if(!t||!t.length)return {txt:"sem série"};const m=t.reduce((a,b)=>b.v>a.v?b:a);return {v:m.v,txt:String(m.v),src:`índice no estado, ${dBR(dISO(m.t))}`,better:"max",bar:true};}],
@@ -5191,8 +5737,9 @@ function renderLadoUF(){
   let h=`<div class="lado" style="--n:${cs.length}"><div class="h lbl">Critério</div>`+cs.map(c=>`<div class="h"><span><span class="n display tnum" style="background:${c.cor};color:#fff">${esc(c.num)}</span></span><span class="who display">${esc(c.nome)}</span><span class="party">${esc(c.partido)} · <a href="#" data-edossie="${esc(c.slug)}">dossiê</a></span></div>`).join("");
   let g="";
   for(const [grupo,rot,get] of CRIT_UF){
+    const v0=cs.map(get);if(v0.every(v=>v==null))continue;
+    const vals=v0.map(v=>v||{txt:"n/d"}), nums=vals.map(v=>v.v).filter(v=>typeof v==="number");
     if(grupo!==g){g=grupo;h+=`<div class="lbl sec-lbl">${esc(grupo)}</div>`+cs.map(()=>`<div class="sec-cell"></div>`).join("");}
-    const vals=cs.map(get), nums=vals.map(v=>v.v).filter(v=>typeof v==="number");
     const better=vals.find(v=>v.better)?.better, best=nums.length>1&&better?Math.max(...nums):null;
     const maxAbs=nums.length?Math.max(...nums.map(Math.abs),0):0;
     h+=`<div class="lbl">${esc(rot)}</div>`+vals.map((v,i)=>{
@@ -5204,23 +5751,49 @@ function renderLadoUF(){
 }
 function drawPartidosUF(){
   const u=UF[ufAtual];if(!u)return;
-  const todos=[...u.gov,...u.sen], porPart={};
+  // com resultado, contam só as candidaturas que estiveram na urna (quem não aparece na apuração fica de fora)
+  const comRes=!!(resGov("1",ufAtual)||resSen(ufAtual)),gov=comRes?u.gov.filter(naUrna):u.gov,sen=comRes?u.sen.filter(naUrna):u.sen;
+  const todos=[...gov,...sen], porPart={};
   for(const c of todos){(porPart[c.partido]=porPart[c.partido]||[]).push(c);}
   const rows=Object.entries(porPart).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
   const max=Math.max(...rows.map(r=>r[1].length),1);
-  $("#e-sub-part").innerHTML=`${pl(rows.length,"partido lança","partidos lançam")} candidatura própria ${emUF(ufAtual)}: ${u.gov.length} ao governo e ${u.sen.length} ao Senado, distribuídos em ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}.`;
+  $("#e-sub-part").innerHTML=comRes?`${pl(rows.length,"partido teve","partidos tiveram")} candidatura própria na urna ${emUF(ufAtual)} em ${dBR(TURNOS.t1)}: ${gov.length} ao governo e ${sen.length} ao Senado, distribuídos em ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}.${u.gov.length+u.sen.length>todos.length?` ${pl(u.gov.length+u.sen.length-todos.length,"candidatura registrada","candidaturas registradas")} no TSE não ${u.gov.length+u.sen.length-todos.length===1?"aparece":"aparecem"} na apuração e fica${u.gov.length+u.sen.length-todos.length===1?"":"m"} de fora.`:""}`:`${pl(rows.length,"partido lança","partidos lançam")} candidatura própria ${emUF(ufAtual)}: ${u.gov.length} ao governo e ${u.sen.length} ao Senado, distribuídos em ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}.`;
   $("#e-ch-part").innerHTML=`<div class="bars">`+rows.map(([p,cs])=>`<div class="brow"><span class="lab"><b>${esc(p)}</b></span><span class="bar"><i style="width:${Math.round(cs.length/max*100)}%;--bc:${cs[0].cor}"></i></span><span class="val">${cs.length}</span></div><div class="cap brow-cands">${cs.map(c=>`<span class="tag">${esc(c.nome)} · ${c.cargo==="senador"?"Senado":"Gov"} ${esc(c.num)}</span>`).join(" ")}</div>`).join("")+`</div>`;
   const cols=Object.entries(u.colig);
   $("#e-ch-colig").innerHTML=cols.length?`<div class="bars">`+cols.sort((a,b)=>b[1].length-a[1].length).map(([nome,parts])=>{
     const cands=todos.filter(c=>c.colig===nome);
     return `<div class="colig"><div class="cn">${esc(nome)}</div><div class="cp">${parts.map(p=>`<span class="tag">${esc(p)}</span>`).join("")}</div><div class="cc">${cands.map(c=>`<span><span class="k" style="background:${c.cor}">${esc(c.num)}</span>${esc(c.nome)} <span style="color:var(--ink-3)">${c.cargo==="senador"?"Senado":"Gov"}</span></span>`).join("")}</div></div>`;}).join("")+`</div>`:`<div class="empty"><b>Sem coligações</b>Neste estado todos os candidatos concorrem por partido isolado ou a composição das alianças não aparece no registro.</div>`;
 }
+// os eventos da linha do tempo do estado: as rodadas (de 1º turno, e as do confronto do 2º turno nas UFs
+// com 2º turno), o resultado do estado em 4/10 e o calendário geral. A ficha só entra com o que tem:
+// contratante e registro vazios não viram "Contratante: ." no texto.
+function eventosUF(k){
+  const u=UF[k];if(!u)return [];
+  const fichaTxt=r=>[`Campo de ${campoCurto(r.campo||r.data)||r.campo||""}`,r.amostra?`${r.amostra} entrevistas`:"",margemDe(r)?`margem de ${fPct(margemDe(r))} pontos`:"",r.modo&&r.modo!=="não informada"?`coleta ${r.modo}`:"",r.contratante?`contratante: ${r.contratante}`:"",r.reg?`registro ${r.reg}`:""].filter(Boolean).join(", ")+".";
+  const evs=u.rodadas.map(r=>({data:r.data,cat:"pesquisa",tit:`${r.inst} divulga pesquisa de ${r.cargo==="senador"?"Senado":"governo"}`,desc:fichaTxt(r),url:r.url}));
+  const t2=estadoGov(k)==="t2"&&finalUF(k).length===2;
+  if(t2)for(const x of rodadasUF2T(k))evs.push({data:x.dt,cat:"pesquisa",tit:`${x.inst} divulga pesquisa de 2º turno para o governo`,desc:`${finalUF(k).map(c=>`${c[1]} ${fPct(x.pub[c[0]])}%`).join(", ")}. ${fichaTxt(x.r)}`,url:x.r.url||u.wiki_url});
+  // o resultado do estado em 4/10: governo e Senado
+  const G=resGov("1",k),S=resSen(k);
+  if(G){const el=G.c.find(c=>c[6]==="eleito"),f=G.c.filter(c=>c[6]==="2t"),eg=estadoGov(k);
+    evs.push({data:TURNOS.t1,cat:"resultado",tit:el?`Governo: ${el[1]} ${eleitoDe(k,el)} no 1º turno`:eg==="t2"&&f.length===2?`Governo: ${f[0][1]} e ${f[1][1]} vão ao 2º turno`:eg==="pend"?"Governo: sem definição no TSE":"Governo: apuração do 1º turno",
+      desc:el?`${el[1]} (${el[3]}) teve ${fPct2(el[5])}% dos votos válidos. TSE, ${secoesTSE(G)}.`:eg==="pend"?textoPend(k).replace(/<[^>]+>/g,""):`${G.c.slice(0,2).map(c=>`${c[1]} (${c[3]}) ${fPct2(c[5])}%`).join(", ")}. TSE, ${secoesTSE(G)}.`,url:RES&&RES.fonte});}
+  if(S){const el=S.c.filter(c=>c[6]==="eleito");if(el.length)evs.push({data:TURNOS.t1,cat:"resultado",tit:`Senado: ${el.map(c=>c[1]).join(" e ")} ${el.length===1?eleitoDe(k,el[0]):eleitosDe(k,el)}`,desc:`${el.map(c=>`${c[1]} (${c[3]}) ${fPct2(c[5])}%`).join(", ")} dos votos válidos. TSE, ${secoesTSE(S)}.`,url:RES&&RES.fonte});}
+  // o calendário geral; a data do 2º turno diz o que se vota no estado
+  const vistos=new Set();
+  for(const e of TL){if(e.candidato!=="todos"||e.data.length<10)continue;
+    if(e.data===TURNOS.t2&&e.categoria==="calendário"){if(vistos.has(e.data))continue;vistos.add(e.data);
+      evs.push({data:e.data,cat:e.categoria,tit:t2?`2º turno: presidente e governador ${emUF(k)}`:"Eleição para presidente (2º turno)",desc:`Votação das ${+TURNOS.abre.slice(0,2)}h às ${+TURNOS.fecha.slice(0,2)}h de Brasília.`,url:e.url,geral:true});continue;}
+    evs.push({data:e.data,cat:e.categoria,tit:e.evento,desc:e.descricao,url:e.url,geral:true});}
+  return evs.sort((a,b)=>b.data.localeCompare(a.data));
+}
 function drawTempoUF(){
   const u=UF[ufAtual];if(!u)return;
-  const evs=[...u.rodadas.map(r=>({data:r.data,cat:"pesquisa",tit:`${r.inst} divulga pesquisa de ${r.cargo==="senador"?"Senado":"governo"}`,desc:`Campo de ${r.campo}, ${r.amostra} entrevistas, margem de ${r.margem} pontos, coleta ${r.modo}. Contratante: ${r.contratante}. Registro ${r.reg}.`,url:r.url})),
-    ...TL.filter(e=>e.candidato==="todos"&&e.data.length>=10).map(e=>({data:e.data,cat:e.categoria,tit:e.evento,desc:e.descricao,url:e.url,geral:true}))];
-  evs.sort((a,b)=>b.data.localeCompare(a.data));
-  $("#e-sub-tl").innerHTML=`As rodadas de pesquisa registradas ${emUF(ufAtual)} e o calendário oficial da eleição, que vale para todo o país. Eventos de campanha por estado entram na coleta diária.`;
+  const k=ufAtual,evs=eventosUF(k),eg=estadoGov(k),f=finalUF(k);
+  $("#e-sub-tl").innerHTML=eg==="t2"&&f.length===2?`As rodadas de pesquisa registradas ${emUF(k)}, as do 2º turno entre ${esc(f[0][1])} e ${esc(f[1][1])}, o resultado de ${dBR(TURNOS.t1)} e o calendário oficial da eleição, que vale para todo o país.`
+    :eg==="decidido"?`As rodadas de pesquisa registradas ${emUF(k)} até a votação, o resultado de ${dBR(TURNOS.t1)} e o calendário oficial da eleição, que vale para todo o país. ${cap(emUF(k))} não há 2º turno para governador; em ${dBR(TURNOS.t2)}, vota-se só para presidente.`
+    :eg==="pend"?`As rodadas de pesquisa registradas ${emUF(k)} até a votação, o resultado de ${dBR(TURNOS.t1)} e o calendário oficial da eleição. ${textoPend(k)}`
+    :`As rodadas de pesquisa registradas ${emUF(k)} e o calendário oficial da eleição, que vale para todo o país. Eventos de campanha por estado entram na coleta diária.`;
   // calendário
   const porDia={};for(const e of evs)(porDia[e.data]=porDia[e.data]||[]).push(e);
   const meses=["2026-08","2026-09","2026-10"];
@@ -5232,25 +5805,39 @@ function drawTempoUF(){
       const cls=["d",ev.length?"has":"",iso===HOJE?"hoje":"",(iso===TURNOS.t1||iso===TURNOS.t2)?"eleicao":""].filter(Boolean).join(" ");
       h+=`<span class="${cls}">${d}<span class="dots">${[...new Set(ev.map(e=>e.cat))].slice(0,3).map(c=>`<i style="background:${CATC[c]||"var(--ink-3)"}"></i>`).join("")}</span></span>`;}
     return h+`</div></div>`;}).join("");
-  $("#e-stream").innerHTML=evs.slice(0,60).map(e=>`<li class="ev" style="--evc:${CATC[e.cat]||"var(--ink-3)"}"><span class="dt">${dBR(e.data)}/${e.data.slice(2,4)}</span><div><span class="who">${e.geral?"eleição":esc(u.sigla)}</span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.tit)}</a>`:esc(e.tit)}<span class="tag">${esc(e.cat)}</span>${e.desc?`<span class="desc">${esc(e.desc)}</span>`:""}</div></li>`).join("");
+  // o que ainda vai acontecer fica à parte, em ordem crescente, sob "Até o 2º turno"
+  const li=e=>`<li class="ev" style="--evc:${CATC[e.cat]||"var(--ink-3)"}"><span class="dt">${dBR(e.data)}/${e.data.slice(2,4)}</span><div><span class="who">${e.geral?"eleição":esc(u.sigla)}</span>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.tit)}</a>`:esc(e.tit)}<span class="tag">${esc(e.cat)}</span>${e.desc?`<span class="desc">${esc(e.desc)}</span>`:""}</div></li>`;
+  const fut=evs.filter(e=>e.data>HOJE).reverse(),pas=evs.filter(e=>e.data<=HOJE);
+  const ate=fut.filter(e=>e.data<=TURNOS.t2),depois=fut.filter(e=>e.data>TURNOS.t2);
+  $("#e-stream").innerHTML=(ate.length?`<li class="month">Até o 2º turno</li>`+ate.map(li).join(""):"")+(depois.length?`<li class="month">${ate.length?"Depois do 2º turno":"A seguir"}</li>`+depois.map(li).join(""):"")
+    +(fut.length?`<li class="month">Até hoje</li>`:"")+pas.slice(0,60).map(li).join("");
 }
 function drawMetodoUF(){
-  const ABR=["Gov.","Senado","Coligações","Pesq. gov.","Pesq. senado","Registro TSE","2º turno","Perfil TSE","Busca no Google","Wikipédia","Instagram"];
+  // com resultado, a cobertura ganha a coluna do TSE, e a do 2º turno passa a contar só os estados com
+  // 2º turno de governador e rodada do confronto que vai à urna
+  const ABR=["Gov.","Senado","Coligações","Pesq. gov.","Pesq. senado","Registro TSE",...(RES?["Resultado TSE"]:[]),"2º turno","Perfil TSE","Busca no Google","Wikipédia","Instagram"];
   $("#e-ch-cobertura").innerHTML=`<div class="tablewrap" style="border:0"><table class="cov"><thead><tr><th>Estado</th><th>Total</th>${ABR.map(a=>`<th>${a}</th>`).join("")}</tr></thead><tbody>${UFLIST.map(k=>{
     const u=UF[k], rg=rodadasDe(k,"governador"), rs=rodadasDe(k,"senador");
     const Bq=u.busca||{}, todos=[...u.gov,...u.sen];
-    const ok=[u.gov.length>0,u.sen.length>0,Object.keys(u.colig).length>0,rg.length>0,rs.length>0,u.rodadas.some(r=>r.reg),(u.rodadas2||[]).length>0,todos.some(c=>c.ext),!!(Bq.tr&&Object.keys(Bq.tr).length),!!(Bq.wk&&Object.keys(Bq.wk).length),!!(Bq.ig&&Object.values(Bq.ig).some(x=>x.n!=null))];
+    const ok=[u.gov.length>0,u.sen.length>0,Object.keys(u.colig).length>0,rg.length>0,rs.length>0,u.rodadas.some(r=>r.reg),...(RES?[!!(resGov("1",k)&&resSen(k))]:[]),RES?estadoGov(k)==="t2"&&rodadasUF2T(k).length>0:(u.rodadas2||[]).length>0,todos.some(c=>c.ext),!!(Bq.tr&&Object.keys(Bq.tr).length),!!(Bq.wk&&Object.keys(Bq.wk).length),!!(Bq.ig&&Object.values(Bq.ig).some(x=>x.n!=null))];
     return `<tr${k===ufAtual?' style="font-weight:600"':''}><td><a href="#" data-goto-uf="${k}">${esc(u.nome)}</a></td><td class="tot">${ok.filter(Boolean).length}/${ok.length}</td>${ok.map((o,i)=>`<td><i class="${o?"on":""}" title="${esc(ABR[i])}"></i></td>`).join("")}</tr>`;}).join("")}</tbody></table></div>`;
   const nR=Object.values(UF).reduce((s,u)=>s+u.rodadas.length,0), nI=new Set(Object.values(UF).flatMap(u=>u.rodadas.map(r=>r.inst))).size, nReg=Object.values(UF).reduce((s,u)=>s+u.rodadas.filter(r=>r.reg).length,0), n2=Object.values(UF).reduce((s,u)=>s+(u.rodadas2||[]).length,0);
-  $("#e-notes").innerHTML=`<p><b>Candidaturas.</b> As ${Object.values(UF).reduce((s,u)=>s+u.gov.length+u.sen.length,0)} candidaturas a governador e senador dos 27 estados vêm da API pública do TSE DivulgaCandContas (eleição 20322002026), consultada em 2 de setembro de 2026, com nome de urna, nome completo, número, partido, coligação e situação do registro. A situação muda enquanto os tribunais julgam os registros, e por isso é consultada de novo a cada coleta.</p>
+  $("#e-notes").innerHTML=`<p><b>Candidaturas.</b> As ${Object.values(UF).reduce((s,u)=>s+u.gov.length+u.sen.length,0)} candidaturas a governador e senador dos ${UFLIST.length} estados vêm da API pública do TSE DivulgaCandContas (eleição 20322002026), consultada em 2 de setembro de 2026, com nome de urna, nome completo, número, partido, coligação e situação do registro. A situação mostrada é a daquela consulta.${(()=>{const n=Object.values(UF).reduce((s,u)=>s+[...u.gov,...u.sen].filter(c=>c.fora).length,0);return RES&&n?` Com o resultado, o que vale é a apuração: ${pl(n,"candidatura registrada","candidaturas registradas")} em 2/9 não ${n===1?"aparece":"aparecem"} nela e ${n===1?"fica":"ficam"} fora das contas de quem esteve na urna.`:"";})()}</p>
+${(()=>{if(!RES)return "";
+  const nG=UFLIST.filter(k=>estadoGov(k)==="decidido").length,t2=ufs2TAbertas(),pend=UFLIST.filter(k=>estadoGov(k)==="pend");
+  const nS=UFLIST.reduce((s,k)=>{const a=resSen(k);return s+(a?a.c.filter(c=>c[6]==="eleito").length:0);},0);
+  const lista=a=>a.length<2?a.join(""):a.slice(0,-1).join(", ")+" e "+a[a.length-1];
+  return `<p><b>Resultado oficial.</b> O resultado de governador e Senado vem da divulgação oficial do TSE (${linkTSE("resultados.tse.jus.br")}), lido estado a estado, com a hora da totalização e o percentual de seções totalizadas. O percentual é sobre os votos válidos; no Senado, cada eleitor votou em dois nomes, e o percentual é sobre o total de votos dados ao Senado. Apuração incompleta aparece como parcial e não declara eleito. Em ${dBR(TURNOS.t1)}, ${pl(nG,"governador foi eleito","governadores foram eleitos")} e ${pl(nS,"senador","senadores")}${t2.length?`; há 2º turno de governador em ${dBR(TURNOS.t2)} ${t2.length===1?"no estado":"nos estados"} ${lista(t2.map(k=>UF[k].nome))}`:""}.${pend.map(k=>" "+textoPend(k)).join("")}</p>`;})()}
 ${(()=>{const D=Object.entries(UF).filter(([k,u])=>(u.depfed||[]).length||(u.depest||[]).length);
   if(!D.length)return "";   // sem lista de deputado, o parágrafo inteiro não existe
   const n=D.reduce((s,[k,u])=>s+(u.depfed||[]).length+(u.depest||[]).length,0);
-  return `<p><b>Deputado federal e estadual.</b> ${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga. O que existe além da ficha é busca e verbete: ${(()=>{const T=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).tr&&u.busca.tr[x.slug]).length,0),0),W=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).wk&&u.busca.wk[x.slug]).length,0),0);return `${T} com série no Google Trends dentro do estado e ${W} com verbete na Wikipédia conferido um a um`;})()}. Seguidores no Instagram ainda não, porque essa leitura depende de navegador com sessão aberta e não roda na coleta automática.</p>`;})()}
-<p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, e mais ${n2} simulações de segundo turno. A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base. ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o mais parecido com as candidaturas registradas, e os outros ficam no seletor de cenário. A média de cada candidato é calculada como a da Presidência, com janela de ${SIG_UF} dias, e é ela que aparece na manchete, no placar e no mapa. Ela mostra só quem alguma rodada mediu dentro da janela, para que um nome que saiu das pesquisas não continue na manchete com número antigo. Para governador, os votos válidos saem da mesma média. Como a compilação não registra brancos nem indecisos, a base de cada rodada é a soma dos candidatos listados, e rodada que lista menos de ${VV_UF_MIN}% no total fica fora dessa conta.</p>
-<p><b>O que ainda falta.</b> O número de registro no TSE, o modo de coleta e o contratante da maior parte das rodadas, que a compilação não traz e que entram conforme as fichas forem localizadas. Faltam também os eventos de campanha de cada estado, a série diária de seguidores e os dados de TikTok e YouTube dos candidatos estaduais.</p>
+  return `<p><b>Deputado federal e estadual.</b> ${n} candidaturas em ${D.map(([k])=>UF[k].nome).join(" e ")}, lidas na mesma API do TSE em 7 de setembro de 2026. Aqui a lista não é o registro inteiro: as duas disputas somam 4.538 candidaturas em RJ e SP, e o mural acompanha um grupo escolhido a dedo, com parlamentares em busca de reeleição e nomes novos de repercussão na imprensa. Quem entra e por quê está registrado em notas/curadoria-deputados-rjsp-2026-09-07.md, com a fonte de cada nome. Disputa proporcional não tem pesquisa nominal publicada, então esses cargos entram só com a ficha do TSE: nenhuma intenção de voto, nenhuma projeção de vaga.${RES?` A eleição de deputados terminou em ${dBR(TURNOS.t1)}. O mural não traz quem foi eleito; a lista é a das candidaturas acompanhadas.`:""} O que existe além da ficha é busca e verbete: ${(()=>{const T=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).tr&&u.busca.tr[x.slug]).length,0),0),W=D.reduce((s,[k,u])=>s+["depfed","depest"].reduce((a,c)=>a+listaDe(u,c).filter(x=>(u.busca||{}).wk&&u.busca.wk[x.slug]).length,0),0);return `${T} com série no Google Trends dentro do estado e ${W} com verbete na Wikipédia conferido um a um`;})()}. Seguidores no Instagram ainda não, porque essa leitura depende de navegador com sessão aberta e não roda na coleta automática.</p>`;})()}
+<p><b>Pesquisas.</b> ${nR} rodadas de primeiro turno em 2026, de ${nI} institutos, e mais ${n2} simulações de segundo turno.${RES?(()=>{const t2=ufs2TAbertas(),c=t2.reduce((s,k)=>s+campUF2T(k).length,0),r=t2.reduce((s,k)=>s+rodadasUF2T(k).length,0);
+  return ` Nos estados com 2º turno de governador, ${pl(c,"rodada")} do confronto que vai à urna ${c===1?"foi feita":"foram feitas"} depois de ${dBR(TURNOS.t1)}, e ${pl(r-c,"simulação","simulações")} do mesmo confronto antes do 1º turno. No 2º turno cada rodada é convertida em votos válidos, a parte de cada um na soma dos dois, e a média aparece com ${MIN_POS1T.rodadas} rodadas de ${MIN_POS1T.inst} institutos feitas depois de ${dBR(TURNOS.t1)}, com a mesma janela de ${SIG_UF} dias.`;})():""} A série vem da compilação pública das páginas "Pesquisas eleitorais para a eleição estadual de 2026" da Wikipédia em português, lidas rodada a rodada, com a versão da página registrada na base. ${nReg} rodadas trazem também o número de registro no TSE, o modo de coleta e o contratante, obtidos nas fichas técnicas publicadas pela Gazeta do Povo. Quando uma rodada testa vários cenários, o mural usa como principal o mais parecido com as candidaturas registradas, e os outros ficam no seletor de cenário. A média de cada candidato é calculada como a da Presidência, com janela de ${SIG_UF} dias, e é ela que aparece na manchete, no placar e no mapa. Ela mostra só quem alguma rodada mediu dentro da janela, para que um nome que saiu das pesquisas não continue na manchete com número antigo. Para governador, os votos válidos saem da mesma média. Como a compilação não registra brancos nem indecisos, a base de cada rodada é a soma dos candidatos listados, e rodada que lista menos de ${VV_UF_MIN}% no total fica fora dessa conta.</p>
+<p><b>O que ainda falta.</b> ${RES?`O número de registro no TSE, o modo de coleta e o contratante das rodadas de 2º turno, que a compilação não traz e que entram conforme as fichas forem localizadas, e os eventos de campanha do 2º turno em cada estado. A apuração do 2º turno de governador entra na noite de ${dBR(TURNOS.t2)}.`:`O número de registro no TSE, o modo de coleta e o contratante da maior parte das rodadas, que a compilação não traz e que entram conforme as fichas forem localizadas. Faltam também os eventos de campanha de cada estado, a série diária de seguidores e os dados de TikTok e YouTube dos candidatos estaduais.`}</p>
 <p><b>Busca e redes.</b> ${(()=>{const T=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).tr||{}).length,0),W=Object.values(UF).reduce((s,u)=>s+Object.keys((u.busca||{}).wk||{}).length,0),I=Object.values(UF).reduce((s,u)=>s+Object.values((u.busca||{}).ig||{}).filter(x=>x.n!=null).length,0),H=Object.values(UF).reduce((s,u)=>s+[...u.gov,...u.sen].filter(c=>c.ext&&c.ext.ig).length,0);return `Google Trends dentro de cada estado para todas as candidaturas, em consultas de até cinco nomes que incluem como referência o líder da última pesquisa. ${T} nomes tiveram algum volume de busca em 2026, e para os outros o próprio Google devolveu zero. O verbete na Wikipédia foi localizado e conferido para ${W} candidaturas, com acessos diários desde janeiro. ${H} candidaturas informaram perfil de Instagram ao TSE, e ${I} tiveram o número de seguidores lido no perfil público. Perfis, bens e vices vêm do detalhe de cada candidatura no DivulgaCandContas.`;})()}</p>
-<p><b>Como comparar.</b> No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas são preenchidas. Por isso importa quem está entre os dois primeiros, e não só quem lidera. Para governador, a eleição termina no primeiro turno só se um candidato tiver mais de 50% dos votos válidos. Na manchete, no placar e no mapa, empate técnico quer dizer que a diferença entre os dois primeiros é menor que a incerteza da média.</p>`;
+<p><b>Como comparar.</b> ${RES?(()=>{const nG=UFLIST.filter(k=>estadoGov(k)==="decidido").length,n2=ufs2TAbertas().length;
+  return `No Senado, cada eleitor votou em dois nomes, as porcentagens das pesquisas somavam mais de 100 e as duas vagas de cada estado foram preenchidas em ${dBR(TURNOS.t1)} pelos dois mais votados. Para governador, a eleição terminou no 1º turno onde um candidato passou de 50% dos votos válidos, ${pl(nG,"estado","estados")}; ${n2?`em ${pl(n2,"estado","estados")}, os dois mais votados disputam o 2º turno. `:""}Na manchete do 2º turno, empate técnico quer dizer que a diferença entre os dois é menor que a incerteza da média.`;})():`No Senado, cada eleitor vota em dois nomes, as porcentagens somam mais de 100 e duas vagas são preenchidas. Por isso importa quem está entre os dois primeiros, e não só quem lidera. Para governador, a eleição termina no primeiro turno só se um candidato tiver mais de 50% dos votos válidos. Na manchete, no placar e no mapa, empate técnico quer dizer que a diferença entre os dois primeiros é menor que a incerteza da média.`}</p>`;
 }
 function desenharUF(){
   if(!UF[ufAtual])return;
@@ -5261,6 +5848,9 @@ function desenharUF(){
 }
 function ladoPadraoUF(k){
   const u=UF[k], base=candsDe(k,ufCargo).length?candsDe(k,ufCargo):todosUF(u);
+  // com resultado: os dois do 2º turno, ou o eleito e o 2º; no Senado, os dois eleitos e o 3º
+  {const A=ufCargo==="senador"?resSen(k):ufCargo==="governador"?apGov(k):null;
+    if(A){const f=ufCargo==="governador"?finalUF(k):[];const top=(f.length===2&&estadoGov(k)!=="decidido"?f:A.c).map(c=>c[0]).filter(s=>s&&candUF(k,s)).slice(0,ufCargo==="senador"?3:2);if(top.length>=2)return top;}}
   let par=base.slice(0,2).map(c=>c.slug);
   const l=liderDe(k,ufCargo); if(l){const top=l.pts.slice(0,ufCargo==="senador"?3:2).map(p=>p[5]).filter(Boolean);if(top.length>=2)par=top;}
   return par;
@@ -5279,15 +5869,20 @@ function trocarUF(k,push=true){
 function renderCargoSeg(){
   const cs=cargosDe(ufAtual);
   const el=$("#ufb-cargos");
-  if(el)el.innerHTML=cs.map(c=>`<button type="button" data-cargo="${c}" aria-pressed="${c===ufCargo}"${CARGOS[c].casa?` title="${esc(CARGOS[c].casa)}"`:""}>${esc(CARGOS[c].bt)}</button>`).join("");
+  // o botão Governo das UFs com 2º turno avisa a data no title
+  const tit=c=>CARGOS[c].casa?CARGOS[c].casa:c==="governador"&&estadoGov(ufAtual)==="t2"?`2º turno em ${dBR(TURNOS.t2)}`:"";
+  if(el)el.innerHTML=cs.map(c=>`<button type="button" data-cargo="${c}" aria-pressed="${c===ufCargo}"${tit(c)?` title="${esc(tit(c))}"`:""}>${esc(CARGOS[c].bt)}</button>`).join("");
   const ec=$("#e-cargos");
   if(ec)ec.innerHTML=cs.map(c=>`<button type="button" data-ecargo="${c}" aria-pressed="${c===ufCargoCards}">${esc(CARGOS[c].bt)}</button>`).join("")
     +`<button type="button" data-ecargo="todos" aria-pressed="${ufCargoCards==="todos"}">Todos</button>`;
   const cap=$("#ufb-cap");
-  // com quatro disputas a legenda cederia espaço aos botões; o mesmo texto está no lede do estado
+  // com quatro disputas a legenda cederia espaço aos botões; o mesmo texto está no lede do estado.
+  // Com resultado, a legenda é curta (ela tem nowrap e reticências) e as contagens saem do dado
   if(cap){const props=cs.filter(c=>!temPesquisa(c));
     cap.hidden=props.length>0;
-    cap.textContent="27 disputas de governo e 54 vagas no Senado, duas por estado";}
+    const n2=ufs2TAbertas().length,nS=UFLIST.reduce((s,k)=>{const a=resSen(k);return s+(a?a.c.filter(c=>c[6]==="eleito").length:0);},0);
+    cap.textContent=RES&&(n2||nS)?[n2?`${pl(n2,"governo","governos")} em 2º turno`:"",nS?`${nS} senadores eleitos`:""].filter(Boolean).join(" · ")
+      :`${UFLIST.length} disputas de governo e ${UFLIST.length*VAGAS("senador")} vagas no Senado, ${VAGAS("senador")===2?"duas":VAGAS("senador")} por estado`;}
 }
 function trocarCargoUF(c,push=true){
   ufCargo=cargosDe(ufAtual).includes(c)?c:"governador"; prefs.ufCargo=ufCargo; salvar();
@@ -5303,6 +5898,9 @@ $("#uf-sel").addEventListener("change",e=>trocarUF(e.target.value));
 $("#mapa-svg").addEventListener("click",e=>{tip.classList.remove("on");const b=e.target.closest("[data-uf]");if(b)trocarUF(b.dataset.uf);});
 $("#mapa-svg").addEventListener("keydown",e=>{const b=e.target.closest("[data-uf]");if(b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();trocarUF(b.dataset.uf);}});
 $("#mapa-sel").addEventListener("click",e=>{const b=e.target.closest("[data-goto-aba]");if(b){e.preventDefault();irPara(b.dataset.gotoAba);}});
+// o item listrado da legenda do mapa leva ao próximo estado com 2º turno de governador
+$("#mapa-legend").addEventListener("click",e=>{const b=e.target.closest("[data-t2]");if(!b)return;const l=ufs2TAbertas();if(!l.length)return;
+  const k=l[(l.indexOf(ufAtual)+1)%l.length];if(ufCargo!=="governador")trocarCargoUF("governador",false);trocarUF(k);});
 // "Mapa do Brasil" no subnível: abre a Visão geral do estado e rola até o mapa, abrindo a dobra se estiver fechada
 $("#ufb-mapa").addEventListener("click",e=>{e.preventDefault();if(abaAtual!=="e-geral")irPara("e-geral");const m=$("#mapa");if(!m.open)m.open=true;
   const y=m.getBoundingClientRect().top+scrollY-$("#nav-band").offsetHeight-12;window.scrollTo({top:Math.max(0,y),behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"instant":"smooth"});});
@@ -5310,6 +5908,8 @@ $("#ufb-cargos").addEventListener("click",e=>{const b=e.target.closest("button[d
 $("#e-cargos").addEventListener("click",e=>{const b=e.target.closest("button[data-ecargo]");if(!b)return;ufCargoCards=b.dataset.ecargo;renderCargoSeg();drawCandidatosUF();});
 $("#e-cat").addEventListener("click",e=>{const b=e.target.closest("button[data-cat]");if(!b)return;ufCatVis=b.dataset.cat;drawCandidatosUF();});
 $("#e-sort").addEventListener("change",drawCandidatosUF);
+// com o resultado do TSE, os cartões do estado abrem pela ordem dos votos
+$("#e-sort").value=RES?"votos":"pesquisa";
 $("#e-sel-rod").addEventListener("change",e=>{ufRodada=e.target.value;ufCen=null;drawRodadaUF();});
 $("#e-sel-cen").addEventListener("change",e=>{ufCen=e.target.value;drawRodadaUF();});
 document.addEventListener("click",e=>{
@@ -5348,13 +5948,19 @@ function carimboDe(id){
   const M=DATA.meta;
   if(id.startsWith("e-")){const u=UF[ufAtual];if(!u)return "";const rs=u.rodadas,insts=new Set(rs.map(r=>r.inst)).size,B=u.busca||{};
     switch(id){
-      case "e-pesquisas":{const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size;return rc.length?`${pl(rc.length,"rodada")} · ${pl(ic,"instituto")} · até ${dBR(rc[0].data)}`:"sem rodada no observatório";}
+      // com resultado, o carimbo diz o turno: o 2º nas UFs com 2º turno de governador, e o 1º com a
+      // data do TSE nas outras
+      case "e-pesquisas":{const rc=rodadasDe(ufAtual,ufCargo),ic=new Set(rc.map(r=>r.inst)).size,est=estadoUF(ufAtual,ufCargo);
+        if(t2UF(ufAtual)){const c2=campUF2T(ufAtual);return c2.length?`${pl(c2.length,"rodada")} de 2º turno depois de ${dBR(TURNOS.t1)} · até ${dBR(c2[c2.length-1].dt)}`:`nenhuma rodada de 2º turno depois de ${dBR(TURNOS.t1)}`;}
+        if(est!=="sem"){const A=ufCargo==="senador"?resSen(ufAtual):resGov("1",ufAtual);return `${rc.length?pl(rc.length,"rodada"):"nenhuma rodada"} de 1º turno · resultado do TSE de ${dBR(isoTSE(A.tot.at)||TURNOS.t1)}`;}
+        return rc.length?`${pl(rc.length,"rodada")} · ${pl(ic,"instituto")} · até ${dBR(rc[0].data)}`:"sem rodada no observatório";}
       case "e-busca":return B.data?`coleta própria em ${dBR(B.data)}`:"coleta própria";
       case "e-candidatos":{const n=ufCargoCards==="todos"?todosUF(u).length:candsDe(ufAtual,ufCargoCards).length;return `${pl(n,"candidatura")} · TSE`;}
       case "e-lado":return `${CRIT_UF.length} critérios · ${pl(todosUF(u).length,"nome")}`;
       case "e-partidos":return `${pl(new Set([...u.gov,...u.sen].map(c=>c.partido)).size,"partido")} · ${pl(Object.keys(u.colig).length,"coligação ou federação","coligações ou federações")}`;
-      case "e-tempo":return `${pl(rs.length,"rodada")} · calendário do TSE`;
-      case "e-metodo":return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}`;
+      case "e-tempo":{const ev=eventosUF(ufAtual);return `${pl(ev.length,"entrada")} · ${pl(ev.filter(e=>e.cat==="pesquisa").length,"rodada")} · calendário do TSE`;}
+      case "e-metodo":{const at=UFLIST.map(k=>isoTSE((resGov("1",k)||{tot:{}}).tot.at)).filter(Boolean).sort().pop();
+        return `${UFLIST.length} estados · ${pl(Object.values(UF).reduce((s,x)=>s+x.rodadas.length,0),"rodada")}${at?` · resultado TSE de ${dBR(at)}`:""}`;}
     }return "";}
   switch(id){
     case "pesquisas":{const n=rodadas2TCampanha().length;return n?`${pl(n,"rodada")} de 2º turno desde ${dBR(TURNOS.t1)} · até ${dBR(ult2T())}`:`${M.t1.rodadas} rodadas de 1º turno · até ${dBR(M.t1.ultima)}`;}

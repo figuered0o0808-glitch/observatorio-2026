@@ -19,6 +19,24 @@ from playwright.sync_api import sync_playwright
 URL = (Path(__file__).resolve().parent.parent / "mural" / "mural-inteiro.html").as_uri()
 ok, fail = [], []
 
+# As disputas de cada estado. Deputado estadual e federal saíram do site em 17/9/2026 (a pedido do
+# Francisco); os dados e coletores continuam no repositório, só não entram na geração do mural.
+CARGOS_ESPERADOS = ["governador", "senador"]
+
+# Os estados com 2º turno de governador saem de totais.csv (linha de turno 2 para governador), como no
+# gerador, e não da página: é o oráculo do painel do 2º turno estadual (13/10/2026). Os dois nomes vêm
+# de candidatos.csv (situação "2º turno" no 1º turno). Sem os CSVs, vale a regra de antes.
+import csv as _csv
+import io as _io
+_RES = Path(__file__).resolve().parent.parent / "dados" / "resultados"
+UF2T, FIN2T = None, {}
+if (_RES / "totais.csv").exists() and (_RES / "candidatos.csv").exists():
+    UF2T = sorted({x["abrangencia"].upper() for x in _csv.DictReader(_io.open(_RES / "totais.csv", encoding="utf-8-sig"))
+                   if x["turno"] == "2" and x["cargo"] == "governador"})
+    for x in _csv.DictReader(_io.open(_RES / "candidatos.csv", encoding="utf-8-sig")):
+        if x["turno"] == "1" and x["cargo"] == "governador" and x["situacao"].strip().lower() == "2º turno":
+            FIN2T.setdefault(x["abrangencia"].upper(), []).append(x["nome_urna"])
+
 # Hosts de recurso externo que o mural pede (as fontes do Google). Num ambiente sem rede o
 # Chromium registra "Failed to load resource" para eles; isso não é bug do mural.
 FONTES_EXTERNAS = ("fonts.googleapis.com", "fonts.gstatic.com")
@@ -82,10 +100,11 @@ with sync_playwright() as p:
         for (const uf of ufs) {
             for (const cargo of cargosDe(uf)) {
                 trocarUF(uf); trocarCargoUF(cargo);
-                const el = document.querySelector('#e-fold-2t');
+                const el = document.querySelector('#e-fold-2t'), p2 = document.querySelector('#e-p2t');
                 out[uf+'-'+cargo] = {
                     hidden: el.hidden,
                     open: el.open,
+                    p2t: !p2.hidden, h3: document.querySelector('#e-h-2t').textContent,
                     tem2t: (UF[uf].polls2||[]).length > 0,
                     cargoAtivo: ufCargo,
                     botoes: [...document.querySelectorAll('#ufb-cargos button')].map(b => b.dataset.cargo),
@@ -98,29 +117,46 @@ with sync_playwright() as p:
     novos = [e for e in errs if ruim(e)]
     check(f"varredura de {len(por_combo)} combinações estado/cargo sem novo erro de console", len(novos) == 0, novos[:10])
 
-    # cada estado mostra exatamente as mesmas duas disputas: governo e Senado. Deputado estadual
-    # e federal saíram do site em 17/9/2026 (a pedido do Francisco); os dados e coletores
-    # continuam no repositório, só não entram na geração do mural.
+    # cada estado mostra exatamente as mesmas disputas, as de CARGOS_ESPERADOS
     cargos_por_uf = page.evaluate("(ufs) => Object.fromEntries(ufs.map(u => [u, cargosDe(u)]))", ufs)
-    fora = {u: c for u, c in cargos_por_uf.items() if c != ["governador", "senador"]}
-    check("os 27 estados com as mesmas duas disputas (governo e Senado)", not fora, fora)
+    fora = {u: c for u, c in cargos_por_uf.items() if c != CARGOS_ESPERADOS}
+    check(f"os 27 estados com as mesmas disputas ({', '.join(CARGOS_ESPERADOS)})", not fora, fora)
     # o seletor desenhado bate com a lista de cargos, e a troca de cargo nunca cai noutro
     seletor = [(k, v) for k, v in por_combo.items() if v["botoes"] != cargos_por_uf[k.rsplit("-", 1)[0]]]
     check("o seletor de disputa traz um botão por cargo do estado", not seletor, seletor[:4])
     trocou = [(k, v["cargoAtivo"]) for k, v in por_combo.items() if not k.startswith(v["cargoAtivo"]) and not k.endswith(v["cargoAtivo"])]
     check("trocar de disputa leva ao cargo pedido, em todos os estados", not trocou, trocou[:4])
 
-    # segundo turno só deve abrir sozinho para governador com dados de 2º turno
     problema_2t = []
-    for k, v in por_combo.items():
-        uf, cargo = k.rsplit("-", 1)
-        if cargo == "governador" and v["tem2t"]:
-            if v["hidden"] or not v["open"]:
+    if UF2T is None:
+        # sem resultado: as simulações de segundo turno abrem sozinhas para governador com dados, e
+        # ficam ocultas no resto
+        for k, v in por_combo.items():
+            uf, cargo = k.rsplit("-", 1)
+            if cargo == "governador" and v["tem2t"]:
+                if v["hidden"] or not v["open"]:
+                    problema_2t.append((k, v))
+            else:
+                if not v["hidden"]:
+                    problema_2t.append((k, v))
+        check("2º turno auto-aberto só p/ governador com dados, oculto no resto", len(problema_2t) == 0, problema_2t[:10])
+    else:
+        # com resultado: nos estados de totais.csv com 2º turno, o painel do confronto aparece com
+        # exatamente os dois nomes no título, e os outros pares ficam numa dobra fechada; no resto,
+        # painel e dobra ficam ocultos
+        import unicodedata as _ud
+        sa = lambda t: "".join(ch for ch in _ud.normalize("NFD", str(t).lower()) if _ud.category(ch) != "Mn")
+        for k, v in por_combo.items():
+            uf, cargo = k.rsplit("-", 1)
+            if cargo == "governador" and uf in UF2T:
+                nomes = FIN2T.get(uf, [])
+                h3 = sa(v["h3"])
+                if not v["p2t"] or len(nomes) != 2 or not all(sa(n) in h3 for n in nomes) or h3.count(" x ") != 1 or v["open"] and not v["hidden"]:
+                    problema_2t.append((k, v))
+            elif v["p2t"] or not v["hidden"]:
                 problema_2t.append((k, v))
-        else:
-            if not v["hidden"]:
-                problema_2t.append((k, v))
-    check("2º turno auto-aberto só p/ governador com dados, oculto no resto", len(problema_2t) == 0, problema_2t[:10])
+        check(f"2º turno estadual: painel do confronto com os dois nomes só nos estados de totais.csv ({', '.join(UF2T)}), outros pares numa dobra fechada, oculto no resto",
+              len(problema_2t) == 0, problema_2t[:10])
 
     # rodadas registradas (tabela longa) começa fechada por padrão
     tb_aberta = page.evaluate("document.querySelector('#e-fold-tb').open")
@@ -131,20 +167,29 @@ with sync_playwright() as p:
     b, page, errs = novo_ctx(p)
     page.goto(URL)
     page.wait_for_timeout(500)
-    amostra = page.evaluate("""() => {
+    # a amostra inclui os estados com 2º turno de governador (os dois finalistas de cada um) e o eleito
+    # de cada estado da lista, e o texto do dossiê não pode ter "undefined" nem "NaN" (13/10/2026)
+    amostra = page.evaluate("""(uf2t) => {
         const out = [];
         trocarEscopo('uf');
-        const ufs = ['SP','CE','MG','PR','PA','RS','BA','AM'];
+        const ufs = [...new Set(['SP','CE','MG','PR','PA','RS','BA','AM', ...uf2t])];
+        const vistos = new Set();
+        const abre = (uf, slug) => { if (vistos.has(slug)) return; vistos.add(slug); openDossieUF(slug); const d = document.querySelector('#dossie');
+            out.push([uf, slug, d.open, /undefined|NaN/.test(d.textContent)]); d.close(); };
         for (const uf of ufs) {
+            if (!UF[uf]) continue;
             trocarUF(uf); trocarCargoUF('governador');
             const c = UF[uf].gov[0];
-            if (c) { openDossieUF(c.slug); out.push([uf, c.slug, document.querySelector('#dossie').open]); document.querySelector('#dossie').close(); }
+            if (c) abre(uf, c.slug);
+            const A = resGov('1', uf);
+            for (const x of (A ? A.c.filter(r => r[0] && (r[6] === 'eleito' || r[6] === '2t')) : [])) abre(uf, x[0]);
         }
         return out;
-    }""")
+    }""", UF2T or [])
     novos = [e for e in errs if ruim(e)]
-    check("dossiês de estado (8 amostras) sem erro novo", len(novos) == 0, novos[:10])
+    check(f"dossiês de estado ({len(amostra)} amostras, com os finalistas do 2º turno e os eleitos) sem erro novo", len(novos) == 0, novos[:10])
     check("todos os dossiês de estado abriram", all(a[2] for a in amostra), amostra)
+    check("nenhum dossiê de estado com 'undefined' ou 'NaN'", not [a for a in amostra if a[3]], [a for a in amostra if a[3]])
     b.close()
 
     # ---- 3. abas nacionais + dossiês nacionais: desde 13/10/2026, todos os presidenciáveis (os do

@@ -123,10 +123,15 @@ with sync_playwright() as p:
     b, page, errs = novo_ctx(p)
     page.goto(URL)
     page.wait_for_timeout(400)
+    # Os estados são escolhidos pelo dado: os três de corrida mais concentrada (maior ponto de governo).
+    # Até 13/10/2026 a lista era fixa (AL, AP, PI). Desde a apuração o gráfico do estado traz também o
+    # quadrado do resultado em 4/10, que entra na conta do eixo; se escalaY não for chamada (estado sem
+    # gráfico), o teste registra a falha em vez de quebrar o script.
     r = page.evaluate("""() => {
         const out=[];
         const orig = escalaY;
-        for (const uf of ['AL','AP','PI']) {
+        const ufs = UFLIST.map(uf => [uf, Math.max(0, ...pollsDe(uf, 'governador').map(p => p[4]))]).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0]);
+        for (const uf of ufs) {
             trocarUF(uf); trocarCargoUF('governador');
             let cap = null;
             // o eixo cobre o que está na janela desenhada (o padrão passou a 90 dias em 21/9/2026);
@@ -134,11 +139,13 @@ with sync_playwright() as p:
             escalaY = function(series, cheio, t0) { const r = orig(series, cheio, t0); cap = {series, cheio, r, t0: t0 ?? T0}; return r; };
             drawCorridaUF();
             escalaY = orig;
+            if (!cap) { out.push([uf, null, null, false]); continue; }
             const mx = Math.max(...cap.series.filter(s => !s.dim).flatMap(s => s.pts.filter(p => p.t >= cap.t0).map(p => p.v)));
             out.push([uf, mx, cap.r[0], cap.r[0] >= mx]);
         }
         return out;
     }""")
+    check("escalaY testada em três estados escolhidos pelo dado", len(r) == 3, r)
     for uf, mx, ymax, passou in r:
         check(f"escalaY({uf}) cobre o máximo real ({mx}% <= teto {ymax}%)", passou, (mx, ymax))
     b.close()
@@ -405,6 +412,15 @@ with sync_playwright() as p:
     check("tema escuro: --band separada do fundo (>= 1,15 de contraste) e --c6 clareado em relação ao claro, com contraste >= 3:1",
           sep >= 1.15 and r["c6ok"], dict(r, separacao=sep))
     check("tema escuro: contorno dos estados não é a cor do fundo", r["stroke"] not in ("rgb(23, 24, 28)", "rgb(15, 16, 19)"), r)
+    # Desde 13/10/2026 os estados com 2º turno de governador são pintados com listras nas cores dos
+    # partidos dos dois finalistas (um <pattern> por estado), e o estado sem definição no TSE com uma
+    # cor neutra. As listras e o neutro passam pela mesma régua de 3:1 contra o papel escuro.
+    lis = page.evaluate("""() => { const fs = [...document.querySelectorAll('#mapa-svg pattern rect')].map(x => x.getAttribute('fill'))
+            .concat([...document.querySelectorAll('#mapa-svg path.uf')].map(x => x.getAttribute('fill'))).filter(f => /^#/.test(f || ''));
+        return {n2t: document.querySelectorAll('#mapa-svg pattern[id^="t2-"]').length, t2: ufs2TAbertas().length,
+                ruins: [...new Set(fs)].map(f => [f, +contraste(f, '#17181C').toFixed(2)]).filter(x => x[1] < 3)}; }""")
+    check("tema escuro: listras do 2º turno e cor neutra do mapa com contraste >= 3:1, uma listra por estado com 2º turno",
+          not lis["ruins"] and lis["n2t"] == lis["t2"], lis)
     b.close()
 
     # ---- dossiê a 390px não rola de lado (bug: '.cover{white-space:nowrap}' pegava a cobertura do
@@ -454,7 +470,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(800)
     page.evaluate("() => document.documentElement.setAttribute('data-theme', 'dark')")
     page.wait_for_timeout(500)
-    r = page.evaluate("""() => { const fs = [...new Set([...document.querySelectorAll('#mapa-svg path.uf')].map(p => p.getAttribute('fill') || '').filter(f => /^#/.test(f)))];
+    r = page.evaluate("""() => { const fs = [...new Set([...document.querySelectorAll('#mapa-svg path.uf, #mapa-svg pattern rect')].map(p => p.getAttribute('fill') || '').filter(f => /^#/.test(f)))];
         return {escuro: ESCURO, ruins: fs.map(f => [f, +contraste(f, '#17181C').toFixed(2)]).filter(x => x[1] < 3),
                 legenda: [...document.querySelectorAll('.mapa-legend .lg i')].map(i => i.getAttribute('style'))}; }""")
     check("data-theme=dark redesenha o mapa com cores de partido >= 3:1", r["escuro"] and not r["ruins"] and r["legenda"], r)
@@ -482,13 +498,21 @@ with sync_playwright() as p:
     r2 = page.evaluate(JS_SEL, "#e-lado-controls")
     check("selects do comparador com >= 96px a 390px (nacional e estadual)", r1 and r2 and min(r1 + r2) >= 96, {"nacional": r1, "estadual": r2})
     # tabelas de segundo turno par a par cabem no .tablewrap a 390px (bug: 'Fernando Haddad' no cabeçalho
-    # empurrava a coluna do adversário para fora da tela)
-    page.goto(URL + "#uf-sp-governo-pesquisas")
-    page.wait_for_timeout(800)
-    page.evaluate("() => { document.querySelector('#e-fold-2t').open = true; }")
-    page.wait_for_timeout(200)
-    r = page.evaluate("() => [...document.querySelectorAll('#e-fold-2t .tablewrap')].map(w => [w.scrollWidth, w.clientWidth, [...w.querySelectorAll('th')].map(t => t.textContent)])")
-    check("tabelas de 2T par a par (SP) sem rolagem lateral a 390px", r and all(sw <= cw for sw, cw, _ in r), r)
+    # empurrava a coluna do adversário para fora da tela). Desde 13/10/2026 os pares só aparecem nos
+    # estados com 2º turno de governador; o teste usa o de nomes mais longos, escolhido pelo dado, e
+    # mede a tabela do confronto e as dos outros pares
+    page.goto(URL)
+    page.wait_for_timeout(600)
+    uf2 = page.evaluate("() => { const l = ufs2TAbertas().filter(k => rodadasUF2T(k).length); return l.length ? l.map(k => [k, finalUF(k).map(c => c[1]).join('').length]).sort((a, b) => b[1] - a[1])[0][0].toLowerCase() : null; }")
+    if uf2:
+        page.goto(URL + f"#uf-{uf2}-governo-pesquisas")
+        page.wait_for_timeout(800)
+        page.evaluate("() => { const f = document.querySelector('#e-fold-2t'); if (!f.hidden) f.open = true; }")
+        page.wait_for_timeout(200)
+        r = page.evaluate("() => [...document.querySelectorAll('#e-p2t .tablewrap, #e-fold-2t:not([hidden]) .tablewrap')].map(w => [w.scrollWidth, w.clientWidth, [...w.querySelectorAll('th')].filter(t => t.offsetParent).map(t => t.textContent)])")
+        check(f"tabelas de 2º turno ({uf2.upper()}: o confronto e os outros pares) sem rolagem lateral a 390px, ao menos uma", r and all(sw <= cw for sw, cw, _ in r), r)
+    else:
+        print("aviso: nenhum estado com 2º turno de governador e rodada do confronto; tabelas de 2º turno não medidas")
     # tabela de cobertura com padding menor no celular (bug: a regra do .tablewrap vencia '.cov td' por ordem)
     page.goto(URL + "#metodo")
     page.wait_for_timeout(600)
@@ -514,10 +538,14 @@ with sync_playwright() as p:
     cdp = ctx.new_cdp_session(page)
     cdp.send("Emulation.setTouchEmulationEnabled", {"enabled": True})
     cdp.send("Emulation.setEmulatedMedia", {"features": [{"name": "pointer", "value": "coarse"}, {"name": "hover", "value": "none"}]})
-    page.goto(URL + "#uf-sp-governo-geral")
-    page.wait_for_timeout(900)
-    r = page.evaluate("() => ({coarse: matchMedia('(pointer:coarse)').matches, alturas: [...document.querySelectorAll('.view.on .hb .nmbtn')].map(b => Math.round(b.getBoundingClientRect().height))})")
-    check("nome-botão das barras com >= 40px sob pointer:coarse", r["coarse"] and r["alturas"] and min(r["alturas"]) >= 40, r)
+    # mede em SP e num estado com 2º turno (as barras do resultado do TSE e as do 2º turno também levam o nome-botão)
+    alt = {}
+    for rota in ("uf-sp-governo-geral", "uf-am-governo-geral"):
+        page.goto(URL + "#" + rota)
+        page.wait_for_timeout(900)
+        alt[rota] = page.evaluate("() => ({coarse: matchMedia('(pointer:coarse)').matches, alturas: [...document.querySelectorAll('.view.on .hb .nmbtn, .view.on [data-edossie].nmbtn')].filter(b => b.offsetParent).map(b => Math.round(b.getBoundingClientRect().height))})")
+    check("nome-botão das barras com >= 40px sob pointer:coarse (SP e AM, ao menos um em cada)",
+          all(r["coarse"] and r["alturas"] and min(r["alturas"]) >= 40 for r in alt.values()), alt)
     page.goto(URL + "#geral")
     page.wait_for_timeout(700)
     # o painel de alertas é do dia: num dia sem sinal ele fica vazio, e isso é estado legítimo, não bug
@@ -717,6 +745,23 @@ with sync_playwright() as p:
     check("carimbo de Pesquisas do estado com o mesmo número de rodadas do painel, em SP governo e Senado, sem 'Escolha' no subnível",
           all(c["carimbo"] is not None and c["carimbo"] == c["painel"] and not c["escolha"] for c in carimbos.values())
           and carimbos["uf-sp-governo-pesquisas"]["carimbo"] != carimbos["uf-sp-senado-pesquisas"]["carimbo"], carimbos)
+    # Desde 13/10/2026 o carimbo diz o turno: com o resultado do TSE, "de 1º turno" e a data do TSE nos
+    # estados decididos; nos estados com 2º turno de governador, as rodadas de 2º turno depois de 4/10,
+    # o mesmo número do painel do confronto. O estado de 2º turno vem do dado.
+    turno = page.evaluate("""async () => { const num = t => { const m = (t || '').match(/(\d+) rodada/); return m ? +m[1] : null; };
+        const car = () => document.querySelector('[data-carimbo=e-pesquisas]').textContent;
+        const out = {comRes: !!RES};
+        trocarEscopo('uf'); trocarUF('SP'); trocarCargoUF('governador'); irPara('e-pesquisas'); atualizarCarimbos();
+        out.sp = {est: estadoGov('SP'), car: car()};
+        const k = ufs2TAbertas()[0];
+        if (k) { trocarUF(k); irPara('e-pesquisas'); atualizarCarimbos();
+            out.t2 = {uf: k, car: car(), n: num(car()), painel: num(document.querySelector('#e-cap-2tm').textContent), camp: campUF2T(k).length}; }
+        return out; }""")
+    if turno["comRes"]:
+        sp, t2 = turno["sp"], turno.get("t2")
+        check("com resultado, o carimbo de Pesquisas do estado diz o turno (decidido: 1º turno e a data do TSE; 2º turno: rodadas depois de 4/10, como o painel)",
+              (sp["est"] != "decidido" or ("de 1º turno" in sp["car"] and "resultado do TSE de" in sp["car"]))
+              and (t2 is None or ("2º turno" in t2["car"] and (t2["n"] == t2["painel"] == t2["camp"] if t2["camp"] else "nenhuma" in t2["car"]))), turno)
     # ---- a régua viva em todos os textos da corrida (bug: legenda, placar, tooltip e tabela por modo diziam "7 dias" fixos
     #      enquanto a série usava a janela do calendário)
     # Desde 13/10/2026 o span leva o texto inteiro ("1 dia", "3 dias"), escrito por diasTxt: com a
@@ -765,11 +810,14 @@ with sync_playwright() as p:
     check("tiles do resultado do 1º turno no número que o dado declara, e a última rodada de 2º turno no trilho",
           r["legenda"] == r["esperado"] and ult_ok, {k: r[k] for k in ("legenda", "esperado", "ult", "ident", "ultCamp", "ultTit")})
     tops = {}
-    for h in ("pesquisas", "uf-sp-governo"):
+    # SP (governo decidido) e um estado com 2º turno de governador, escolhido pelo dado (13/10/2026)
+    uf2 = page.evaluate("() => (ufs2TAbertas()[0] || 'AM').toLowerCase()")
+    for h in ("pesquisas", "uf-sp-governo", f"uf-{uf2}-governo"):
         page.goto(URL + "#" + h)
         page.wait_for_timeout(700)
         tops[h] = page.evaluate(JS_G)
-    check("topos dos painéis de .grid2 iguais a 1280 (Pesquisas e Visão geral de SP)", bool(tops["uf-sp-governo"]) and all(len(set(t)) == 1 for g in tops.values() for t in g), tops)
+    check("topos dos painéis de .grid2 iguais a 1280 (Pesquisas, Visão geral de SP e de um estado com 2º turno)",
+          any(tops[h] for h in tops if h.startswith("uf-")) and all(len(set(t)) == 1 for g in tops.values() for t in g), tops)
     check("rotas do bloco (fase C, 1280) sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
     # ---- rodada só de 2º turno como a mais recente (13/10/2026: as primeiras chegaram pela coleta; o
@@ -1272,33 +1320,78 @@ with sync_playwright() as p:
     # placar, os alertas, o mapa e a tira de números do estado saíam de UMA rodada, enquanto o gráfico
     # ao lado desenhava média: dois números diferentes para a mesma disputa na mesma tela. E a
     # manchete de um estado inteiro podia ser de um instituto só (a Veritá assinava a de seis).
-    # O estado é escolhido pelo dado: o primeiro em que a rodada mais recente e a média se afastam
-    # mais de 2 pontos. Fixar o Pará barrou a atualização de 26/9, quando a rodada nova de lá (41%)
-    # caiu a 0,4 ponto da média (40,6%) e o teste deixou de conseguir distinguir uma da outra.
+    # Desde 13/10/2026, com o resultado do TSE, a regra se divide em três:
+    #  (a) governo decidido: manchete e placar trazem o percentual do eleito no CSV do TSE, e o mapa
+    #      pinta o estado na cor do partido dele;
+    #  (b) 2º turno com média: manchete e placar trazem a média do confronto, e não a última rodada;
+    #  (c) 2º turno sem média (menos de MIN_POS1T rodadas depois de 4/10): manchete e placar vêm do 1º
+    #      turno do TSE, nunca de uma rodada só.
+    # Sem o CSV, vale a regra antiga, num estado escolhido pelo dado.
+    import csv as _csv_e, io as _io_e
+    arq_e = Path(__file__).resolve().parent.parent / "dados" / "resultados" / "candidatos.csv"
+    gov_csv = {}
+    if arq_e.exists():
+        for x in _csv_e.DictReader(_io_e.open(arq_e, encoding="utf-8-sig")):
+            if x["turno"] == "1" and x["cargo"] == "governador":
+                gov_csv.setdefault(x["abrangencia"].upper(), []).append(x)
     b, page, errs = novo_ctx(p)
     page.goto(URL)
     page.wait_for_timeout(900)
-    uf_teste = page.evaluate("""() => { for (const uf of UFLIST) { const l = liderDe(uf, 'governador'), M = mediaUF(uf, 'governador');
-        if (l && M && M.insts >= 2 && Math.abs(l.pts[0][4] - M.lista[0].valor) > 2 && l.pts[0][3] === M.lista[0].nome) return uf; } return 'PA'; }""")
-    page.goto(URL + "#uf-" + uf_teste.lower() + "-governo")
-    page.wait_for_timeout(1200)
-    est = page.evaluate("""(uf) => {
-        const cargo = 'governador';
-        const l = liderDe(uf, cargo), M = mediaUF(uf, cargo);
-        const num = t => (t.match(/-?\\d+[,.]?\\d*/g) || []).map(x => +x.replace(',', '.'));
-        return {rodadaTop: l.pts[0][4], mediaTop: M.lista[0].valor, rodadas: M.rs.length, insts: M.insts,
-                tag: document.querySelector('#e-tag').textContent,
-                tagNums: num(document.querySelector('#e-tag').textContent),
-                eyebrow: document.querySelector('#e-eyebrow').textContent,
-                duelo: [...document.querySelectorAll('#e-duelo .dl-num')].map(e => +e.textContent.match(/-?\\d+[,.]?\\d*/)[0].replace(',', '.')),
-                mapaLider: liderPartido(uf, cargo).p.valor, uf}; }""", uf_teste)
-    # o primeiro número da manchete é o da média, e não o da rodada
-    check("a manchete do estado traz a média, não a rodada mais recente",
-          abs(est["tagNums"][0] - est["mediaTop"]) < 0.11 and abs(est["tagNums"][0] - est["rodadaTop"]) > 1, est)
-    check("o placar do estado traz a média", est["duelo"] and abs(est["duelo"][0] - est["mediaTop"]) < 0.11, est)
-    check("o mapa colore o estado pela média", abs(est["mapaLider"] - est["mediaTop"]) < 0.11, est)
-    check("o carimbo do estado diz de quantas rodadas e institutos a média é feita",
-          "média de" in est["eyebrow"] and str(est["rodadas"]) in est["eyebrow"] and str(est["insts"]) in est["eyebrow"], est["eyebrow"])
+    num_js = "const num = t => (String(t).replace(/[12]º/g, '').match(/-?\\d+[,.]?\\d*/g) || []).map(x => +x.replace(',', '.'));"
+    if gov_csv:
+        est = page.evaluate("""() => { """ + num_js + """
+            const out = {}; trocarEscopo('uf');
+            for (const uf of UFLIST) { trocarUF(uf); trocarCargoUF('governador');
+                const path = document.querySelector(`#mapa-svg path.uf[data-uf="${uf}"]`), G = apGov(uf), m = mediaUF2T(uf);
+                out[uf] = {est: estadoGov(uf), tag: document.querySelector('#e-tag').textContent, tagNums: num(document.querySelector('#e-tag').textContent),
+                    duelo: [...document.querySelectorAll('#e-duelo .dl-num')].map(e => num(e.textContent)[0]),
+                    fill: path && path.getAttribute('fill'), corEleito: G ? corPartido(G.c[0][3]) : null,
+                    media: m ? [+fPct(m.va).replace(',', '.'), +fPct(m.vb).replace(',', '.')] : null,
+                    rodadas: campUF2T(uf).map(r => Object.values(r.pub)), fin: finalUF(uf).map(c => c[1])}; }
+            return out; }""")
+        ruins_a, ruins_b, ruins_c, vistos = [], [], [], {"a": 0, "b": 0, "c": 0}
+        for uf, linhas in gov_csv.items():
+            e = est.get(uf)
+            if not e:
+                continue
+            eleito = [x for x in linhas if x["situacao"].strip().lower() == "eleito"]
+            if eleito:
+                vistos["a"] += 1
+                pct = float(eleito[0]["pct_validos"])
+                if not (e["tagNums"] and abs(e["tagNums"][0] - pct) < 0.005 and e["duelo"] and abs(e["duelo"][0] - pct) < 0.005 and e["fill"] == e["corEleito"]):
+                    ruins_a.append((uf, pct, e))
+            elif e["est"] == "t2" and e["media"]:
+                vistos["b"] += 1
+                if not (abs(e["tagNums"][0] - e["media"][0]) < 0.051 and abs(e["duelo"][0] - e["media"][0]) < 0.051):
+                    ruins_b.append((uf, e))
+            elif e["est"] == "t2":
+                vistos["c"] += 1
+                fin = sorted((float(x["pct_validos"]) for x in linhas if x["situacao"].strip().lower() == "2º turno"), reverse=True)
+                pub = {v for r in e["rodadas"] for v in r}
+                if not (len(fin) == 2 and e["tagNums"][:2] == fin and e["duelo"] == fin and not (set(e["tagNums"]) & pub)):
+                    ruins_c.append((uf, fin, e))
+        check("(a) governo decidido: manchete e placar com o percentual do eleito no CSV do TSE e o mapa na cor do partido dele",
+              vistos["a"] > 0 and not ruins_a, {"estados": vistos["a"], "ruins": ruins_a[:3]})
+        check("(b) 2º turno com média: manchete e placar trazem a média do confronto", not ruins_b, {"estados": vistos["b"], "ruins": ruins_b[:3]})
+        check("(c) 2º turno sem média: manchete e placar vêm do 1º turno do TSE, nunca de uma rodada só", not ruins_c, {"estados": vistos["c"], "ruins": ruins_c[:3]})
+    else:
+        print("aviso: sem dados/resultados/candidatos.csv; o estado é conferido pela regra da média de 1º turno")
+        uf_teste = page.evaluate("""() => { for (const uf of UFLIST) { const l = liderDe(uf, 'governador'), M = mediaUF(uf, 'governador');
+            if (l && M && M.insts >= 2 && Math.abs(l.pts[0][4] - M.lista[0].valor) > 2 && l.pts[0][3] === M.lista[0].nome) return uf; } return 'PA'; }""")
+        page.goto(URL + "#uf-" + uf_teste.lower() + "-governo")
+        page.wait_for_timeout(1200)
+        est = page.evaluate("""(uf) => { """ + num_js + """
+            const l = liderDe(uf, 'governador'), M = mediaUF(uf, 'governador');
+            return {rodadaTop: l.pts[0][4], mediaTop: M.lista[0].valor, rodadas: M.rs.length, insts: M.insts,
+                    tagNums: num(document.querySelector('#e-tag').textContent), eyebrow: document.querySelector('#e-eyebrow').textContent,
+                    duelo: [...document.querySelectorAll('#e-duelo .dl-num')].map(e => num(e.textContent)[0]),
+                    mapaLider: liderPartido(uf, 'governador').p.valor}; }""", uf_teste)
+        check("a manchete do estado traz a média, não a rodada mais recente",
+              abs(est["tagNums"][0] - est["mediaTop"]) < 0.11 and abs(est["tagNums"][0] - est["rodadaTop"]) > 1, est)
+        check("o placar do estado traz a média", est["duelo"] and abs(est["duelo"][0] - est["mediaTop"]) < 0.11, est)
+        check("o mapa colore o estado pela média", abs(est["mapaLider"] - est["mediaTop"]) < 0.11, est)
+        check("o carimbo do estado diz de quantas rodadas e institutos a média é feita",
+              "média de" in est["eyebrow"] and str(est["rodadas"]) in est["eyebrow"] and str(est["insts"]) in est["eyebrow"], est["eyebrow"])
     # nenhum estado pode ter a manchete decidida por um instituto só
     solo = page.evaluate("""() => {
         const out = [];
@@ -1577,16 +1670,39 @@ with sync_playwright() as p:
     b.close()
 
     # o alerta de primeiro turno do governo sai dos válidos: SP tem Tarcísio acima de 50% da
-    # intenção total e dos válidos, e o alerta tem de dizer "votos válidos", não o número total
+    # intenção total e dos válidos, e o alerta tem de dizer "votos válidos", não o número total.
+    # Desde 13/10/2026 isso roda nos 27 estados: com o resultado do TSE, nenhum alerta projeta o 1º
+    # turno (nem "Primeiro turno", nem "Segunda vaga", nem "a média aponta"), a régua de válidos é a
+    # do resultado oficial (ou a da média do 2º turno, onde ela existe), e nos estados com 2º turno a
+    # abertura diz "25 de outubro" e os dois nomes.
     b, page, errs = novo_ctx(p)
     page.goto(URL + "#uf-sp-governo")
     page.wait_for_timeout(1200)
-    r = page.evaluate("""() => { const V = validosUF(mediaUF('SP', 'governador'));
-        return {al: document.querySelector('#e-alerts').innerText, st: V && V.status,
-                reg: (() => { const e = document.querySelector('#e-validos'); return e && !e.hidden ? e.innerText : ''; })()}; }""")
-    check("alerta de primeiro turno no governo usa votos válidos",
-          r["st"] != "vence" or ("votos válidos" in r["al"] and "faixa de vitória em turno único" not in r["al"]), r["al"][:300])
-    check("o estado mostra a régua de votos válidos do governo", "votos válidos" in r["reg"], r["reg"][:160])
+    r = page.evaluate("""() => { const out = {}; trocarEscopo('uf');
+        for (const uf of UFLIST) { trocarUF(uf); trocarCargoUF('governador');
+            const reg = document.querySelector('#e-validos');
+            out[uf] = {est: estadoGov(uf), al: document.querySelector('#e-alerts').innerText, reg: reg && !reg.hidden ? reg.innerText : '',
+                       abre: ['#e-eyebrow', '#e-duelo', '#e-tag', '#e-lede'].map(s => document.querySelector(s).innerText).join(' '),
+                       fin: finalUF(uf).map(c => c[1]), media: !!mediaUF2T(uf), t2: dExtenso(TURNOS.t2), sem: estadoGov(uf) === 'sem',
+                       st: (() => { const V = validosUF(mediaUF(uf, 'governador')); return V && V.status; })()}; }
+        return out; }""")
+    projecao = re.compile(r"Primeiro turno|Segunda vaga|a média aponta|haverá segundo turno", re.I)
+    if all(x["sem"] for x in r.values()):
+        x = r["SP"]
+        check("alerta de primeiro turno no governo usa votos válidos (sem resultado do TSE)",
+              x["st"] != "vence" or ("votos válidos" in x["al"] and "faixa de vitória em turno único" not in x["al"]), x["al"][:300])
+    else:
+        ruins = {uf: x["al"][:160] for uf, x in r.items() if not x["sem"] and projecao.search(x["al"])}
+        check("com o resultado do TSE, nenhum alerta estadual projeta o 1º turno (27 estados)", not ruins, ruins)
+        ruins = {uf: x["reg"][:120] for uf, x in r.items() if not x["sem"]
+                 and not ("resultado oficial do TSE" in x["reg"] or (x["media"] and "que decidem o segundo turno" in x["reg"]))}
+        check("com o resultado do TSE, a régua de válidos do estado é a do resultado oficial (ou a da média do 2º turno)", not ruins, ruins)
+        ruins = {uf: x["abre"][:200] for uf, x in r.items() if x["est"] == "t2"
+                 and not (x["t2"] in x["abre"] and len(x["fin"]) == 2 and all(n in x["abre"] for n in x["fin"]))}
+        check("nos estados com 2º turno, a abertura diz a data por extenso e os dois nomes", not ruins,
+              {"estados": [uf for uf, x in r.items() if x["est"] == "t2"], "ruins": ruins})
+    check("o estado mostra a régua de votos válidos do governo", "votos válidos" in r["SP"]["reg"], r["SP"]["reg"][:160])
+    check("27 estados percorridos sem erro de página", len(r) == 27 and not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
 
     # ---- nome que saiu das pesquisas não fica na média do estado (23/9/2026)
@@ -1905,13 +2021,10 @@ with sync_playwright() as p:
     # estado decidido, num de 2º turno e no pendente), nos diálogos de compartilhar e de preferências, nos
     # dossiês, no título e na descrição: nenhuma frase que trate o 1º turno como disputa aberta e nenhum
     # travessão. A lista de eventos e as tabelas de rodadas ficam de fora (o texto delas é da fonte).
-    # PENDENTES guarda o que é de outra frente do 2º turno e ainda não foi trocado neste ramo: cada
-    # entrada é (rota, trecho que casa). A integração esvazia a lista; o que aparecer fora dela falha.
-    PENDENTES = {
-        ("e-geral", "decidem o primeiro turno"),             # régua de válidos do estado (U1, Estados)
-        ("e-geral", "aponta vitória no primeiro turno"),     # régua e alerta do estado (U1/U2, Estados)
-        ("e-geral", "aponta segundo turno"),                 # régua de válidos do estado (U1, Estados)
-    }
+    # PENDENTES guardava, enquanto as frentes do 2º turno andavam em ramos separados, as frases que outra
+    # frente ainda ia trocar. Na integração de 14/10/2026 todas foram trocadas e a lista ficou vazia: uma
+    # entrada nova aqui só se justifica com o mesmo motivo, e precisa sair antes de publicar.
+    PENDENTES = set()
     b, page, errs = novo_ctx(p, viewport=(1280, 900))
     page.goto(URL + "#geral")
     page.wait_for_timeout(900)
@@ -2139,6 +2252,83 @@ with sync_playwright() as p:
         check("N14: #dossie-pablo-marcal abre", r["open"], {k: r[k] for k in ("open", "hash", "r1", "res")})
     check("N14 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
     b.close()
+
+    # ---- N3: os 27 estados com o resultado do TSE (13/10/2026). O oráculo é o CSV de resultados, não a
+    # página: governo eleito com o selo e o percentual; estados com 2º turno (os que têm linha de turno 2
+    # em totais.csv) com os dois nomes e a data; Senado com os eleitos; o estado que o TSE deixou sem
+    # definição (Tocantins em 13/10) sem selo de eleito e sem a data do 2º turno; a conta eleitos + 2º
+    # turno + sem definição = 27; o mapa com as listras e o neutro; e nada de "undefined" ou "NaN".
+    import csv as _csv3, io as _io3
+    raiz3 = Path(__file__).resolve().parent.parent / "dados" / "resultados"
+    if not (raiz3 / "candidatos.csv").exists() or not (raiz3 / "totais.csv").exists():
+        print("aviso: sem dados/resultados; N3 fica de fora")
+    else:
+        cand3 = list(_csv3.DictReader(_io3.open(raiz3 / "candidatos.csv", encoding="utf-8-sig")))
+        tot3 = list(_csv3.DictReader(_io3.open(raiz3 / "totais.csv", encoding="utf-8-sig")))
+        uf2t3 = sorted({x["abrangencia"].upper() for x in tot3 if x["turno"] == "2" and x["cargo"] == "governador"})
+        g1 = [x for x in cand3 if x["turno"] == "1" and x["cargo"] == "governador"]
+        eleito3 = {x["abrangencia"].upper(): x for x in g1 if x["situacao"].strip().lower() == "eleito"}
+        fin3 = {}
+        for x in g1:
+            if x["situacao"].strip().lower() == "2º turno":
+                fin3.setdefault(x["abrangencia"].upper(), []).append(x)
+        pend3 = sorted(set(fin3) - set(uf2t3) - set(eleito3))
+        sen3 = {}
+        for x in cand3:
+            if x["turno"] == "1" and x["cargo"] == "senador" and x["situacao"].strip().lower() == "eleito":
+                sen3.setdefault(x["abrangencia"].upper(), []).append(x)
+        b, page, errs = novo_ctx(p)
+        page.goto(URL + "#uf-sp-governo")
+        page.wait_for_timeout(1000)
+        n3 = page.evaluate("""() => { const out = {}; trocarEscopo('uf');
+            const txt = s => [...document.querySelectorAll(s)].map(e => e.textContent).join(' ');
+            for (const uf of UFLIST) { out[uf] = {};
+                for (const cargo of ['governador', 'senador']) { trocarUF(uf); trocarCargoUF(cargo);
+                    const path = document.querySelector(`#mapa-svg path.uf[data-uf="${uf}"]`);
+                    out[uf][cargo] = {est: estadoUF(uf, cargo), tagD: txt('#e-duelo .dl-tag'), tag: txt('#e-tag'),
+                        hero: txt('#e-eyebrow, #e-duelo, #e-tag, #e-nota, #e-lede, #e-validos'), blocos: txt('#e-alerts, #e-strip, #mapa-sel'),
+                        fill: path && path.getAttribute('fill'), tip: path && path.dataset.tip,
+                        lixo: /undefined|NaN/.test(txt('#v-e-geral, #v-e-pesquisas'))}; }
+            }
+            // o nome de cada slug no mural: o CSV traz o nome de urna do TSE ("JÚLIO CÉSAR O JULIM DO LULA"),
+            // e a página o nome do registro ("Julio Cesar"); quem é eleito vem do CSV, o nome vem daqui
+            const nomes = Object.fromEntries(UFLIST.flatMap(k => todosUF(UF[k]).map(c => [c.slug, c.nome])));
+            return {uf: out, nomes, corPend: corPend(), paths: document.querySelectorAll('#mapa-svg path.uf').length,
+                    dentro: UFLIST.filter(k => !UF2T.includes(k)).flatMap(k => (UF[k].rodadas2 || []).filter(r => r.data > TURNOS.t1).map(r => k + ' ' + r.inst + ' ' + r.data))}; }""")
+        U3 = n3["uf"]
+        br = lambda v: f"{float(v):.2f}".replace(".", ",")
+        # nome de urna do CSV (em caixa alta) contra o texto da página, sem caixa nem acento
+        import unicodedata as _ud3
+        sa = lambda t: "".join(ch for ch in _ud3.normalize("NFD", str(t).lower()) if _ud3.category(ch) != "Mn")
+        tem = lambda nome, texto: sa(nome) in sa(texto)
+        nome3 = lambda x: n3["nomes"].get(x["mural"]) or x["nome_urna"]
+        ruins = {k: (x["pct_validos"], U3[k]["governador"]["tag"], U3[k]["governador"]["tagD"]) for k, x in eleito3.items()
+                 if k in U3 and not (br(x["pct_validos"]) in U3[k]["governador"]["tag"] and "eleit" in U3[k]["governador"]["tagD"])}
+        check("N3: governo eleito no 1º turno com o selo e o percentual do CSV", len(eleito3) > 0 and not ruins, ruins)
+        ruins = {k: U3[k]["governador"]["hero"][:200] for k in uf2t3 if k in U3 and not (
+            U3[k]["governador"]["est"] in ("t2", "decidido") and all(tem(nome3(x), U3[k]["governador"]["hero"]) for x in fin3.get(k, []))
+            and len(fin3.get(k, [])) == 2 and ("25 de outubro" in U3[k]["governador"]["hero"] or U3[k]["governador"]["est"] == "decidido"))}
+        check("N3: estados com 2º turno de governador (de totais.csv) com os dois nomes e a data", not ruins, {"uf2t": uf2t3, "ruins": ruins})
+        ruins = {k: U3[k]["senador"]["tag"] for k, xs in sen3.items() if k in U3 and not all(tem(nome3(x), U3[k]["senador"]["tag"]) for x in xs)}
+        check("N3: Senado com os eleitos na manchete, nos 27 estados", len(sen3) == 27 and not ruins, ruins)
+        ruins = {}
+        for k in pend3:
+            g = U3.get(k, {}).get("governador")
+            if not g or g["est"] != "pend" or "eleit" in g["tagD"].lower() or "eleit" in g["tag"].lower() or re.search(r"25 de outubro|25/10", g["hero"] + g["blocos"] + (g["tip"] or "")) or g["fill"] != n3["corPend"]:
+                ruins[k] = g
+        check("N3: estado sem definição no TSE sem selo de eleito, sem a data do 2º turno e com o mapa neutro", not ruins, {"pend": pend3, "ruins": ruins})
+        est = {k: U3[k]["governador"]["est"] for k in U3}
+        conta = {e: sum(1 for v in est.values() if v == e) for e in ("decidido", "t2", "pend")}
+        check("N3: eleitos + 2º turno + sem definição = 27, e cada conta é a do CSV",
+              conta["decidido"] == len(eleito3) and conta["t2"] == len(uf2t3) and conta["pend"] == len(pend3) and sum(conta.values()) == 27,
+              {"página": conta, "csv": [len(eleito3), len(uf2t3), len(pend3)]})
+        ruins = [k for k in uf2t3 if k in U3 and U3[k]["governador"]["est"] == "t2" and U3[k]["governador"]["fill"] != f"url(#t2-{k})"]
+        check("N3: mapa com 27 estados e listras nos de 2º turno", n3["paths"] == 27 and not ruins, ruins)
+        ruins = [f"{k}-{c}" for k, v in U3.items() for c, x in v.items() if x["lixo"]]
+        check("N3: nenhum 'undefined' nem 'NaN' na Visão geral e nas Pesquisas dos 27 estados, nos dois cargos", not ruins, ruins)
+        check("N3: nenhuma rodada de 2º turno depois de 4/10 em estado sem 2º turno de governador", not n3["dentro"], n3["dentro"][:5])
+        check("N3 sem erro de página", not [e for e in errs if e[0] == "pageerror"], errs)
+        b.close()
 
 print()
 print(f"{len(ok)} OK, {len(fail)} FAIL")

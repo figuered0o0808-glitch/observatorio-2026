@@ -185,6 +185,12 @@ projeto:
   véspera (`DATA.vespera`), com a conta refeita ao lado. É medida, nunca correção: a média do 2º turno
   não usa nada dela. A editoria Pesquisas abre pelo 2º turno (`#ch-corrida`, em votos válidos) e
   guarda a corrida do 1º turno no histórico (`#ch-corrida-1t`), com a régua de cada dia.
+- Nos estados, o caso de cada disputa sai de `estadoGov(uf)` ("decidido", "t2",
+  "pend", "apur" ou "sem") e `estadoUF(uf, cargo)`; só o caso "sem" (sem resultado do
+  TSE) usa a média de 1º turno (`mediaUF`). O 2º turno de governador tem uma conta só,
+  `mediaUF2T(uf)`, sobre `rodadasUF2T(uf)` (o confronto que vai à urna, em válidos),
+  com a mesma regra `MIN_POS1T` do país; abaixo dela, `linhaRodadasUF2T(uf)` mostra as
+  rodadas como rodadas. As barras do TSE saem de `barrasResultado(uf, cargo, turno)`.
 - A manchete da home (`#manchete`) e a dos estados (`#e-tag`) são numéricas e
   factuais. A da home sai de `textoManchete()`: a apuração do 2º turno pelo TSE
   quando ela começar, a média do 2º turno (`media2T`) na campanha, o resultado
